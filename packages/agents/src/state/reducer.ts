@@ -56,3 +56,18 @@ export const applyEvent = (state: TAgentCollectionState, event: TAgentEvent): TA
     lastSequence: { ...state.lastSequence, [event.runId]: event.sequence },
   };
 };
+
+/**
+ * Pure. Merge an authoritative snapshot into state, keyed by run id.
+ * Runs absent from the snapshot are preserved (scope is the caller's choice).
+ * lastSequence resets to -1 so the next streamed event applies cleanly.
+ */
+export const reconcile = (state: TAgentCollectionState, snapshot: TAgentRun[]): TAgentCollectionState => {
+  const runs = { ...state.runs };
+  const lastSequence = { ...state.lastSequence };
+  for (const run of snapshot) {
+    runs[run.id] = run;
+    lastSequence[run.id] = -1;
+  }
+  return { runs, lastSequence };
+};
