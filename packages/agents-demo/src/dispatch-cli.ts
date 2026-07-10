@@ -73,8 +73,20 @@ async function main() {
   const resources = new PlaneResources(client, cfg.workspace, cfg.projectId);
   const anthropic = new Anthropic({ apiKey: cfg.anthropicKey });
 
+  // AGENT_APPROVE forces the decision (for scripted / rehearsed runs); otherwise
+  // prompt an interactive TTY; with no TTY and no override, default to declined (safe).
+  const forced = process.env.AGENT_APPROVE?.trim().toLowerCase();
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const requestApproval = async (req: { summary: string }): Promise<boolean> => {
+    if (forced) {
+      const ok = forced === "y" || forced === "yes" || forced === "1";
+      console.log(`\n  ⚑ ${req.summary} → ${ok ? "APPROVED" : "REJECTED"} (AGENT_APPROVE=${forced})`);
+      return ok;
+    }
+    if (!process.stdin.isTTY) {
+      console.log(`\n  ⚑ ${req.summary} → declined (no TTY, no AGENT_APPROVE)`);
+      return false;
+    }
     const ans = (await rl.question(`\n  ⚑ APPROVE: ${req.summary}? [y/N] `)).trim().toLowerCase();
     return ans === "y" || ans === "yes";
   };

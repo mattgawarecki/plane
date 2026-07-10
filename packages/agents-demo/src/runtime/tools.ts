@@ -62,6 +62,16 @@ export function buildTools(ctx: TToolContext) {
       }),
   });
 
+  const listWorkItems = betaZodTool({
+    name: "list_work_items",
+    description:
+      "Enumerate ALL current work items in the project with their state and priority. Use this to answer " +
+      "'what's in flight' or to get the full picture before acting — unlike search, it needs no keyword and " +
+      "returns everything, so prefer it when the user wants an overview or a list.",
+    inputSchema: z.object({}),
+    run: async () => withStep(ctx, "List work items", async () => JSON.stringify(await resources.listWorkItems())),
+  });
+
   const createSubTask = betaZodTool({
     name: "create_sub_task",
     description:
@@ -158,14 +168,15 @@ export function buildTools(ctx: TToolContext) {
     },
   });
 
-  return [searchWorkItems, createSubTask, assign, setStatus, addComment, bulkClose];
+  return [listWorkItems, searchWorkItems, createSubTask, assign, setStatus, addComment, bulkClose];
 }
 
 /** Rails for the runtime. Kept tight so a live LLM stays on-task on stage. */
 export const SYSTEM_PROMPT = `You are an agent operating inside a LOCAL demo of Plane, a project-management tool.
 
-You act only through the provided tools. When the user ASKS a question, use the read tools
-(search_work_items) to gather facts, then answer in plain language — do not create or change anything.
+You act only through the provided tools. When the user ASKS a question, gather facts first, then answer in
+plain language — do not create or change anything. To see what's in flight or get an overview, call
+list_work_items (it enumerates everything); use search_work_items only to find items by a specific keyword.
 
 When the user DELEGATES work (e.g. "ship the September billing close"), decompose it into a small set
 of well-scoped sub-tasks with clear names and one-line outcome descriptions, create them under the

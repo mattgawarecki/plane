@@ -6,6 +6,10 @@
 
 import type { PlaneClient } from "./plane-client";
 
+/** Plane list endpoints return a paginated `{ results: [...] }`; some return a bare array. */
+const asList = <T>(res: unknown): T[] =>
+  Array.isArray(res) ? (res as T[]) : ((res as { results?: T[] })?.results ?? []);
+
 export type TStateGroup = "backlog" | "unstarted" | "started" | "completed" | "cancelled";
 
 export type TPlaneState = { id: string; name: string; group: TStateGroup };
@@ -43,7 +47,50 @@ export class PlaneResources {
     return this.workspace;
   }
 
+  // ---- projects ----
+  async listProjects(): Promise<{ id: string; name: string; identifier: string }[]> {
+    return asList(await this.c.get(`/workspaces/${this.ws()}/projects/`));
+  }
+  createProject(name: string, identifier: string): Promise<{ id: string; name: string; identifier: string }> {
+    return this.c.post(`/workspaces/${this.ws()}/projects/`, { name, identifier });
+  }
+  /** Return the project with this identifier, creating it if absent. */
+  async ensureProject(name: string, identifier: string): Promise<{ id: string; name: string; identifier: string }> {
+    const existing = (await this.listProjects()).find((p) => p.identifier === identifier);
+    return existing ?? this.createProject(name, identifier);
+  }
+
   // ---- read ----
+  /** Enumerate the project's work items, enriched with state name/group + priority. */
+  async listWorkItems(): Promise<
+    {
+      id: string;
+      name: string;
+      sequence_id?: number | undefined;
+      priority?: string | undefined;
+      stateName?: string | undefined;
+      stateGroup?: TStateGroup | undefined;
+    }[]
+  > {
+    const [raw, states] = await Promise.all([
+      this.c.get(`/workspaces/${this.ws()}/projects/${this.proj()}/work-items/`),
+      this.listStates(),
+    ]);
+    const byId = new Map(states.map((s) => [s.id, s]));
+    const items = asList<{ id: string; name: string; sequence_id?: number; priority?: string; state?: string }>(raw);
+    return items.map((i) => {
+      const st = i.state ? byId.get(i.state) : undefined;
+      return {
+        id: i.id,
+        name: i.name,
+        sequence_id: i.sequence_id,
+        priority: i.priority,
+        stateName: st?.name,
+        stateGroup: st?.group,
+      };
+    });
+  }
+
   async searchWorkItems(query: string): Promise<TWorkItem[]> {
     // The search endpoint returns { issues: [...] }, not a bare array.
     const res = await this.c.get<{ issues?: TWorkItem[] }>(
@@ -53,14 +100,14 @@ export class PlaneResources {
   }
   // async so a missing-projectId guard surfaces as a rejection, not a sync throw
   async listStates(): Promise<TPlaneState[]> {
-    return this.c.get(`/workspaces/${this.ws()}/projects/${this.proj()}/states/`);
+    return asList(await this.c.get(`/workspaces/${this.ws()}/projects/${this.proj()}/states/`));
   }
   async resolveStateByGroup(group: TStateGroup): Promise<TPlaneState | undefined> {
     const states = await this.listStates();
     return states.find((s) => s.group === group);
   }
   async listMembers(): Promise<TPlaneMember[]> {
-    return this.c.get(`/workspaces/${this.ws()}/projects/${this.proj()}/members/`);
+    return asList(await this.c.get(`/workspaces/${this.ws()}/projects/${this.proj()}/members/`));
   }
 
   // ---- write ----
