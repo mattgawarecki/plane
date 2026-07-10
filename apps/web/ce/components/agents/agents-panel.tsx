@@ -24,11 +24,15 @@ const GROUPS = [
 export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) => {
   const store = useAgentStore();
 
-  // Snapshot on mount (also the recovery path); subscribe live while open.
+  // Demo wiring: poll the snapshot (also the recovery path). The live SSE
+  // subscription is the noted upgrade — disabled here so it doesn't reconnect-loop
+  // against a bridge that only serves snapshots.
   useEffect(() => {
     void store.loadRuns({ workspaceId });
+    const id = setInterval(() => void store.loadRuns({ workspaceId }), 2500);
+    return () => clearInterval(id);
   }, [store, workspaceId]);
-  useAgentSubscription({ enabled: true, workspaceId });
+  useAgentSubscription({ enabled: false, workspaceId });
 
   const { pending, requestCancel, undoCancel } = useDeferredCancel(workspaceId);
   const grouped = store.grouped;

@@ -5,7 +5,7 @@
  */
 
 import type Anthropic from "@anthropic-ai/sdk";
-import type { TAgentEvent } from "@plane/agents";
+import type { TAgentEvent, TAgentRun, TAgentTarget } from "@plane/agents";
 import type { PlaneResources } from "../client/resources";
 import { buildTools, SYSTEM_PROMPT, type TToolContext } from "./tools";
 
@@ -18,6 +18,11 @@ export type TDispatchDeps = {
   requestApproval: TToolContext["requestApproval"];
   /** Timestamp source (injected so the pure parts stay testable). */
   now: () => string;
+  workspaceId: string;
+  target?: TAgentTarget;
+  /** Called with the seed run BEFORE events flow, so a consumer (e.g. the bridge
+   *  server) can register it — the reducer ignores events for unknown runs. */
+  onRunStart?: (run: TAgentRun) => void;
   model?: string;
 };
 
@@ -28,6 +33,20 @@ export type TDispatchDeps = {
  */
 export async function dispatch(deps: TDispatchDeps, request: string): Promise<{ runId: string; answer: string }> {
   const runId = `run_${crypto.randomUUID().slice(0, 8)}`;
+  const nowTs = deps.now();
+  const run: TAgentRun = {
+    id: runId,
+    agentKey: "dispatch",
+    title: request.length > 80 ? `${request.slice(0, 77)}…` : request,
+    status: "running",
+    workspaceId: deps.workspaceId,
+    initiatedBy: "demo",
+    createdAt: nowTs,
+    updatedAt: nowTs,
+    ...(deps.target ? { target: deps.target } : {}),
+  };
+  deps.onRunStart?.(run);
+
   let sequence = 0;
   const emit: TToolContext["emit"] = (partial) =>
     deps.emit({ ...partial, runId, sequence: sequence++, timestamp: deps.now() } as TAgentEvent);

@@ -94,7 +94,14 @@ async function main() {
   console.log(`\n▷ dispatch: "${request}"\n`);
   try {
     const { answer } = await dispatch(
-      { anthropic, resources, emit: printEvent, requestApproval, now: () => new Date().toISOString() },
+      {
+        anthropic,
+        resources,
+        emit: printEvent,
+        requestApproval,
+        now: () => new Date().toISOString(),
+        workspaceId: cfg.workspace,
+      },
       request
     );
     console.log(`\n■ answer:\n${answer}\n`);

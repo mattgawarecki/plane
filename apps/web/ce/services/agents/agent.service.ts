@@ -8,6 +8,10 @@ import { API_BASE_URL } from "@plane/constants";
 import type { IAgentService, TAgentCommand, TAgentRun } from "@plane/agents";
 import { APIService } from "@/services/api.service";
 
+// Agent runs come from the runtime bridge (demo) or a real backend later — set
+// VITE_AGENTS_API_BASE to override. Defaults to the local bridge for the demo.
+const AGENTS_API_BASE = import.meta.env.VITE_AGENTS_API_BASE || API_BASE_URL || "http://localhost:4000";
+
 /**
  * REST adapter for agent runs. The event *stream* arrives via the transport;
  * this is the request/response half (initial load, history, commands).
@@ -15,7 +19,7 @@ import { APIService } from "@/services/api.service";
  * runtime's HTTP surface; the store doesn't care which.
  */
 export class AgentService extends APIService implements IAgentService {
-  constructor(baseURL: string = API_BASE_URL) {
+  constructor(baseURL: string = AGENTS_API_BASE) {
     super(baseURL);
   }
 

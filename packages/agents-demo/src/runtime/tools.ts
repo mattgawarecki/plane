@@ -153,11 +153,14 @@ export function buildTools(ctx: TToolContext) {
         type: "approval_requested",
         payload: { approvalId, summary: `close ${ids.length} items — ${reason}`, irreversible: true },
       });
+      // Flip the run into the blocked state so the panel surfaces it under "Needs you".
+      ctx.emit({ type: "status_changed", payload: { status: "awaiting_approval" } });
       const approved = await ctx.requestApproval({
         approvalId,
         summary: `close ${ids.length} items — ${reason}`,
         irreversible: true,
       });
+      ctx.emit({ type: "status_changed", payload: { status: "running" } }); // resume, decided
       if (!approved) return "declined by user — nothing was closed";
       return withStep(ctx, `Close ${ids.length} items`, async () => {
         const cancelled = await resources.resolveStateByGroup("cancelled");
