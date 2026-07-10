@@ -1,0 +1,299 @@
+<title>Agentic Plane — Ask &amp; Delegate in the Panel</title>
+<style>
+  :root{
+    --bg:#F4F6F8;--surface:#FFFFFF;--surface-2:#EBEEF2;--ink:#13171C;--ink-2:#4A515B;--ink-3:#767E89;--ink-4:#9AA1AB;
+    --line:#E0E4EA;--line-2:#CDD3DB;--accent:#4457C7;--accent-soft:#E5E8FA;
+    --live:#0E9D9D;--live-soft:#D6F0EF;--attention:#B4720C;--attention-soft:#F6E9D2;
+    --success:#1D8C51;--success-soft:#D9EEE1;--fail:#CB4038;--queued:#7E8794;
+    --shadow:0 1px 2px rgba(19,23,28,.05),0 12px 34px -16px rgba(19,23,28,.22);
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0D1015;--surface:#151A21;--surface-2:#1D242C;--ink:#E6EAEF;--ink-2:#A7AFBB;--ink-3:#6C747F;--ink-4:#545C67;
+    --line:#242B34;--line-2:#333C47;--accent:#8695F2;--accent-soft:#232a44;
+    --live:#2FD4C6;--live-soft:#123434;--attention:#E3AB55;--attention-soft:#372a15;
+    --success:#46BC7E;--success-soft:#143024;--fail:#EF6a64;--queued:#7B838F;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 16px 40px -20px rgba(0,0,0,.7);
+  }}
+  :root[data-theme="light"]{--bg:#F4F6F8;--surface:#FFFFFF;--surface-2:#EBEEF2;--ink:#13171C;--ink-2:#4A515B;--ink-3:#767E89;--ink-4:#9AA1AB;--line:#E0E4EA;--line-2:#CDD3DB;--accent:#4457C7;--accent-soft:#E5E8FA;--live:#0E9D9D;--live-soft:#D6F0EF;--attention:#B4720C;--attention-soft:#F6E9D2;--success:#1D8C51;--success-soft:#D9EEE1;--fail:#CB4038;--queued:#7E8794;--shadow:0 1px 2px rgba(19,23,28,.05),0 12px 34px -16px rgba(19,23,28,.22);}
+  :root[data-theme="dark"]{--bg:#0D1015;--surface:#151A21;--surface-2:#1D242C;--ink:#E6EAEF;--ink-2:#A7AFBB;--ink-3:#6C747F;--ink-4:#545C67;--line:#242B34;--line-2:#333C47;--accent:#8695F2;--accent-soft:#232a44;--live:#2FD4C6;--live-soft:#123434;--attention:#E3AB55;--attention-soft:#372a15;--success:#46BC7E;--success-soft:#143024;--fail:#EF6a64;--queued:#7B838F;--shadow:0 1px 2px rgba(0,0,0,.35),0 16px 40px -20px rgba(0,0,0,.7);}
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden;}
+  button{font-family:inherit;cursor:pointer;}
+  .app{display:flex;flex-direction:column;height:100vh;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--surface);flex:none;z-index:5;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;}
+  .brand .sq{width:20px;height:20px;border-radius:6px;background:var(--accent);}
+  .brand .crumb{color:var(--ink-3);font-weight:500;}
+  .pip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 11px;font-size:13px;font-weight:550;color:var(--ink-2);transition:.14s;}
+  .pip:hover{border-color:var(--line-2);color:var(--ink);}
+  .pip.armed{border-color:color-mix(in srgb,var(--live) 40%,var(--line));}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--queued);position:relative;flex:none;}
+  .dot.live{background:var(--live);}
+  .dot.live::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--live);opacity:.55;animation:ring 2.4s ease-out infinite;}
+  @keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.9);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.dot.live::after{animation:none;opacity:.3}}
+  .count{font-family:var(--font-mono);font-size:11px;background:var(--surface-2);color:var(--ink-2);border-radius:999px;padding:1px 7px;}
+  .count.attn{background:var(--attention);color:#241700;}
+
+  .main{flex:1;display:flex;min-height:0;}
+  .content{flex:1;overflow:auto;padding:34px clamp(18px,5vw,64px);}
+  .content-inner{max-width:640px;margin:0 auto;}
+  .doc-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);}
+  .content h1{font-size:24px;margin:8px 0 14px;letter-spacing:-.01em;}
+  .content p{color:var(--ink-2);font-size:14.5px;line-height:1.7;max-width:60ch;}
+  .hint{margin-top:18px;font-size:13px;color:var(--ink-4);}
+  .hint b{color:var(--ink-3);}
+
+  /* PANEL */
+  .panel{width:390px;flex:none;border-left:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+  .panel.open{transform:translateX(0);}
+  @media (prefers-reduced-motion:reduce){.panel{transition:none}}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--line);flex:none;}
+  .panel-head .t{display:flex;align-items:center;gap:9px;font-weight:620;font-size:14px;}
+  .panel-head .s{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
+  .icon-btn{border:0;background:none;color:var(--ink-3);font-size:16px;padding:4px;border-radius:6px;line-height:1;}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .panel-body{overflow:auto;flex:1;padding:6px 0 4px;}
+  .empty{padding:38px 22px;text-align:center;color:var(--ink-4);font-size:13px;}
+
+  /* entries in the list */
+  .entry{padding:12px 15px;border-bottom:1px solid var(--line);animation:rise .28s cubic-bezier(.2,.7,.3,1);}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.entry{animation:none}}
+  .you{display:flex;justify-content:flex-end;padding:10px 15px 4px;}
+  .you .bubble{background:var(--accent-soft);color:var(--ink);font-size:13px;border-radius:12px 12px 3px 12px;padding:7px 11px;max-width:80%;}
+  .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:1px 6px;border-radius:4px;}
+  .tag.ask{color:var(--accent);background:var(--accent-soft);} .tag.del{color:var(--live);background:var(--live-soft);}
+
+  .answer{font-size:13.5px;line-height:1.62;color:var(--ink);}
+  .answer .head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .cursor{display:inline-block;width:6px;height:14px;background:var(--accent);vertical-align:-2px;margin-left:1px;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0}} @media (prefers-reduced-motion:reduce){.cursor{animation:none;opacity:0}}
+  .refs{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
+  .ref{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-2);background:var(--surface-2);border-radius:6px;padding:3px 7px;display:inline-flex;align-items:center;gap:6px;}
+  .ref .d{width:6px;height:6px;border-radius:50%;}
+
+  .runline{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+  .runtitle{font-weight:600;font-size:13.5px;}
+  .chip2{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:5px;font-weight:600;}
+  .c-live{color:var(--live);background:var(--live-soft);} .c-attn{color:var(--attention);background:var(--attention-soft);} .c-ok{color:var(--success);background:var(--success-soft);}
+  .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px;}
+  .steps li{display:flex;gap:8px;font-size:12.5px;color:var(--ink-2);padding:2px 0;align-items:flex-start;animation:rise .22s ease;}
+  .steps .g{width:14px;text-align:center;flex:none;color:var(--ink-4);margin-top:1px;}
+  .steps .g.run{color:var(--live);} .steps .g.ok{color:var(--success);}
+  .subs{margin-top:10px;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .sub{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 11px;border-top:1px solid var(--line);animation:rise .22s ease;font-size:12.5px;}
+  .sub:first-child{border-top:0;}
+  .sub .st small{display:block;color:var(--ink-4);font-size:11px;margin-top:1px;}
+  .sub .who{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap;}
+  .sub .est{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-2);background:var(--surface-2);border-radius:5px;padding:1px 5px;margin-left:6px;}
+  .gate{margin-top:11px;border:1px solid color-mix(in srgb,var(--attention) 38%,transparent);background:var(--attention-soft);border-radius:10px;padding:11px 12px;animation:rise .22s ease;}
+  .gate .h{display:flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;margin-bottom:4px;}
+  .gate .h .warn{color:var(--attention);}
+  .gate p{margin:0 0 10px;font-size:12.5px;color:var(--ink-2);} .gate p b{color:var(--ink);}
+  .btns{display:flex;gap:7px;flex-wrap:wrap;}
+  .btn{font-size:11.5px;font-weight:600;border-radius:7px;padding:6px 12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);transition:.12s;}
+  .btn:hover{border-color:var(--ink-3);color:var(--ink);}
+  .btn.primary{background:var(--attention);border-color:var(--attention);color:#241700;}
+  .btn.link{border:0;background:none;color:var(--accent);padding:6px 3px;}
+  .done{margin-top:10px;border:1px solid color-mix(in srgb,var(--success) 30%,transparent);background:var(--success-soft);border-radius:9px;padding:9px 11px;font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:8px;animation:rise .22s ease;}
+
+  /* DOCKED COMPOSER */
+  .composer{flex:none;border-top:1px solid var(--line);background:var(--surface);padding:10px 12px 12px;}
+  .suggest{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
+  .suggest::-webkit-scrollbar{display:none;}
+  .sg{flex:none;font-size:11.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+  .sg:hover{border-color:var(--line-2);color:var(--ink);}
+  .sg .k{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;padding:1px 4px;border-radius:3px;}
+  .sg .k.ask{color:var(--accent);background:var(--accent-soft);} .sg .k.del{color:var(--live);background:var(--live-soft);}
+  .field{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--line-2);border-radius:11px;padding:6px 6px 6px 12px;background:var(--surface);transition:.15s;}
+  .field:focus-within{border-color:color-mix(in srgb,var(--accent) 45%,var(--line-2));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent);}
+  .field .spark{color:var(--accent);font-size:15px;padding-bottom:8px;}
+  .field input{flex:1;border:0;background:none;color:var(--ink);font-size:14px;font-family:inherit;padding:9px 0;outline:none;}
+  .field input::placeholder{color:var(--ink-4);}
+  .send{flex:none;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:13px;padding:8px 13px;transition:.12s;}
+  .send:hover{filter:brightness(1.06);}
+  :root[data-theme="dark"] .send,.send{color:#0b0e14;}
+  :root[data-theme="dark"] .count.attn,.count.attn{color:#241700;}
+
+  .demobar{flex:none;display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid var(--line);background:var(--surface-2);font-family:var(--font-mono);font-size:11px;color:var(--ink-3);}
+  .dbtn{border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);border-radius:6px;padding:4px 10px;font-family:var(--font-mono);font-size:11px;}
+  .dbtn:hover{color:var(--ink);border-color:var(--ink-3);}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="sq"></span> Plane <span class="crumb">· Mobile App</span></div>
+    <button class="pip" id="pip" onclick="togglePanel()"><span class="dot" id="pipdot"></span> Agents <span class="count" id="pipcount" style="display:none"></span></button>
+  </div>
+
+  <div class="main">
+    <div class="content">
+      <div class="content-inner">
+        <div class="doc-eyebrow">Workspace · klarity</div>
+        <h1>September billing close</h1>
+        <p>The same Agents panel that shows what's running now also takes new work. Open it from the top-right,
+          then use the box at the bottom to <strong>ask</strong> a question or <strong>delegate</strong> a task —
+          the answer or the new run appears right in the list. One surface, no separate page.</p>
+        <p class="hint"><b>Try:</b> open the panel → tap a suggestion, or type “Ship the September billing close”.</p>
+      </div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <div class="panel-head">
+        <span class="t"><span class="dot" id="paneldot"></span> Agents</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="s" id="panelsub">idle</span>
+          <button class="icon-btn" onclick="togglePanel()" aria-label="Close">✕</button>
+        </span>
+      </div>
+
+      <div class="panel-body" id="body">
+        <div class="empty" id="empty">No agent activity yet.<br>Ask something, or delegate a task below.</div>
+      </div>
+
+      <div class="composer">
+        <div class="suggest">
+          <button class="sg" onclick="pick('ask1')"><span class="k ask">Ask</span> What's in flight?</button>
+          <button class="sg" onclick="pick('del1')"><span class="k del">Delegate</span> Ship the Sept billing close</button>
+          <button class="sg" onclick="pick('ask2')"><span class="k ask">Ask</span> Top priority?</button>
+        </div>
+        <div class="field">
+          <span class="spark">✦</span>
+          <input id="input" autocomplete="off" placeholder="Ask, or delegate a task…" />
+          <button class="send" onclick="submit()">Send</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="demobar">
+    <span>freestanding prototype · simulated intelligence</span>
+    <button class="dbtn" style="margin-left:auto" onclick="resetAll()">↺ Reset</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const body = document.getElementById("body");
+const input = document.getElementById("input");
+let panelOpen=false, seq=0, activeRuns=0, needsYou=0;
+input.addEventListener("keydown", e=>{ if(e.key==="Enter") submit(); });
+
+const S = {
+  ask1:{kind:"ask",q:"What's in flight?",
+    answer:"Three runs are active. “Reconcile September invoices” is running (step 4 of 6). “Close stale sprint items” is paused — it needs your approval to close 12 items. “Draft the close summary” is queued behind the reconcile. One needs you; the rest are on track.",
+    refs:[["running","Reconcile invoices","var(--live)"],["needs you","Close stale","var(--attention)"],["queued","Draft summary","var(--queued)"]]},
+  ask2:{kind:"ask",q:"Top priority?",
+    answer:"PLAT-482 — the cold-start crash — is top priority. It's blocking the 1.4 release, with three duplicates rolling up into it. Nothing else in the cycle is release-blocking. Start there.",
+    refs:[["blocker","PLAT-482","var(--fail)"],["cycle","Platform 1.4","var(--accent)"]]},
+  del1:{kind:"delegate",q:"Ship the September billing close",title:"Ship the September billing close",
+    steps:["Reading the request — recurring monthly close","Found cycle “September Close” (ends Sep 30)","Scoping into sub-tasks…"],
+    subs:[["Reconcile invoices against ledger","A. Rivera","3d"],["Chase 4 unpaid enterprise accounts","J. Okafor","2d"],["Verify tax lines on EU invoices","priya@","1d"],["Draft close summary for finance","A. Rivera","1d"],["Archive September working docs","unassigned","½d"]],
+    gate:{summary:"close 12 stale items from August's close",detail:"Superseded by this cycle. Can't be undone."},
+    doneOk:"Created 5 sub-tasks, assigned, and closed 12 stale items.",doneReject:"Created 5 sub-tasks and assigned them. Left the 12 stale items open."}
+};
+
+function ensureBody(){ document.getElementById("empty")?.remove(); }
+function updateChrome(){
+  const pd=document.getElementById("pipdot"), pdd=document.getElementById("paneldot");
+  pd.className=pdd.className="dot"+(activeRuns>0?" live":"");
+  const pc=document.getElementById("pipcount");
+  if(activeRuns>0){pc.style.display="";pc.textContent=activeRuns;pc.className="count"+(needsYou>0?" attn":"");}else pc.style.display="none";
+  document.getElementById("panelsub").textContent = activeRuns>0?`${activeRuns} active`:"idle";
+  document.getElementById("pip").className="pip"+(panelOpen?" armed":"");
+}
+function togglePanel(force){ panelOpen=force===true?true:!panelOpen; document.getElementById("panel").classList.toggle("open",panelOpen); updateChrome(); }
+function scrollBottom(){ body.scrollTop = body.scrollHeight; }
+
+function submit(){
+  const v=input.value.trim(); if(!v) return;
+  const low=v.toLowerCase(); let key="ask1";
+  if(/close|ship|delegate|break|decompose|split|create|add/.test(low)) key="del1";
+  else if(/priority|top|important/.test(low)) key="ask2";
+  run(key, v); input.value="";
+}
+function pick(key){ if(!panelOpen) togglePanel(true); input.value=""; run(key, S[key].q); }
+
+function run(key, typed){
+  if(!panelOpen) togglePanel(true);
+  ensureBody();
+  const s=S[key]; if(!s) return; const id="r"+(seq++);
+  const you=document.createElement("div"); you.className="you"; you.innerHTML=`<span class="bubble">${esc(typed)}</span>`;
+  body.appendChild(you);
+  const e=document.createElement("div"); e.className="entry"; e.id=id; body.appendChild(e);
+  scrollBottom();
+  if(s.kind==="ask") playAsk(id,s); else playDelegate(id,s);
+}
+
+function playAsk(id,s){
+  const e=document.getElementById(id);
+  e.innerHTML=`<div class="answer"><div class="head"><span class="tag ask">Ask</span></div><span id="${id}-t"></span><span class="cursor"></span><div id="${id}-r"></div></div>`;
+  setTimeout(()=>{
+    streamText(document.getElementById(id+"-t"), s.answer, ()=>{
+      e.querySelector(".cursor")?.remove();
+      const r=document.getElementById(id+"-r"); r.className="refs";
+      r.innerHTML=s.refs.map(x=>`<span class="ref"><span class="d" style="background:${x[2]}"></span>${x[1]} · ${x[0]}</span>`).join("");
+      scrollBottom();
+    }, ()=>scrollBottom());
+  }, 480);
+}
+
+function playDelegate(id,s){
+  activeRuns++; updateChrome();
+  const e=document.getElementById(id);
+  e.innerHTML=`<div class="runline"><span class="chip2 c-live" id="${id}-chip">running</span><span class="tag del">Delegate</span></div>
+    <div class="runtitle" style="margin:-4px 0 9px">${esc(s.title)}</div><ul class="steps" id="${id}-steps"></ul>`;
+  const steps=document.getElementById(id+"-steps"); let i=0;
+  const tick=()=>{
+    if(i>0){const p=steps.children[i-1]; if(p){p.querySelector(".g").className="g ok";p.querySelector(".g").textContent="✓";}}
+    if(i<s.steps.length){const li=document.createElement("li");li.innerHTML=`<span class="g run">▸</span><span>${s.steps[i]}</span>`;steps.appendChild(li);i++;scrollBottom();setTimeout(tick,780);}
+    else createSubs(id,s);
+  };
+  setTimeout(tick,380);
+}
+function createSubs(id,s){
+  const e=document.getElementById(id);
+  const wrap=document.createElement("div");wrap.className="subs";e.appendChild(wrap);let j=0;
+  const add=()=>{ if(j<s.subs.length){const[t,who,est]=s.subs[j];const row=document.createElement("div");row.className="sub";
+      row.innerHTML=`<div class="st">${t}<small>created · assigned</small></div><div class="who">${who}<span class="est">${est}</span></div>`;
+      wrap.appendChild(row);j++;scrollBottom();setTimeout(add,470);} else gate(id,s); };
+  add();
+}
+function gate(id,s){
+  needsYou++; updateChrome();
+  const chip=document.getElementById(id+"-chip"); chip.className="chip2 c-attn"; chip.textContent="needs you";
+  const e=document.getElementById(id);
+  const g=document.createElement("div");g.className="gate";g.id=id+"-gate";
+  g.innerHTML=`<div class="h"><span class="warn">⚑</span> Needs your approval</div>
+    <p>The agent wants to <b>${s.gate.summary}</b>. ${s.gate.detail}</p>
+    <div class="btns"><button class="btn primary" onclick="resolveGate('${id}',true)">Approve</button>
+    <button class="btn" onclick="resolveGate('${id}',false)">Reject</button></div>`;
+  e.appendChild(g); scrollBottom();
+}
+window.resolveGate=function(id,ok){
+  needsYou=Math.max(0,needsYou-1); activeRuns=Math.max(0,activeRuns-1);
+  document.getElementById(id+"-gate")?.remove();
+  const chip=document.getElementById(id+"-chip"); chip.className="chip2 c-ok"; chip.textContent="done";
+  const e=document.getElementById(id);
+  const d=document.createElement("div");d.className="done";
+  d.innerHTML=`<span style="color:var(--success)">✓</span> ${ok?S.del1.doneOk:S.del1.doneReject}<button class="btn link" style="margin-left:auto">Review →</button>`;
+  e.appendChild(d); updateChrome(); scrollBottom();
+};
+
+function streamText(el,text,done,ontick){
+  if(RM){el.textContent=text;done&&done();return;}
+  let i=0;const step=()=>{el.textContent=text.slice(0,i);ontick&&ontick();
+    if(i<text.length){i+=Math.max(1,Math.round(text.length/80));setTimeout(step,20);}else{el.textContent=text;done&&done();}};
+  step();
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function resetAll(){body.innerHTML='<div class="empty" id="empty">No agent activity yet.<br>Ask something, or delegate a task below.</div>';activeRuns=0;needsYou=0;input.value="";updateChrome();}
+
+togglePanel(true);
+</script>
