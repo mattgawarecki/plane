@@ -20,6 +20,7 @@ const GROUPS = [
   { key: "done", label: "Recently done" },
 ] as const;
 
+// `observer` so a store projection ref-swap (new `store.grouped`) re-renders the list.
 export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) => {
   const store = useAgentStore();
 

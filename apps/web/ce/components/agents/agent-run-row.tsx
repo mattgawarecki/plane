@@ -19,6 +19,7 @@ type Props = {
   pendingCancel: boolean;
 };
 
+// `observer` so a MobX projection ref-swap re-renders this row as the run's state advances.
 export const AgentRunRow = observer(({ run, onCommand, onRequestCancel, onUndoCancel, pendingCancel }: Props) => {
   const steps = run.progress?.totalSteps ?? 0;
   const done = run.progress?.currentStep ?? 0;
