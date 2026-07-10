@@ -10,3 +10,4 @@ export * from "./transport";
 export * from "./state/types";
 export * from "./state/reducer";
 export * from "./state/selectors";
+export * from "./state/backoff";
