@@ -28,7 +28,8 @@ export const ExtendedAppHeader = observer(function ExtendedAppHeader(props: { he
   return (
     <>
       {sidebarCollapsed && shouldShowSidebarToggleButton && <AppSidebarToggleButton />}
-      <div className="w-full">{header}</div>
+      {/* flex-1 (not w-full) so the agents pip has room on the right */}
+      <div className="min-w-0 flex-1">{header}</div>
       {/* Agents surface — renders null unless the flag is on (byte-for-byte today when off). */}
       {workspaceSlug && (
         <div className="flex items-center pr-2">
