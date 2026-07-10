@@ -6,15 +6,20 @@
 
 // store
 import { CoreRootStore } from "@/store/root.store";
+import { AgentStore } from "./agents/agent.store";
 import type { ITimelineStore } from "./timeline";
 import { TimeLineStore } from "./timeline";
 
 export class RootStore extends CoreRootStore {
   timelineStore: ITimelineStore;
+  agents: AgentStore;
 
   constructor() {
     super();
 
     this.timelineStore = new TimeLineStore(this);
+    // Additive, CE-only — no core edits. Constructing the store opens no
+    // connection; the panel/hooks drive load + subscribe lazily behind the flag.
+    this.agents = new AgentStore(this);
   }
 }
