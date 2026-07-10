@@ -1,0 +1,430 @@
+<title>Agents in Plane — Interactive Wireframe</title>
+<style>
+  :root {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --ink-4: #9AA1AB; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --live: #0E9D9D; --live-soft: #D6F0EF;
+    --attention: #B4720C; --attention-soft: #F6E9D2;
+    --success: #1D8C51; --success-soft: #D9EEE1;
+    --fail: #CB4038; --fail-soft: #F6DEDC;
+    --queued: #7E8794;
+    --shadow: 0 1px 2px rgba(19,23,28,.05), 0 10px 30px -14px rgba(19,23,28,.28);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+      --ink-2: #A7AFBB; --ink-3: #6C747F; --ink-4: #545C67; --line: #242B34; --line-2: #333C47;
+      --accent: #8695F2; --accent-soft: #232a44;
+      --live: #2FD4C6; --live-soft: #123434; --attention: #E3AB55; --attention-soft: #372a15;
+      --success: #46BC7E; --success-soft: #143024; --fail: #EF6a64; --fail-soft: #35201f; --queued: #7B838F;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 36px -18px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"]{--bg:#F4F6F8;--surface:#FFFFFF;--surface-2:#EBEEF2;--ink:#13171C;--ink-2:#4A515B;--ink-3:#767E89;--ink-4:#9AA1AB;--line:#E0E4EA;--line-2:#CDD3DB;--accent:#4457C7;--accent-soft:#E5E8FA;--live:#0E9D9D;--live-soft:#D6F0EF;--attention:#B4720C;--attention-soft:#F6E9D2;--success:#1D8C51;--success-soft:#D9EEE1;--fail:#CB4038;--fail-soft:#F6DEDC;--queued:#7E8794;--shadow:0 1px 2px rgba(19,23,28,.05),0 10px 30px -14px rgba(19,23,28,.28);}
+  :root[data-theme="dark"]{--bg:#0D1015;--surface:#151A21;--surface-2:#1D242C;--ink:#E6EAEF;--ink-2:#A7AFBB;--ink-3:#6C747F;--ink-4:#545C67;--line:#242B34;--line-2:#333C47;--accent:#8695F2;--accent-soft:#232a44;--live:#2FD4C6;--live-soft:#123434;--attention:#E3AB55;--attention-soft:#372a15;--success:#46BC7E;--success-soft:#143024;--fail:#EF6a64;--fail-soft:#35201f;--queued:#7B838F;--shadow:0 1px 2px rgba(0,0,0,.35),0 14px 36px -18px rgba(0,0,0,.7);}
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* app frame */
+  .app { display: flex; flex-direction: column; height: 100vh; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; height: 52px;
+    padding: 0 18px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+  .brand .sq { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); }
+  .brand .crumb { color: var(--ink-3); font-weight: 500; }
+  .main { flex: 1; display: flex; min-height: 0; }
+  .content { flex: 1; overflow: auto; padding: 30px clamp(18px, 5vw, 56px); }
+  .content-inner { max-width: 720px; margin: 0 auto; }
+
+  /* pip */
+  .pip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line);
+    background: var(--surface); border-radius: 8px; padding: 6px 11px; font-size: 13px; font-weight: 550;
+    color: var(--ink-2); transition: .14s; }
+  .pip:hover { border-color: var(--line-2); color: var(--ink); }
+  .pip.armed { border-color: color-mix(in srgb, var(--live) 40%, var(--line)); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--queued); position: relative; flex: none; }
+  .dot.live { background: var(--live); }
+  .dot.live::after { content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1.5px solid var(--live); opacity: .55; animation: ring 2.4s ease-out infinite; }
+  @keyframes ring { 0%{transform:scale(.6);opacity:.7} 100%{transform:scale(1.9);opacity:0} }
+  @media (prefers-reduced-motion: reduce){ .dot.live::after{animation:none;opacity:.3;inset:-3px} }
+  .count { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2); color: var(--ink-2);
+    border-radius: 999px; padding: 1px 7px; }
+  .count.attn { background: var(--attention); color: #fff; }
+  :root[data-theme="dark"] .count.attn, .count.attn { color: #241700; }
+
+  /* faux work item */
+  .doc-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-4); }
+  .doc h1 { font-size: 24px; margin: 8px 0 14px; letter-spacing: -.01em; }
+  .meta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+  .meta-row .k { color: var(--ink-4); font-size: 12px; }
+  .chip-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px;
+    background: var(--surface-2); font-size: 12px; }
+  .doc p.body { color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+  .inline-ind { display: inline-flex; align-items: center; gap: 7px; border: 1px dashed var(--line-2);
+    background: var(--surface); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: var(--ink-2);
+    transition: .14s; }
+  .inline-ind:hover { border-color: var(--live); }
+
+  /* panel */
+  .panel { width: 360px; flex: none; border-left: 1px solid var(--line); background: var(--surface);
+    display: flex; flex-direction: column; transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    position: relative; }
+  .panel.open { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce){ .panel{transition:none} }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px;
+    border-bottom: 1px solid var(--line); flex: none; }
+  .panel-head .t { display: flex; align-items: center; gap: 9px; font-weight: 620; font-size: 14px; }
+  .panel-head .s { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+  .icon-btn { border: 0; background: none; color: var(--ink-3); font-size: 16px; padding: 4px; border-radius: 6px; line-height: 1; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .panel-body { overflow: auto; flex: 1; }
+
+  .group-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-4); padding: 14px 15px 5px; }
+  .group-label.attn { color: var(--attention); }
+
+  .run { padding: 12px 15px; border-bottom: 1px solid var(--line); display: grid;
+    grid-template-columns: auto 1fr; gap: 11px; align-items: start; cursor: pointer; transition: background .12s; }
+  .run:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+  .glyph { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; margin-top: 1px; }
+  .g-live{color:var(--live);background:var(--live-soft)} .g-attn{color:var(--attention);background:var(--attention-soft)}
+  .g-ok{color:var(--success);background:var(--success-soft)} .g-q{color:var(--queued);background:var(--surface-2)}
+  .g-bad{color:var(--fail);background:var(--fail-soft)}
+  .run .name { font-size: 13.5px; font-weight: 560; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .run .sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+  .chip { font-family: var(--font-mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 5px; font-weight: 600; white-space: nowrap; }
+  .c-live{color:var(--live);background:var(--live-soft)} .c-attn{color:var(--attention);background:var(--attention-soft)}
+  .c-ok{color:var(--success);background:var(--success-soft)} .c-q{color:var(--queued);background:var(--surface-2)}
+  .c-bad{color:var(--fail);background:var(--fail-soft)}
+  .steps { display: flex; gap: 3px; margin-top: 8px; }
+  .steps i { height: 4px; border-radius: 2px; flex: 1; background: var(--surface-2); transition: background .3s; }
+  .steps i.on { background: var(--live); }
+  .actions { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .btn { font-family: var(--font-mono); font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 10px;
+    border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); transition: .12s; }
+  .btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .btn.primary { background: var(--attention); border-color: var(--attention); color: #241700; }
+  .btn.link { border: 0; padding: 4px 2px; color: var(--accent); background: none; }
+  .btn.danger:hover { border-color: var(--fail); color: var(--fail); }
+  .empty { padding: 40px 20px; text-align: center; color: var(--ink-4); font-size: 13px; }
+
+  /* detail */
+  .detail { position: absolute; inset: 0; background: var(--surface); display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform .26s cubic-bezier(.4,0,.2,1); }
+  .detail.open { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce){ .detail{transition:none} }
+  .detail-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .detail-body { overflow: auto; flex: 1; padding: 16px; }
+  .timeline { list-style: none; margin: 12px 0 0; padding: 0; }
+  .timeline li { display: flex; gap: 10px; font-size: 12.5px; padding: 5px 0; color: var(--ink-2); }
+  .timeline .tm { font-family: var(--font-mono); color: var(--ink-4); font-size: 10px; margin-left: auto; }
+  .tl-dot { width: 14px; text-align: center; color: var(--ink-4); }
+  .tl-dot.run { color: var(--live); } .tl-dot.ok { color: var(--success); } .tl-dot.bad { color: var(--fail); }
+  .steerform { display: flex; gap: 7px; margin-top: 16px; }
+  .steerform input { flex: 1; font-size: 12.5px; border: 1px solid var(--line-2); border-radius: 7px;
+    padding: 7px 10px; background: var(--surface-2); color: var(--ink); }
+  .steerform input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+  .callout-appr { margin-top: 14px; border: 1px solid color-mix(in srgb, var(--attention) 35%, transparent);
+    background: var(--attention-soft); border-radius: 10px; padding: 12px 13px; font-size: 12.5px; color: var(--ink); }
+  .kv { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+  /* demo controls */
+  .demobar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    border-top: 1px solid var(--line); background: var(--surface-2); font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--ink-3); flex-wrap: wrap; }
+  .demobar .tag { color: var(--ink-4); letter-spacing: .06em; text-transform: uppercase; }
+  .dbtn { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 6px;
+    padding: 4px 10px; font-family: var(--font-mono); font-size: 11.5px; }
+  .dbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+  .toast { position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 8px 14px; border-radius: 8px;
+    pointer-events: none; transition: .25s; font-family: var(--font-mono); z-index: 50; }
+  .toast.show { opacity: .96; transform: translateX(-50%) translateY(0); }
+  .flash { animation: flash .6s ease; }
+  @keyframes flash { 0%{background:color-mix(in srgb,var(--accent) 12%,transparent)} 100%{background:transparent} }
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="sq"></span> Plane <span class="crumb">· Mobile App</span></div>
+    <button class="pip" id="pip" onclick="togglePanel()">
+      <span class="dot" id="pipdot"></span> Agents <span class="count" id="pipcount" style="display:none"></span>
+    </button>
+  </div>
+
+  <div class="main">
+    <div class="content">
+      <div class="content-inner">
+        <div class="doc-eyebrow">PLAT-482 · Work item</div>
+        <h1>Crash on cold-start when offline cache is stale</h1>
+        <div class="meta-row">
+          <span><span class="k">Status</span> · In progress</span>
+          <span><span class="k">Assignee</span> · A. Rivera</span>
+          <span class="k">Agents</span>
+          <span id="inline-slot"><!-- inline indicator injected --></span>
+        </div>
+        <p class="body">Reproduced on 3 devices. The agent below is triaging incoming reports and labelling
+          duplicates. Open the <strong>Agents</strong> panel (top-right) to watch it work, steer it, or step in when it
+          needs you — nothing here will interrupt you to do so.</p>
+        <p class="body" style="color:var(--ink-4);font-size:13px">This is a freestanding wireframe. Data + the live
+          stream are simulated in-page. Use the demo controls at the bottom to drive it.</p>
+      </div>
+    </div>
+
+    <!-- PANEL -->
+    <aside class="panel" id="panel">
+      <div class="panel-head">
+        <span class="t"><span class="dot" id="paneldot"></span> Agents</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="s" id="panelsub"></span>
+          <button class="icon-btn" onclick="togglePanel()" aria-label="Close">✕</button>
+        </span>
+      </div>
+      <div class="panel-body" id="panelbody"></div>
+
+      <!-- DETAIL overlay -->
+      <div class="detail" id="detail">
+        <div class="detail-head">
+          <button class="icon-btn" onclick="closeDetail()" aria-label="Back">‹</button>
+          <span class="t" id="detailtitle" style="font-size:14px;font-weight:620"></span>
+        </div>
+        <div class="detail-body" id="detailbody"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="demobar">
+    <span class="tag">Demo controls</span>
+    <button class="dbtn" id="playbtn" onclick="toggleSim()">⏸ Pause stream</button>
+    <button class="dbtn" onclick="simRefresh()">⟳ Simulate refresh</button>
+    <button class="dbtn" onclick="resetSim()">↺ Reset</button>
+    <span style="margin-left:auto" id="clock">t+0.0s</span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+// ---- faithful-ish state model (mirrors @plane/agents contract) ----
+const TARGET = { entityType: "work_item", entityId: "PLAT-482", entityName: "PLAT-482 · Cold-start crash" };
+function seed() {
+  return [
+    { id: "r_close", agentKey: "sprint-tidy", title: "Close stale sprint items", status: "running",
+      _script: "approval", steps: [{id:"s1",label:"Scan sprint board",status:"succeeded"}], progress:{currentStep:1,totalSteps:2} },
+    { id: "r_triage", agentKey: "triage", title: "Triage incoming reports", status: "running", target: TARGET,
+      _script: "advance", steps: [{id:"a",label:"Fetch new reports",status:"succeeded"},{id:"b",label:"Cluster duplicates",status:"succeeded"},{id:"c",label:"Label PLAT-482",status:"running"}],
+      progress: { currentStep: 3, totalSteps: 7 } },
+    { id: "r_notes", agentKey: "release-notes", title: "Draft release notes", status: "queued", _script: "waitTriage",
+      steps: [], progress: null },
+    { id: "r_sum", agentKey: "summarize", title: "Summarize customer feedback", status: "succeeded",
+      steps: [{id:"x",label:"Read 42 comments",status:"succeeded"},{id:"y",label:"Write summary",status:"succeeded"}],
+      result: { summary: "Wrote a summary to the cycle", reviewUrl: "#review" }, _done: true },
+  ];
+}
+let runs = seed();
+let selected = null, panelOpen = false, simOn = true, t = 0;
+const BLOCKED = ["waiting_for_input","awaiting_approval"];
+const TERMINAL = ["succeeded","failed","cancelled"];
+const isActive = r => !TERMINAL.includes(r.status);
+
+// ---- glyph / chip presentation ----
+function pres(s){
+  return ({
+    running:["Running","live"], queued:["Queued","q"], paused:["Paused","q"],
+    waiting_for_input:["Needs you","attn"], awaiting_approval:["Needs you","attn"],
+    succeeded:["Done","ok"], failed:["Failed","bad"], cancelled:["Cancelled","q"],
+  })[s] || ["Unknown","q"];
+}
+const GLY = { running:["▶","live"], queued:["…","q"], awaiting_approval:["‖","attn"], waiting_for_input:["?","attn"],
+  succeeded:["✓","ok"], failed:["✕","bad"], cancelled:["–","q"], paused:["‖","q"] };
+
+// ---- simulation engine ----
+function tick(){
+  if(!simOn) return;
+  t += 0.6; document.getElementById("clock").textContent = "t+"+t.toFixed(1)+"s";
+  runs.forEach(r=>{
+    if(r._done) return;
+    if(r._script==="advance" && r.status==="running"){
+      if(r.progress.currentStep < r.progress.totalSteps){
+        // advance a step every ~2 ticks
+        if(Math.floor(t)%2===0){
+          const done = r.progress.currentStep;
+          if(r.steps[done-1]) r.steps[done-1].status="succeeded";
+          r.progress.currentStep++;
+          const labels=["Fetch new reports","Cluster duplicates","Label PLAT-482","Check severity","Assign owner","Link related","Post summary"];
+          r.steps.push({id:"st"+r.progress.currentStep,label:labels[r.progress.currentStep-1]||"Working",status:"running"});
+        }
+      } else {
+        r.status="succeeded"; r._done=true;
+        r.result={summary:"Labelled + linked 6 reports", reviewUrl:"#review"};
+        r.steps.forEach(s=>s.status="succeeded");
+        // completion is SILENT — the row just moves to "Recently done"
+      }
+    }
+    if(r._script==="approval" && r.status==="running"){
+      if(t>2.4){ r.status="awaiting_approval"; r._approval={summary:"close 12 items", irreversible:true};
+        notify("A run needs you — 1 decision"); } // the ONE budgeted interrupt
+    }
+    if(r._script==="waitTriage" && r.status==="queued"){
+      const triage = runs.find(x=>x.id==="r_triage");
+      if(triage && triage._done){ r.status="running"; r._script="advance";
+        r.progress={currentStep:1,totalSteps:4}; r.steps=[{id:"n1",label:"Collect merged items",status:"running"}]; }
+    }
+  });
+  render();
+}
+
+// ---- command dispatch (user → agent) ----
+function snapshot(r){ r._prev = JSON.parse(JSON.stringify({ status:r.status, steps:r.steps, progress:r.progress, _script:r._script, _done:!!r._done })); }
+function restore(r){ if(!r._prev) return; Object.assign(r, r._prev); r._prev=null; r._undoable=false; if(r._undoT)clearTimeout(r._undoT); }
+function startUndo(r){ r._undoable=true; if(r._undoT)clearTimeout(r._undoT);
+  r._undoT=setTimeout(()=>{ r._undoable=false; r._prev=null; render(); }, 5000); }
+
+function cmd(id, type){
+  // SILENT — the row visibly updates; no toast (that's the thesis)
+  const r = runs.find(x=>x.id===id); if(!r) return;
+  if(type==="pause"){ r.status="paused"; }                 // resumable; agent keeps its context
+  if(type==="resume"){ r.status="running"; }
+  if(type==="cancel"){ snapshot(r); r.status="cancelled"; r._done=true; startUndo(r); } // deferred + undoable
+  if(type==="undo"){ restore(r); }                          // agent never actually stopped
+  if(type==="approve"){ r.status="succeeded"; r._done=true; r.result={summary:"Closed 12 stale items", reviewUrl:"#review"};
+    r.steps.push({id:"ap",label:"Closed 12 items",status:"succeeded"}); }
+  if(type==="reject"){ r.status="cancelled"; r._done=true; }
+  if(type==="retry"){ r.status="running"; r._done=false; r._script="advance"; r.progress={currentStep:1,totalSteps:4};
+    r.steps=[{id:"rt",label:"Retrying from checkpoint",status:"running"}]; }
+  render();
+}
+function steer(id, text){
+  const r = runs.find(x=>x.id===id); if(!r||!text.trim()) return;
+  r.steps.push({id:"steer"+Date.now(), label:"↳ steer: "+text.trim(), status:"running", _steer:true});
+  render();
+}
+function answer(id, text){
+  const r = runs.find(x=>x.id===id); if(!r||!text.trim()) return;
+  r.status="running"; r.steps.push({id:"ans"+Date.now(),label:"You: "+text.trim(),status:"succeeded"});
+  render();
+}
+
+// ---- rendering ----
+function grouped(){
+  const g={blocked:[],running:[],queued:[],done:[]};
+  runs.forEach(r=>{ if(BLOCKED.includes(r.status))g.blocked.push(r);
+    else if(r.status==="running"||r.status==="paused")g.running.push(r); else if(r.status==="queued")g.queued.push(r);
+    else if(TERMINAL.includes(r.status))g.done.push(r); });
+  return g;
+}
+function activeCount(){ return runs.filter(isActive).length; }
+function blockedCount(){ return runs.filter(r=>BLOCKED.includes(r.status)).length; }
+
+function runRow(r){
+  const [glabel,gc]=GLY[r.status]||["·","q"]; const [clabel,cc]=pres(r.status);
+  const steps = (r.status==="running" && r.progress) ? `<div class="steps">${
+    Array.from({length:r.progress.totalSteps}).map((_,i)=>`<i class="${i<r.progress.currentStep?'on':''}"></i>`).join("")
+  }</div><div class="sub">step ${r.progress.currentStep} of ${r.progress.totalSteps}${r.target?" · steerable":""}</div>` : "";
+  let acts="";
+  if(r.status==="awaiting_approval") acts=`<div class="actions">
+    <button class="btn primary" onclick="event.stopPropagation();cmd('${r.id}','approve')">Approve</button>
+    <button class="btn" onclick="event.stopPropagation();cmd('${r.id}','reject')">Reject</button>
+    <button class="btn link" onclick="event.stopPropagation();open_(&quot;${r.id}&quot;)">Review 12 →</button></div>`;
+  else if(r.status==="running") acts=`<div class="actions">
+    <button class="btn" onclick="event.stopPropagation();cmd('${r.id}','pause')">Pause</button></div>`;
+  else if(r.status==="paused") acts=`<div class="actions">
+    <button class="btn primary" style="background:var(--live);border-color:var(--live);color:#012" onclick="event.stopPropagation();cmd('${r.id}','resume')">Resume</button>
+    <button class="btn danger" onclick="event.stopPropagation();cmd('${r.id}','cancel')">Cancel run</button></div>`;
+  else if(r.status==="queued") acts=`<div class="actions">
+    <button class="btn danger" onclick="event.stopPropagation();cmd('${r.id}','cancel')">Cancel</button></div>`;
+  else if(r.status==="cancelled"&&r._undoable) acts=`<div class="actions">
+    <button class="btn" style="border-color:var(--accent);color:var(--accent)" onclick="event.stopPropagation();cmd('${r.id}','undo')">↩ Undo stop</button>
+    <span class="sub" style="align-self:center">agent kept running — undo within 5s</span></div>`;
+  else if(r.status==="failed") acts=`<div class="actions"><button class="btn" onclick="event.stopPropagation();cmd('${r.id}','retry')">Retry</button></div>`;
+  else if(r.status==="succeeded"&&r.result&&r.result.reviewUrl) acts=`<div class="actions"><button class="btn link" onclick="event.stopPropagation();open_(&quot;${r.id}&quot;)">Review changes →</button></div>`;
+  const targ = r.target ? `<div class="sub">${r.target.entityName}</div>` : (r._approval?`<div class="sub">wants to ${r._approval.summary} · <span style="color:var(--attention)">irreversible</span></div>`:"");
+  const doneNote = (r.status==="succeeded"&&r.result)?`<div class="sub">${r.result.summary}</div>`:"";
+  return `<div class="run" role="status" aria-live="polite" onclick="open_('${r.id}')">
+    <span class="glyph g-${gc}">${glabel}</span>
+    <div><div class="name">${r.title} <span class="chip c-${cc}">${clabel}</span></div>
+      ${targ}${doneNote}${steps}${acts}</div></div>`;
+}
+function render(){
+  // pip
+  const ac=activeCount(), bc=blockedCount();
+  const pd=document.getElementById("pipdot"), pdd=document.getElementById("paneldot");
+  pd.className=pdd.className="dot"+(ac>0?" live":"");
+  const pc=document.getElementById("pipcount");
+  if(ac>0){ pc.style.display=""; pc.textContent=ac; pc.className="count"+(bc>0?" attn":""); }
+  else pc.style.display="none";
+  document.getElementById("pip").className="pip"+(panelOpen?" armed":"");
+  document.getElementById("panelsub").textContent = `${ac} active · ${runs.length} today`;
+  // inline indicator
+  const forItem = runs.filter(r=>r.target&&r.target.entityId===TARGET.entityId&&isActive(r));
+  const slot=document.getElementById("inline-slot");
+  if(forItem.length){ const p=forItem[0]; const [cl,cc]=pres(p.status);
+    slot.innerHTML=`<button class="inline-ind" onclick="open_('${p.id}')">🤖 <span class="chip c-${cc}">${cl}</span>${forItem.length>1?` +${forItem.length-1}`:""}</button>`;
+  } else slot.innerHTML=`<span class="chip-badge" style="color:var(--ink-4)">none active</span>`;
+  // panel list
+  const g=grouped();
+  const sec=(key,label,attn)=> g[key].length?`<div class="group-label ${attn?'attn':''}">${label}</div>${g[key].map(runRow).join("")}`:"";
+  const html = sec("blocked","Needs you",true)+sec("running","Running")+sec("queued","Queued")+sec("done","Recently done");
+  document.getElementById("panelbody").innerHTML = html || `<div class="empty">No agent activity yet.</div>`;
+  // detail
+  if(selected){ const r=runs.find(x=>x.id===selected); if(r) renderDetail(r); else closeDetail(); }
+}
+function renderDetail(r){
+  document.getElementById("detailtitle").textContent=r.title;
+  const gd=t=>t==="succeeded"?"ok":t==="running"?"run":t==="failed"?"bad":"";
+  const glyf=t=>t==="succeeded"?"✓":t==="running"?"▶":t==="failed"?"✕":"·";
+  let extra="";
+  if(r.status==="awaiting_approval") extra=`<div class="callout-appr">Wants to <b>${r._approval.summary}</b>.
+    <span class="kv">${r._approval.irreversible?"irreversible":""}</span>
+    <div class="actions" style="margin-top:10px">
+      <button class="btn primary" onclick="cmd('${r.id}','approve')">Approve</button>
+      <button class="btn" onclick="cmd('${r.id}','reject')">Reject</button></div></div>`;
+  else if(r.status==="waiting_for_input") extra=`<form class="steerform" onsubmit="answer('${r.id}',this.q.value);this.q.value='';return false">
+    <input name="q" placeholder="Answer the agent…" autocomplete="off"><button class="btn" type="submit">Send</button></form>`;
+  else if(r.status==="running") extra=`<form class="steerform" onsubmit="steer('${r.id}',this.q.value);this.q.value='';return false">
+    <input name="q" placeholder="Steer this run…" autocomplete="off"><button class="btn" type="submit">Send</button></form>`;
+  else if(r.status==="paused") extra=`<div class="callout-appr" style="background:var(--surface-2);border-color:var(--line-2)">
+    Paused — the agent is holding its place and can resume where it left off.
+    <div class="actions" style="margin-top:10px">
+      <button class="btn primary" style="background:var(--live);border-color:var(--live);color:#012" onclick="cmd('${r.id}','resume')">Resume</button>
+      <button class="btn danger" onclick="cmd('${r.id}','cancel')">Cancel run</button></div></div>`;
+  else if(r.status==="succeeded"&&r.result) extra=`<div class="callout-appr" style="background:var(--success-soft);border-color:color-mix(in srgb,var(--success) 35%,transparent)">
+    ${r.result.summary}. ${r.result.reviewUrl?'<a href="#" onclick="return false" style="color:var(--accent)">Review changes →</a>':''}</div>`;
+  document.getElementById("detailbody").innerHTML=
+    `<div class="sub kv">${r.agentKey}${r.target?" · "+r.target.entityName:""}</div>
+     <ul class="timeline">${(r.steps||[]).map(s=>`<li><span class="tl-dot ${gd(s.status)}">${s._steer?"↳":glyf(s.status)}</span> <span>${s.label}</span></li>`).join("")||'<li class="sub">No steps yet.</li>'}</ul>${extra}`;
+}
+function open_(id){ selected=id; if(!panelOpen) togglePanel(true);
+  document.getElementById("detail").classList.add("open"); render(); }
+function closeDetail(){ selected=null; document.getElementById("detail").classList.remove("open"); }
+function togglePanel(force){ panelOpen = force===true?true:!panelOpen;
+  document.getElementById("panel").classList.toggle("open",panelOpen);
+  if(!panelOpen) closeDetail(); render(); }
+
+// ---- demo controls ----
+function toggleSim(){ simOn=!simOn; document.getElementById("playbtn").textContent=simOn?"⏸ Pause stream":"▶ Resume stream"; }
+function simRefresh(){ // durability: client is a projection — rehydrate from "server" (current runs), flash
+  notify("Refreshed — rehydrated from server snapshot");
+  document.getElementById("panelbody").classList.add("flash");
+  setTimeout(()=>document.getElementById("panelbody").classList.remove("flash"),600);
+  render();
+}
+function resetSim(){ runs=seed(); selected=null; t=0; closeDetail(); render(); notify("Reset"); }
+let toastT;
+function notify(msg){ const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),1900); }
+
+render();
+setInterval(tick, 1200);
+</script>
