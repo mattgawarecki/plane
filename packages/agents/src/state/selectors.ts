@@ -11,6 +11,7 @@ import type { TAgentCollectionState } from "./types";
 const all = (state: TAgentCollectionState): TAgentRun[] => Object.values(state.runs);
 
 export const selectGroupedRuns = (state: TAgentCollectionState) => {
+  // Key order encodes the panel's priority: runs blocked on the user pin to the top.
   const groups = {
     blocked: [] as TAgentRun[],
     running: [] as TAgentRun[],
@@ -19,6 +20,7 @@ export const selectGroupedRuns = (state: TAgentCollectionState) => {
   };
   for (const run of all(state)) {
     if (AGENT_BLOCKED_STATUSES.includes(run.status)) groups.blocked.push(run);
+    // paused is active (resumable), not blocked on the user, so it groups with running.
     else if (run.status === "running" || run.status === "paused") groups.running.push(run);
     else if (run.status === "queued") groups.queued.push(run);
     else if (AGENT_TERMINAL_STATUSES.includes(run.status)) groups.done.push(run);

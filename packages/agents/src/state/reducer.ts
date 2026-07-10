@@ -47,10 +47,11 @@ const reduceRun = (run: TAgentRun, event: TAgentEvent): TAgentRun => {
  */
 export const applyEvent = (state: TAgentCollectionState, event: TAgentEvent): TAgentCollectionState => {
   const run = state.runs[event.runId];
-  if (!run) return state;
+  if (!run) return state; // total: unknown run ids are dropped, not thrown — a backend running ahead of the client can't crash the UI
   const last = state.lastSequence[event.runId] ?? -Infinity;
-  if (event.sequence <= last) return state;
+  if (event.sequence <= last) return state; // strictly monotonic: stale/duplicate sequences are idempotent no-ops, so replays on reconnect are safe
 
+  // Fresh objects (never mutate in place) so memoized selectors and store observers see the change.
   return {
     runs: { ...state.runs, [event.runId]: reduceRun(run, event) },
     lastSequence: { ...state.lastSequence, [event.runId]: event.sequence },
@@ -58,9 +59,13 @@ export const applyEvent = (state: TAgentCollectionState, event: TAgentEvent): TA
 };
 
 /**
- * Pure. Merge an authoritative snapshot into state, keyed by run id.
- * Runs absent from the snapshot are preserved (scope is the caller's choice).
- * lastSequence resets to -1 so the next streamed event applies cleanly.
+ * Pure. Merge an authoritative server snapshot into state, keyed by run id.
+ *
+ * This is the durability path: the client is never authoritative, so refresh /
+ * reboot / reconnect rebuild from the server via `listRuns` rather than local
+ * state. Runs absent from the snapshot are intentionally preserved (which slice
+ * the snapshot covers is the caller's choice). Resetting `lastSequence` to -1
+ * guarantees the next streamed event (sequence 0+) always applies cleanly.
  */
 export const reconcile = (state: TAgentCollectionState, snapshot: TAgentRun[]): TAgentCollectionState => {
   const runs = { ...state.runs };
