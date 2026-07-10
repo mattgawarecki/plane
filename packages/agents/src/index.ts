@@ -8,3 +8,4 @@ export * from "./types";
 export * from "./services";
 export * from "./transport";
 export * from "./state/types";
+export * from "./state/reducer";
