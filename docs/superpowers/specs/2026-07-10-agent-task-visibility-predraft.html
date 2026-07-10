@@ -1,0 +1,587 @@
+<title>Agents in Plane — Visibility Without Noise</title>
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #EBEEF2;
+    --ink: #13171C;
+    --ink-2: #4A515B;
+    --ink-3: #767E89;
+    --line: #E0E4EA;
+    --line-2: #CDD3DB;
+    --accent: #4457C7;
+    --accent-soft: #E5E8FA;
+    --live: #0E9D9D;
+    --live-soft: #D6F0EF;
+    --attention: #B4720C;
+    --attention-soft: #F6E9D2;
+    --success: #1D8C51;
+    --success-soft: #D9EEE1;
+    --fail: #CB4038;
+    --fail-soft: #F6DEDC;
+    --queued: #7E8794;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.18);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --maxw: 76ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1015;
+      --surface: #151A21;
+      --surface-2: #1D242C;
+      --ink: #E6EAEF;
+      --ink-2: #A7AFBB;
+      --ink-3: #6C747F;
+      --line: #242B34;
+      --line-2: #333C47;
+      --accent: #8695F2;
+      --accent-soft: #232a44;
+      --live: #2FD4C6;
+      --live-soft: #123434;
+      --attention: #E3AB55;
+      --attention-soft: #372a15;
+      --success: #46BC7E;
+      --success-soft: #143024;
+      --fail: #EF6a64;
+      --fail-soft: #35201f;
+      --queued: #7B838F;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA; --live: #0E9D9D; --live-soft: #D6F0EF;
+    --attention: #B4720C; --attention-soft: #F6E9D2; --success: #1D8C51; --success-soft: #D9EEE1;
+    --fail: #CB4038; --fail-soft: #F6DEDC; --queued: #7E8794;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.18);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+    --ink-2: #A7AFBB; --ink-3: #6C747F; --line: #242B34; --line-2: #333C47;
+    --accent: #8695F2; --accent-soft: #232a44; --live: #2FD4C6; --live-soft: #123434;
+    --attention: #E3AB55; --attention-soft: #372a15; --success: #46BC7E; --success-soft: #143024;
+    --fail: #EF6a64; --fail-soft: #35201f; --queued: #7B838F;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font-sans); line-height: 1.6;
+    -webkit-font-smoothing: antialiased; font-size: 16px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: 0; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before {
+    content: ""; width: 20px; height: 1px; background: var(--line-2);
+  }
+  h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.08; letter-spacing: -.02em;
+    text-wrap: balance; margin: 0 0 18px; font-weight: 640; }
+  h2 { font-size: clamp(22px, 3.4vw, 29px); line-height: 1.15; letter-spacing: -.015em;
+    text-wrap: balance; margin: 0 0 16px; font-weight: 620; }
+  h3 { font-size: 17px; margin: 0 0 8px; font-weight: 620; letter-spacing: -.005em; }
+  p { margin: 0 0 16px; max-width: var(--maxw); color: var(--ink-2); }
+  p strong { color: var(--ink); font-weight: 600; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .lede { font-size: 19px; color: var(--ink); max-width: 64ch; }
+
+  /* ---------- Masthead ---------- */
+  header.masthead { padding: 64px 0 8px; }
+  .masthead .meta {
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 26px;
+    padding-top: 20px; border-top: 1px solid var(--line);
+  }
+  .masthead .meta span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--queued); flex: none; }
+
+  /* ---------- Live pulse ---------- */
+  .pulse { position: relative; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--live); flex: none; }
+  .pulse::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1.5px solid var(--live); opacity: .6;
+    animation: ring 2.4s ease-out infinite;
+  }
+  @keyframes ring {
+    0% { transform: scale(.6); opacity: .7; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse::after { animation: none; opacity: .35; inset: -3px; }
+  }
+
+  /* ---------- Panel mock ---------- */
+  .stage {
+    background:
+      radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%),
+      var(--surface-2);
+    border: 1px solid var(--line); border-radius: 16px; padding: 22px;
+    display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start;
+    box-shadow: var(--shadow);
+  }
+  @media (max-width: 720px) { .stage { grid-template-columns: 1fr; } }
+  .stage-note { align-self: center; }
+  .stage-note h3 { font-size: 15px; }
+  .stage-note p { font-size: 14px; margin-bottom: 12px; }
+  .fauxchrome {
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    padding-bottom: 12px; margin-bottom: 4px;
+  }
+  .fauxchrome .bell { display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-2); }
+  .badge-count { background: var(--attention); color: #fff; border-radius: 999px;
+    font-size: 10px; padding: 1px 6px; font-weight: 700; }
+  :root[data-theme="dark"] .badge-count, .badge-count { color: #1a1200; }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 15px; border-bottom: 1px solid var(--line);
+  }
+  .panel-head .title { display: flex; align-items: center; gap: 9px; font-weight: 620;
+    font-size: 14px; }
+  .panel-head .sub { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+  .run { padding: 13px 15px; border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+  .run:last-child { border-bottom: 0; }
+  .run .glyph { width: 22px; height: 22px; border-radius: 6px; display: grid;
+    place-items: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    margin-top: 1px; }
+  .run .body { min-width: 0; }
+  .run .name { font-size: 14px; font-weight: 580; margin-bottom: 3px;
+    display: flex; align-items: center; gap: 8px; }
+  .run .line { font-size: 12.5px; color: var(--ink-3); font-family: var(--font-mono);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .run .target { color: var(--ink-2); }
+
+  .chip { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 5px; font-weight: 600;
+    white-space: nowrap; }
+  .chip.running { color: var(--live); background: var(--live-soft); }
+  .chip.approval { color: var(--attention); background: var(--attention-soft); }
+  .chip.success { color: var(--success); background: var(--success-soft); }
+  .chip.queued { color: var(--queued); background: var(--surface-2); }
+  .chip.failed { color: var(--fail); background: var(--fail-soft); }
+
+  .glyph.running { color: var(--live); background: var(--live-soft); }
+  .glyph.approval { color: var(--attention); background: var(--attention-soft); }
+  .glyph.success { color: var(--success); background: var(--success-soft); }
+  .glyph.queued { color: var(--queued); background: var(--surface-2); }
+
+  .steps { display: flex; gap: 3px; margin-top: 8px; }
+  .steps i { height: 4px; border-radius: 2px; flex: 1; background: var(--surface-2); }
+  .steps i.on { background: var(--live); }
+
+  .inline-actions { display: flex; gap: 7px; margin-top: 9px; }
+  .btn {
+    font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; cursor: pointer;
+    border-radius: 6px; padding: 4px 10px; border: 1px solid var(--line-2);
+    background: var(--surface); color: var(--ink-2); transition: .12s;
+  }
+  .btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .btn.primary { background: var(--attention); border-color: var(--attention); color: #241700; }
+  .btn.ghost { background: transparent; }
+  .btn.link { border: 0; padding: 4px 2px; color: var(--accent); background: none; }
+
+  /* ---------- Layered status model ---------- */
+  .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 8px; }
+  @media (max-width: 720px) { .layers { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 440px) { .layers { grid-template-columns: 1fr; } }
+  .layer { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; position: relative; overflow: hidden; }
+  .layer .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    letter-spacing: .1em; }
+  .layer h3 { margin: 8px 0 6px; font-size: 15.5px; }
+  .layer p { font-size: 13px; margin: 0; color: var(--ink-2); }
+  .layer .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .layer.l1 .rail { background: var(--queued); }
+  .layer.l2 .rail { background: var(--accent); }
+  .layer.l3 .rail { background: var(--attention); }
+  .layer.l4 .rail { background: var(--success); }
+  .loud { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-top: 10px;
+    display: block; }
+
+  /* ---------- Option cards ---------- */
+  .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+  @media (max-width: 720px) { .options { grid-template-columns: 1fr; } }
+  .opt { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .opt.rec { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .opt .tag { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3); }
+  .opt.rec .tag { color: var(--accent); }
+  .opt h3 { margin: 6px 0 4px; }
+  .opt p { font-size: 13.5px; margin: 0 0 10px; }
+  .opt ul { margin: 0; padding-left: 16px; font-size: 13px; color: var(--ink-2); }
+  .opt li { margin-bottom: 4px; }
+  .opt .verdict { margin-top: auto; padding-top: 12px; font-size: 12.5px;
+    font-family: var(--font-mono); color: var(--ink-3); border-top: 1px solid var(--line); }
+
+  /* ---------- State machine ---------- */
+  .fsm { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0 20px;
+    font-family: var(--font-mono); font-size: 12.5px; }
+  .node { padding: 6px 11px; border-radius: 7px; border: 1px solid var(--line-2);
+    background: var(--surface); white-space: nowrap; }
+  .node.run { border-color: var(--live); color: var(--live); }
+  .node.block { border-color: var(--attention); color: var(--attention); }
+  .node.ok { border-color: var(--success); color: var(--success); }
+  .node.bad { border-color: var(--fail); color: var(--fail); }
+  .arrow { color: var(--ink-3); }
+
+  /* ---------- Contract tables ---------- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 4px 0; overflow: hidden; }
+  .card .cap { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3); padding: 14px 16px 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td { padding: 7px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  td.k { font-family: var(--font-mono); color: var(--ink); white-space: nowrap; width: 42%;
+    font-size: 12.5px; }
+  td.v { color: var(--ink-2); }
+
+  /* ---------- Moments ---------- */
+  .moments { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .moments { grid-template-columns: 1fr; } }
+  .moment { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; }
+  .moment .h { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .moment .kbd { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2);
+    border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 5px; padding: 2px 7px;
+    color: var(--ink-2); }
+  .moment h3 { font-size: 14.5px; margin: 0; }
+  .moment p { font-size: 13px; margin: 0; }
+
+  /* ---------- Architecture ---------- */
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .tier { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; }
+  @media (max-width: 560px) { .tier { grid-template-columns: 1fr; gap: 4px; } }
+  .tier .who { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); font-weight: 600; }
+  .tier .what { font-size: 13.5px; color: var(--ink-2); }
+  .tier .what code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-2);
+    padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  .built { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--success); background: var(--success-soft);
+    padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+
+  /* ---------- Questions ---------- */
+  .q { display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 16px 0;
+    border-top: 1px solid var(--line); }
+  .q:first-child { border-top: 0; }
+  .q .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 700; }
+  .q h3 { margin: 0 0 4px; font-size: 15px; }
+  .q p { margin: 0; font-size: 13.5px; }
+  .q .lean { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); margin-top: 5px; }
+  .q .lean b { color: var(--live); font-weight: 600; }
+
+  footer { padding: 40px 0 64px; color: var(--ink-3); font-family: var(--font-mono);
+    font-size: 12px; }
+  .callout { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 10px; padding: 14px 16px; font-size: 13.5px; color: var(--ink); margin-top: 18px; }
+  .callout b { color: var(--accent); }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Design pre-draft · Plane platform</p>
+    <h1>Agents in Plane:<br>visibility without noise</h1>
+    <p class="lede">A calm control surface for long-running, autonomous work — one that lets people
+      watch, steer, and interrupt agents while they run, then review what happened, without ever
+      hijacking attention.</p>
+    <div class="meta">
+      <span><span class="dot" style="background:var(--live)"></span> grounded in 2025–26 agent-UX research</span>
+      <span><span class="dot" style="background:var(--accent)"></span> package <code style="font-family:var(--font-mono)">@plane/agents</code> scaffolded</span>
+      <span><span class="dot" style="background:var(--success)"></span> v1 scope locked · spec written</span>
+    </div>
+  </header>
+
+  <!-- ============ HERO: PANEL MOCK ============ -->
+  <section>
+    <p class="eyebrow">The surface</p>
+    <div class="stage">
+      <div>
+        <div class="fauxchrome">
+          <span>plane · workspace header</span>
+          <span class="bell">▟ Inbox <span class="badge-count">1</span> &nbsp;·&nbsp; <span class="pulse"></span> Agents</span>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <span class="title"><span class="pulse"></span> Agents</span>
+            <span class="sub">2 active · 4 today</span>
+          </div>
+
+          <!-- awaiting approval — the blocking state, pinned to top -->
+          <div class="run">
+            <span class="glyph approval">‖</span>
+            <div class="body">
+              <div class="name">Close stale sprint items <span class="chip approval">needs you</span></div>
+              <div class="line">wants to close 12 items · <span style="color:var(--attention)">irreversible</span></div>
+              <div class="inline-actions">
+                <button class="btn primary">Approve</button>
+                <button class="btn">Reject</button>
+                <button class="btn link">Review 12 →</button>
+              </div>
+            </div>
+            <span></span>
+          </div>
+
+          <!-- running -->
+          <div class="run">
+            <span class="glyph running">▶</span>
+            <div class="body">
+              <div class="name">Triage incoming work items <span class="chip running">running</span></div>
+              <div class="line target">Project · Mobile App</div>
+              <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+              <div class="line" style="margin-top:6px">step 3 of 7 · labelling PLAT-482 · steerable</div>
+            </div>
+            <button class="btn ghost">Stop</button>
+          </div>
+
+          <!-- succeeded -->
+          <div class="run">
+            <span class="glyph success">✓</span>
+            <div class="body">
+              <div class="name">Summarize customer feedback <span class="chip success">done</span></div>
+              <div class="line">wrote a summary to the cycle · 2m ago</div>
+              <div class="inline-actions"><button class="btn link">Review changes →</button></div>
+            </div>
+            <span></span>
+          </div>
+
+          <!-- queued -->
+          <div class="run">
+            <span class="glyph queued">…</span>
+            <div class="body">
+              <div class="name">Draft release notes <span class="chip queued">queued</span></div>
+              <div class="line">starts after “Triage” finishes</div>
+            </div>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage-note">
+        <h3>What this establishes</h3>
+        <p>Non-modal, opened on demand from a quiet header pip. Nothing here stole focus to appear.</p>
+        <p>Each run reads at a glance — <strong>state as color and shape</strong>, not just text — with detail one expand away.</p>
+        <p>Decisions live <strong>inline</strong>: approve/reject an irreversible action right where it surfaces. No modal, no toast storm.</p>
+        <p style="margin-bottom:0">The one animated element on the page is the <strong>live pulse</strong> — the calm signal that something is running.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THESIS ============ -->
+  <section>
+    <p class="eyebrow">The problem</p>
+    <h2>Autonomous work is easy to run and hard to watch calmly</h2>
+    <p>Once Plane can spin off agents — triaging, summarizing, tidying sprints — the risk isn't the work,
+      it's the <strong>attention tax</strong> of the work. The naïve build sprays toasts on every step,
+      throws a modal for every decision, and leaves the user babysitting a log. The research is blunt about
+      this: over-notifying (“cry-wolf”) is treated as <strong>worse than having no status system at all</strong>.</p>
+    <p>So the design goal is inverted from “show everything” to <strong>“stay quiet, earn every interruption.”</strong>
+      The user should be able to walk away and trust they'll be pulled back only when a decision genuinely needs them.</p>
+    <div class="callout"><b>Guiding budget.</b> Current guidance caps <em>unsolicited</em> agent notifications at
+      roughly <b>3–5 per user per day</b>, across all agents combined — an architectural constraint, not a preference.
+      Everything else routes to a quiet inbox or stays ambient.</div>
+  </section>
+
+  <!-- ============ 4-LAYER MODEL ============ -->
+  <section>
+    <p class="eyebrow">Principle · match signal loudness to stakes</p>
+    <h2>Four layers, and only one of them interrupts</h2>
+    <p>The prevailing model for ambient agents is a tiered status system. Loud tiers are a scarce, budgeted
+      resource; ambient tiers are the default. An interrupt is for a <em>decision</em>, never for a status update.</p>
+    <div class="layers">
+      <div class="layer l1"><span class="rail"></span><div class="n">01 · default</div><h3>Ambient</h3>
+        <p>A pip in the header. State decodable at a glance. No action implied.</p>
+        <span class="loud">loudness ▁</span></div>
+      <div class="layer l2"><span class="rail"></span><div class="n">02 · on demand</div><h3>Progress</h3>
+        <p>The panel. Runs, steps, ETAs — available when <em>wanted</em>, never forced open.</p>
+        <span class="loud">loudness ▂</span></div>
+      <div class="layer l3"><span class="rail"></span><div class="n">03 · budgeted</div><h3>Attention</h3>
+        <p>An interrupting notice — reserved <em>only</em> for a decision or blocked input.</p>
+        <span class="loud">loudness ▆</span></div>
+      <div class="layer l4"><span class="rail"></span><div class="n">04 · after</div><h3>Summary</h3>
+        <p>A quiet completion record. Dismissed from the active surface, kept in history.</p>
+        <span class="loud">loudness ▂</span></div>
+    </div>
+    <p style="margin-top:22px; font-size:14px; color:var(--ink-3);">Design test: if a user has to keep the panel
+      open and watch it to feel safe, the ambient layer has failed.</p>
+  </section>
+
+  <!-- ============ SURFACE OPTIONS ============ -->
+  <section>
+    <p class="eyebrow">Open decision · where the surface lives</p>
+    <h2>Three surfaces — a recommendation, not a verdict</h2>
+    <p>This is the first thing we need your call on. Each maps cleanly onto patterns Plane already ships.
+      Across the field, low-concurrency products use a <strong>serial list</strong> and high-concurrency ones graduate to a
+      <strong>fleet board</strong> — so v1 is a simple list that can grow a board later without reshaping the data.</p>
+    <div class="options">
+      <div class="opt">
+        <span class="tag">Option A</span>
+        <h3>Dedicated side panel</h3>
+        <p>A persistent, collapsed-by-default drawer listing active + past runs.</p>
+        <ul><li>Best home for a live master–detail view</li><li>New global chrome to introduce</li></ul>
+        <span class="verdict">strong “home base”, weak at reach</span>
+      </div>
+      <div class="opt">
+        <span class="tag">Option B</span>
+        <h3>Inbox-style hub</h3>
+        <p>Agents become a filterable category in the existing notifications inbox.</p>
+        <ul><li>Reuses shipped notification patterns</li><li>Inbox is built for after-the-fact, not live</li></ul>
+        <span class="verdict">cheap to build, weaker in-flight</span>
+      </div>
+      <div class="opt rec">
+        <span class="tag">Recommended</span>
+        <h3>Hybrid: panel + inline</h3>
+        <p>Global panel as home base, plus a compact indicator on the entity an agent is acting on.</p>
+        <ul><li>Live view <em>and</em> contextual reach</li><li>Completions still land in the quiet inbox</li><li>Largest surface area to build</li></ul>
+        <span class="verdict">best coverage of “in-flight + after”</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATUS MODEL / CONTRACT ============ -->
+  <section>
+    <p class="eyebrow">The contract · <code style="font-family:var(--font-mono)">@plane/agents</code> <span class="built">scaffolded ✓</span></p>
+    <h2>One run, a small state machine, two message streams</h2>
+    <p>We've stubbed a provisional, transport-agnostic contract as an isolated workspace package — the seam the
+      (separately built) agent runtime adheres to, and which tests mock freely. Every leading product converges on the
+      same shape: a <strong>master–detail</strong> list of runs, state shown as <strong>named status + steps</strong>
+      (never a percent bar), with the <em>blocking</em> state pinned above all others. The lifecycle:</p>
+    <div class="fsm">
+      <span class="node">queued</span><span class="arrow">→</span>
+      <span class="node run">running</span><span class="arrow">⇄</span>
+      <span class="node block">waiting_for_input</span><span class="arrow">/</span>
+      <span class="node block">awaiting_approval</span><span class="arrow">→</span>
+      <span class="node ok">succeeded</span><span class="arrow">·</span>
+      <span class="node bad">failed</span><span class="arrow">·</span>
+      <span class="node">cancelled</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="cap">Events · runtime → client</div>
+        <table>
+          <tr><td class="k">status_changed</td><td class="v">lifecycle transition</td></tr>
+          <tr><td class="k">progress</td><td class="v">percent / step counts</td></tr>
+          <tr><td class="k">step_*</td><td class="v">timeline entries (the log)</td></tr>
+          <tr><td class="k">input_requested</td><td class="v">agent asks a question</td></tr>
+          <tr><td class="k">approval_requested</td><td class="v">gate before a risky action</td></tr>
+          <tr><td class="k">completed / error</td><td class="v">terminal + summary</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="cap">Commands · user → agent</div>
+        <table>
+          <tr><td class="k">cancel</td><td class="v">hard interrupt, drop in-flight work</td></tr>
+          <tr><td class="k">pause / resume</td><td class="v">suspend, keep work</td></tr>
+          <tr><td class="k">correct</td><td class="v">steer — inject guidance, don't kill</td></tr>
+          <tr><td class="k">provide_input</td><td class="v">answer a prompt</td></tr>
+          <tr><td class="k">approve / reject</td><td class="v">resolve an approval gate</td></tr>
+          <tr><td class="k">retry</td><td class="v">re-run, optionally from checkpoint</td></tr>
+        </table>
+      </div>
+    </div>
+    <p style="margin-top:16px; font-size:13px; color:var(--ink-3); font-family:var(--font-mono);">
+      events per run carry a monotonic <b style="color:var(--ink-2)">sequence</b> → gap-detection + reconcile after reconnect.</p>
+  </section>
+
+  <!-- ============ INTERACTION MOMENTS ============ -->
+  <section>
+    <p class="eyebrow">Principle · the settled vocabulary of steering</p>
+    <h2>Interrupt and steer are different actions</h2>
+    <p>The #1 documented failure across Cursor, Claude Code, and Codex is <em>conflating</em> the two. We split them
+      deliberately, and gate only the irreversible.</p>
+    <div class="moments">
+      <div class="moment">
+        <div class="h"><span class="kbd">Stop</span><h3>Interrupt</h3></div>
+        <p>Hard stop. Ends the run, keeps completed work, drops the in-flight step. A terminal <code style="font-family:var(--font-mono)">cancel</code>.</p>
+      </div>
+      <div class="moment">
+        <div class="h"><span class="kbd">⏎ steer</span><h3>Correct</h3></div>
+        <p>Inject guidance without killing the run. Applied at the next tool boundary — the agent keeps going, redirected.</p>
+      </div>
+      <div class="moment">
+        <div class="h"><span class="pulse" style="background:var(--attention)"></span><h3>Approve inline</h3></div>
+        <p>Only boundary-crossing actions (destructive, irreversible) pause and ask — right in the run row, never a modal.</p>
+      </div>
+      <div class="moment">
+        <div class="h"><span class="dot" style="background:var(--success)"></span><h3>Complete → review</h3></div>
+        <p>Done is a quiet badge plus a <em>reviewable artifact</em> (“Review changes”), not a popup. Failures offer retry.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section>
+    <p class="eyebrow">How it plugs into Plane</p>
+    <h2>Compartmentalized, riding seams that already exist</h2>
+    <div class="stack">
+      <div class="tier"><span class="who">@plane/agents <span class="built">✓</span></span>
+        <span class="what">Isolated package — contracts, <code>IAgentService</code> / <code>IAgentEventTransport</code>, and a <strong>pure event→state reducer</strong> (no React/DOM). The reusable brain both web and a future native client wrap in their own store. Typechecks clean.</span></div>
+      <div class="tier"><span class="who">durable state</span>
+        <span class="what">Client holds no authoritative state — a projection rebuildable from <code>listRuns</code> + the event stream. Refresh, reboot, app-close → just re-hydrate a snapshot and resume by <code>sequence</code>.</span></div>
+      <div class="tier"><span class="who">transport</span>
+        <span class="what">A seam, not a decision yet: <code>SSE</code> · <code>WebSocket via apps/live</code> · <code>SWR polling</code>. Research favors milestone events, not token streams, for background work.</span></div>
+      <div class="tier"><span class="who">apps/web</span>
+        <span class="what">Wired via the existing <code>@/plane-web</code> CE/EE alias — the override seam Plane already uses to add features without touching core.</span></div>
+      <div class="tier"><span class="who">apps/api</span>
+        <span class="what">Persist run config on the existing <code>Integration</code> tables; emit outbound state via <code>webhooks</code>. New <code>bgtasks</code> module only if we own orchestration.</span></div>
+    </div>
+    <div class="callout"><b>Deferred on purpose.</b> Store wiring, UI components, and any backend app are <em>not</em>
+      scaffolded yet — they depend on the surface and transport calls below. We built only what's unambiguous.</div>
+  </section>
+
+  <!-- ============ OPEN QUESTIONS ============ -->
+  <section>
+    <p class="eyebrow">Locked for v1</p>
+    <h2>Four decisions — scope deliberately small</h2>
+    <div class="q">
+      <span class="num">✓</span>
+      <div><h3>Surface — hybrid</h3>
+        <p>Global panel as home base + one inline indicator on work items. Thin first cut; a fleet board composes on later.</p></div>
+    </div>
+    <div class="q">
+      <span class="num">✓</span>
+      <div><h3>Transport — reuse <code style="font-family:var(--font-mono)">apps/live</code></h3>
+        <p>Backend publishes run events → Redis → the existing <code style="font-family:var(--font-mono)">live</code> service relays them. A plain event channel, <em>not</em> Yjs — bending a CRDT doc into an event bus was the friction to avoid. List/history/commands over REST.</p></div>
+    </div>
+    <div class="q">
+      <span class="num">✓</span>
+      <div><h3>Scope — work items only</h3>
+        <p>v1 observes runs targeting work items. Cycles / pages / workspace-level land in the backlog.</p></div>
+    </div>
+    <div class="q">
+      <span class="num">✓</span>
+      <div><h3>Orchestration — backend owns it</h3>
+        <p>The pre-supposed backend owns run lifecycle. We observe over the contract and send commands. No new bgtasks or Django app from us.</p></div>
+    </div>
+    <div class="callout" style="margin-top:22px"><b>Deferred to backlog</b> — push notifications + budget logic,
+      fleet board, non-work-item targets, plan-approval-before-run, checkpoints/rollback, best-of-N. Each composes on
+      top of v1 without reshaping the data.</div>
+  </section>
+
+  <footer>
+    pre-draft · not yet a spec · design flows to docs/superpowers/specs on approval
+  </footer>
+
+</div>

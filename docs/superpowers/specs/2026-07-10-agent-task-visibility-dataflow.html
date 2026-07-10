@@ -1,0 +1,350 @@
+<title>Agent Task Visibility — Data Flow</title>
+<style>
+  :root {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --push: #0E9D9D; --push-soft: #D6F0EF;
+    --cmd: #4457C7; --cmd-soft: #E5E8FA;
+    --pull: #B4720C; --pull-soft: #F6E9D2;
+    --ok: #1D8C51; --ok-soft: #D9EEE1;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.16);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+      --ink-2: #A7AFBB; --ink-3: #6C747F; --line: #242B34; --line-2: #333C47;
+      --accent: #8695F2; --accent-soft: #232a44;
+      --push: #2FD4C6; --push-soft: #123434;
+      --cmd: #8695F2; --cmd-soft: #232a44;
+      --pull: #E3AB55; --pull-soft: #372a15;
+      --ok: #46BC7E; --ok-soft: #143024;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --push: #0E9D9D; --push-soft: #D6F0EF; --cmd: #4457C7; --cmd-soft: #E5E8FA;
+    --pull: #B4720C; --pull-soft: #F6E9D2; --ok: #1D8C51; --ok-soft: #D9EEE1;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.16);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+    --ink-2: #A7AFBB; --ink-3: #6C747F; --line: #242B34; --line-2: #333C47;
+    --accent: #8695F2; --accent-soft: #232a44;
+    --push: #2FD4C6; --push-soft: #123434; --cmd: #8695F2; --cmd-soft: #232a44;
+    --pull: #E3AB55; --pull-soft: #372a15; --ok: #46BC7E; --ok-soft: #143024;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 60px 0 30px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; display: flex;
+    align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 20px; height: 1px; background: var(--line-2); }
+  h1 { font-size: clamp(28px, 4.6vw, 40px); line-height: 1.1; letter-spacing: -.02em;
+    margin: 0 0 14px; font-weight: 640; text-wrap: balance; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 68ch; margin: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 26px 0 4px;
+    padding-top: 22px; border-top: 1px solid var(--line); font-family: var(--font-mono);
+    font-size: 12.5px; }
+  .legend .k { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+  .swatch { width: 22px; height: 8px; border-radius: 3px; flex: none; }
+  .sw-push { background: var(--push); } .sw-cmd { background: var(--cmd); } .sw-pull { background: var(--pull); }
+  .status-key { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px;
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); }
+  .status-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .mk { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .mk.done { background: var(--ok); } .mk.iface { background: var(--accent);
+    box-shadow: inset 0 0 0 2px var(--surface); } .mk.plan { background: var(--line-2); }
+
+  /* ---- Lane ---- */
+  .lane { margin: 34px 0; }
+  .lane-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .lane-tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 6px; font-weight: 600; }
+  .lane.push .lane-tag { color: var(--push); background: var(--push-soft); }
+  .lane.cmd .lane-tag { color: var(--cmd); background: var(--cmd-soft); }
+  .lane.pull .lane-tag { color: var(--pull); background: var(--pull-soft); }
+  .lane-head h2 { font-size: 17px; margin: 0; font-weight: 620; letter-spacing: -.01em; }
+  .lane-head .dir { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); margin-left: auto; }
+  .lane-desc { font-size: 13.5px; color: var(--ink-2); margin: 2px 0 14px; max-width: 78ch; }
+
+  .scroller { overflow-x: auto; padding: 6px 2px 12px; }
+  .flow { display: flex; align-items: stretch; min-width: min-content; }
+
+  .node { flex: none; width: 168px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 11px; padding: 12px 13px; box-shadow: var(--shadow); position: relative; }
+  .node .own { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center;
+    justify-content: space-between; }
+  .node .role { font-size: 13.5px; font-weight: 620; margin: 7px 0 3px; letter-spacing: -.01em; }
+  .node .path { font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+    word-break: break-all; line-height: 1.45; }
+  .node .what { font-size: 11.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.4; }
+  .node.term { background: var(--surface-2); }
+  .lane.push .node { border-top: 2px solid var(--push); }
+  .lane.cmd .node { border-top: 2px solid var(--cmd); }
+  .lane.pull .node { border-top: 2px solid var(--pull); }
+
+  /* edge/connector */
+  .edge { flex: none; width: 62px; align-self: center; display: flex; flex-direction: column;
+    align-items: center; gap: 5px; padding: 0 2px; }
+  .edge .lbl { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-3);
+    text-align: center; line-height: 1.25; letter-spacing: .02em; }
+  .edge .track { position: relative; width: 100%; height: 2px; border-radius: 2px;
+    background: var(--line-2); }
+  .lane.push .edge .track { background: linear-gradient(90deg, var(--push) 0 50%, transparent 50%);
+    background-size: 10px 2px; animation: flow 700ms linear infinite; }
+  @keyframes flow { to { background-position: -10px 0; } }
+  @media (prefers-reduced-motion: reduce) { .lane.push .edge .track { animation: none;
+    background: var(--push); } }
+  .edge .track::after { content: "▶"; position: absolute; right: -3px; top: 50%;
+    transform: translateY(-50%); font-size: 9px; color: var(--ink-3); }
+  .lane.push .edge .track::after { color: var(--push); }
+  .lane.cmd .edge .track { background: var(--cmd); } .lane.cmd .edge .track::after { color: var(--cmd); }
+  .lane.pull .edge .track { background: var(--pull); } .lane.pull .edge .track::after { color: var(--pull); }
+
+  .mk-node { position: absolute; top: 10px; right: 11px; width: 9px; height: 9px; border-radius: 50%; }
+  .mk-node.done { background: var(--ok); } .mk-node.iface { background: var(--accent); }
+  .mk-node.plan { background: var(--line-2); }
+
+  /* return note */
+  .returns { display: flex; align-items: center; gap: 10px; margin-top: 10px;
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); }
+  .returns .arc { flex: none; color: var(--push); }
+
+  /* ---- reducer spotlight ---- */
+  .spot { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; margin: 40px 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; box-shadow: var(--shadow); }
+  @media (max-width: 720px) { .spot { grid-template-columns: 1fr; } }
+  .spot h3 { margin: 0 0 8px; font-size: 16px; }
+  .spot p { font-size: 13.5px; color: var(--ink-2); margin: 0 0 10px; }
+  .spot code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-2);
+    padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  pre { margin: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 15px; overflow-x: auto; font-family: var(--font-mono); font-size: 12px;
+    line-height: 1.6; color: var(--ink); }
+  pre .c { color: var(--ink-3); } pre .k { color: var(--cmd); } pre .s { color: var(--push); }
+
+  /* ---- file table ---- */
+  section.files { padding: 20px 0 60px; border-top: 1px solid var(--line); margin-top: 40px; }
+  h2.sec { font-size: 20px; margin: 0 0 6px; letter-spacing: -.015em; }
+  .sub { color: var(--ink-3); font-size: 13.5px; margin: 0 0 18px; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th { text-align: left; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 8px 12px;
+    border-bottom: 1px solid var(--line-2); }
+  .tbl td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .tbl td.p { font-family: var(--font-mono); font-size: 12px; color: var(--accent); word-break: break-all; }
+  .tbl td.r { color: var(--ink); font-weight: 560; white-space: nowrap; }
+  .tbl td.s { white-space: nowrap; font-family: var(--font-mono); font-size: 11.5px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; }
+  .pill.done { color: var(--ok); } .pill.iface { color: var(--accent); } .pill.plan { color: var(--ink-3); }
+
+  footer { padding: 0 0 60px; color: var(--ink-3); font-family: var(--font-mono); font-size: 12px; }
+  a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Data flow · v1 · agent task visibility</p>
+    <h1>How a run travels from backend to a calm panel</h1>
+    <p class="lede">Three paths, one source of truth. The server owns lifecycle; the client is a
+      reconstructable projection. Nodes reference the real files — tick them off as we build.</p>
+
+    <div class="legend">
+      <span class="k"><span class="swatch sw-push"></span> Push · live events (server → client)</span>
+      <span class="k"><span class="swatch sw-cmd"></span> Command · control (client → server)</span>
+      <span class="k"><span class="swatch sw-pull"></span> Pull · load / rehydrate / ambient</span>
+    </div>
+    <div class="status-key">
+      <span><span class="mk done"></span> built</span>
+      <span><span class="mk iface"></span> interface built, impl planned</span>
+      <span><span class="mk plan"></span> planned</span>
+    </div>
+  </header>
+
+  <!-- ============ PUSH LANE ============ -->
+  <div class="lane push">
+    <div class="lane-head">
+      <span class="lane-tag">Push</span>
+      <h2>Live events — a run changes, the panel reflects it</h2>
+      <span class="dir">server → client</span>
+    </div>
+    <p class="lane-desc">Opened <strong>only while watching</strong> (panel open, or viewing a work item with an active
+      run). Milestone events never dropped; rapid progress is coalesced server-side. Applied strictly by <code style="font-family:var(--font-mono)">sequence</code>.</p>
+    <div class="scroller">
+      <div class="flow">
+        <div class="node term"><span class="mk-node plan"></span><div class="own">backend</div>
+          <div class="role">Agent runtime</div><div class="path">pre-supposed</div>
+          <div class="what">Owns lifecycle. Emits run events.</div></div>
+        <div class="edge"><span class="lbl">publish</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node done"></span><div class="own">apps/live</div>
+          <div class="role">Redis pub/sub</div><div class="path">src/redis.ts</div>
+          <div class="what">Per-workspace channel. Fan-out substrate (exists).</div></div>
+        <div class="edge"><span class="lbl">relay</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/live</div>
+          <div class="role">Events channel</div><div class="path">src/controllers · extensions</div>
+          <div class="what">New authed WS channel (not Yjs). Auth per subscribe.</div></div>
+        <div class="edge"><span class="lbl">WS frame<br>TAgentEvent</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">Transport adapter</div><div class="path">transport/agents</div>
+          <div class="what">IAgentEventTransport impl. Errors caught here, never thrown.</div></div>
+        <div class="edge"><span class="lbl">onEvent</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node iface"></span><div class="own">@plane/agents</div>
+          <div class="role">Pure reducer</div><div class="path">src/state/reducer.ts</div>
+          <div class="what">applyEvent(state,e). Total, idempotent, framework-free.</div></div>
+        <div class="edge"><span class="lbl">next state</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">MobX store</div><div class="path">store/agents</div>
+          <div class="what">Thin observable wrapper over the reducer.</div></div>
+        <div class="edge"><span class="lbl">observe</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">Panel · rows · inline</div><div class="path">components/agents/*</div>
+          <div class="what">Under an error boundary + feature flag. Named status, steps.</div></div>
+      </div>
+    </div>
+    <div class="returns"><span class="arc">↩</span> Commands echo back here as events — the UI never optimistically
+      assumes a terminal state.</div>
+  </div>
+
+  <!-- ============ COMMAND LANE ============ -->
+  <div class="lane cmd">
+    <div class="lane-head">
+      <span class="lane-tag">Command</span>
+      <h2>Control — interrupt, steer, approve, retry</h2>
+      <span class="dir">client → server</span>
+    </div>
+    <p class="lane-desc">User acts inline (no modal). The command goes over REST; the resulting state returns via the
+      <strong>Push</strong> lane, keeping one source of truth.</p>
+    <div class="scroller">
+      <div class="flow">
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">Inline control</div><div class="path">components/agents/*</div>
+          <div class="what">Stop · steer · approve/reject · provide input · retry.</div></div>
+        <div class="edge"><span class="lbl">TAgentCommand</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node iface"></span><div class="own">@plane/agents</div>
+          <div class="role">IAgentService</div><div class="path">src/services/agent.service.ts</div>
+          <div class="what">sendCommand(). Interface built; mocked in tests.</div></div>
+        <div class="edge"><span class="lbl">impl</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">REST service</div><div class="path">services/agents</div>
+          <div class="what">HTTP POST. Failures surface inline, feature-local.</div></div>
+        <div class="edge"><span class="lbl">POST</span><div class="track"></div></div>
+
+        <div class="node term"><span class="mk-node plan"></span><div class="own">backend</div>
+          <div class="role">Agent runtime</div><div class="path">pre-supposed</div>
+          <div class="what">Applies command → emits new events (→ Push lane).</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PULL LANE ============ -->
+  <div class="lane pull">
+    <div class="lane-head">
+      <span class="lane-tag">Pull</span>
+      <h2>Load, rehydrate & ambient count</h2>
+      <span class="dir">client → server</span>
+    </div>
+    <p class="lane-desc">The recovery path. Runs on first mount <strong>and</strong> every interruption — reconnect,
+      tab-visible, app resume — so refresh / reboot / app-close need no special handling. The ambient header count is a
+      cheap poll, <strong>not</strong> a socket.</p>
+    <div class="scroller">
+      <div class="flow">
+        <div class="node"><span class="mk-node plan"></span><div class="own">apps/web/ce</div>
+          <div class="role">Triggers</div><div class="path">store/agents · hooks</div>
+          <div class="what">mount · reconnect · visibilitychange · 30–60s count poll.</div></div>
+        <div class="edge"><span class="lbl">listRuns<br>getRun</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node iface"></span><div class="own">@plane/agents</div>
+          <div class="role">IAgentService</div><div class="path">src/services/agent.service.ts</div>
+          <div class="what">list / get. Interface built.</div></div>
+        <div class="edge"><span class="lbl">GET (SWR)</span><div class="track"></div></div>
+
+        <div class="node term"><span class="mk-node plan"></span><div class="own">backend</div>
+          <div class="role">Agent runtime</div><div class="path">pre-supposed</div>
+          <div class="what">Authoritative snapshot of runs + steps.</div></div>
+        <div class="edge"><span class="lbl">snapshot</span><div class="track"></div></div>
+
+        <div class="node"><span class="mk-node iface"></span><div class="own">@plane/agents</div>
+          <div class="role">reconcile()</div><div class="path">src/state/reducer.ts</div>
+          <div class="what">Merge snapshot by run id; resume stream by sequence.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REDUCER SPOTLIGHT ============ -->
+  <div class="spot">
+    <div>
+      <h3>Why the reducer is the center of gravity</h3>
+      <p>Both clients (web now, native later) wrap the <em>same</em> pure functions. No React, no MobX, no DOM — so
+        the highest-value tests live in the package and cover every client at once.</p>
+      <p>Two entry points feed it: <code>applyEvent</code> from the Push lane, <code>reconcile</code> from the Pull
+        lane. State is never authoritative locally — it's always rebuildable from a snapshot + the stream.</p>
+    </div>
+    <pre><span class="c">// @plane/agents · src/state/reducer.ts (planned)</span>
+<span class="k">export function</span> applyEvent(
+  state, <span class="s">event</span>            <span class="c">// TAgentEvent</span>
+) {
+  <span class="c">// ignore stale / duplicate by sequence</span>
+  <span class="c">// unknown type → return state (total)</span>
+}
+
+<span class="k">export function</span> reconcile(
+  state, <span class="s">snapshot</span>         <span class="c">// TAgentRun[]</span>
+) {
+  <span class="c">// merge by run id, drop terminal subs</span>
+}</pre>
+  </div>
+
+  <!-- ============ FILE INDEX ============ -->
+  <section class="files">
+    <h2 class="sec">Key files</h2>
+    <p class="sub">Living index — update status as we implement.</p>
+    <div class="scroller">
+      <table class="tbl">
+        <thead><tr><th>Role</th><th>Path</th><th>Owner</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="r">Data / event / command types</td><td class="p">packages/agents/src/types/*</td><td class="s">@plane/agents</td><td class="s"><span class="pill done"><span class="mk done"></span>built</span></td></tr>
+          <tr><td class="r">IAgentService interface</td><td class="p">packages/agents/src/services/agent.service.ts</td><td class="s">@plane/agents</td><td class="s"><span class="pill done"><span class="mk done"></span>built</span></td></tr>
+          <tr><td class="r">IAgentEventTransport interface</td><td class="p">packages/agents/src/transport/index.ts</td><td class="s">@plane/agents</td><td class="s"><span class="pill done"><span class="mk done"></span>built</span></td></tr>
+          <tr><td class="r">Pure reducer (applyEvent / reconcile)</td><td class="p">packages/agents/src/state/reducer.ts</td><td class="s">@plane/agents</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">Redis pub/sub</td><td class="p">apps/live/src/redis.ts</td><td class="s">apps/live</td><td class="s"><span class="pill done"><span class="mk done"></span>exists</span></td></tr>
+          <tr><td class="r">Agent events WS channel</td><td class="p">apps/live/src/controllers · extensions</td><td class="s">apps/live</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">Transport adapter (WS)</td><td class="p">apps/web/ce/transport/agents</td><td class="s">apps/web</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">REST service impl</td><td class="p">apps/web/ce/services/agents</td><td class="s">apps/web</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">MobX store adapter</td><td class="p">apps/web/ce/store/agents</td><td class="s">apps/web</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">Panel · run rows · detail · inline</td><td class="p">apps/web/ce/components/agents/*</td><td class="s">apps/web</td><td class="s"><span class="pill plan"><span class="mk plan"></span>planned</span></td></tr>
+          <tr><td class="r">Error boundary (pattern to extend)</td><td class="p">apps/web/app/root.tsx:148</td><td class="s">apps/web</td><td class="s"><span class="pill done"><span class="mk done"></span>exists</span></td></tr>
+          <tr><td class="r">CE/EE wiring alias</td><td class="p">@/plane-web → apps/web/ce/*</td><td class="s">apps/web</td><td class="s"><span class="pill done"><span class="mk done"></span>exists</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    companion to 2026-07-10-agent-task-visibility-design.md · update nodes + status as we implement
+  </footer>
+
+</div>
