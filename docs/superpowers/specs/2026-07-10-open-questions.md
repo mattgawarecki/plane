@@ -62,3 +62,29 @@ Parked mid-implementation. Each has a quick lean; none blocks current work.
    run), keep `grouped` cheap/memoized, and make sure a single event only repaints
    its row. Revisit alongside #6 (virtualization) and pin #3 (load). Verify with
    React DevTools "highlight updates".
+
+10. **Accessibility audit (dedicated pass).**
+    - **Live regions:** rows are `aria-live="polite"` — but per-step announcements
+      could flood a screen reader on a chatty run. Scope live regions to
+      status/approval changes, not every `step_*`; consider announcing a
+      summarized "step N of M" rather than each label.
+    - **Contrast (WCAG AA):** verify the label-color chips + `custom-text-*` tones,
+      especially white text on the indigo Approve / emerald Resume buttons and the
+      faint `text-custom-text-400` meta.
+    - **Touch targets:** row buttons are small (`px-2.5 py-1`); bump to ≥44px on
+      mobile / the full-screen variant.
+    - **Keyboard nav:** focus order in the drawer, Esc-to-close, visible
+      focus-visible on pip/buttons/steer input, and whether the drawer should trap
+      focus while open.
+    - **Reduced motion:** pulse is already `motion-safe`; audit any other motion.
+      Ties to pin #4 (mobile full-screen variant is where big targets matter most).
+
+11. **Multi-provider LLM support (low priority, long-term).** The runtime is
+    Anthropic-only today (Tool Runner + Opus 4.8). Depending on one provider is
+    neither reliable enough (outages) nor appropriate for all customers (budget,
+    self-host/fine-tuning, trade/regulatory constraints, data-residency). Long
+    term: abstract the runtime behind a provider-agnostic interface (the tools +
+    the `@plane/agents` event contract already are provider-neutral — only
+    `dispatch`/`toolRunner` is Anthropic-specific), so the model layer is
+    swappable per deployment/customer. Not near-term; the contract seam already
+    makes this a contained change later.
