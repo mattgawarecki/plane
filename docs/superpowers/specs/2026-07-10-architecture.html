@@ -1,0 +1,602 @@
+<title>Agent Visibility + Agentic Demo — Architecture</title>
+<style>
+  :root {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --core: #4457C7; --core-soft: #E5E8FA;
+    --demo: #0E9D9D; --demo-soft: #D6F0EF;
+    --web: #B4720C; --web-soft: #F6E9D2;
+    --ok: #1D8C51; --ok-soft: #D9EEE1;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.16);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+      --ink-2: #A7AFBB; --ink-3: #6C747F; --line: #242B34; --line-2: #333C47;
+      --accent: #8695F2; --accent-soft: #232a44;
+      --core: #8695F2; --core-soft: #232a44;
+      --demo: #2FD4C6; --demo-soft: #123434;
+      --web: #E3AB55; --web-soft: #372a15;
+      --ok: #46BC7E; --ok-soft: #143024;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --core: #4457C7; --core-soft: #E5E8FA; --demo: #0E9D9D; --demo-soft: #D6F0EF;
+    --web: #B4720C; --web-soft: #F6E9D2; --ok: #1D8C51; --ok-soft: #D9EEE1;
+    --shadow: 0 1px 2px rgba(19,23,28,.04), 0 8px 24px -12px rgba(19,23,28,.16);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+    --ink-2: #A7AFBB; --ink-3: #6C747F; --line: #242B34; --line-2: #333C47;
+    --accent: #8695F2; --accent-soft: #232a44;
+    --core: #8695F2; --core-soft: #232a44; --demo: #2FD4C6; --demo-soft: #123434;
+    --web: #E3AB55; --web-soft: #372a15; --ok: #46BC7E; --ok-soft: #143024;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 60px 0 26px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; display: flex;
+    align-items: center; gap: 8px; }
+  .eyebrow::before { content: ""; width: 20px; height: 1px; background: var(--line-2); }
+  h1 { font-size: clamp(28px, 4.6vw, 42px); line-height: 1.08; letter-spacing: -.02em;
+    margin: 0 0 14px; font-weight: 640; text-wrap: balance; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 74ch; margin: 0; }
+  .lede code { font-family: var(--font-mono); font-size: .86em; background: var(--surface-2);
+    padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 26px 0 4px;
+    padding-top: 22px; border-top: 1px solid var(--line); font-family: var(--font-mono);
+    font-size: 12.5px; }
+  .legend .k { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+  .swatch { width: 22px; height: 9px; border-radius: 3px; flex: none; }
+  .sw-core { background: var(--core); } .sw-demo { background: var(--demo); } .sw-web { background: var(--web); }
+  .sw-gate { background: var(--ok); }
+
+  /* ---- section scaffolding ---- */
+  section { padding: 30px 0; border-top: 1px solid var(--line); margin-top: 26px; }
+  .kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
+  h2.sec { font-size: 22px; margin: 0 0 8px; letter-spacing: -.015em; font-weight: 640; }
+  .sub { color: var(--ink-2); font-size: 14px; margin: 0 0 20px; max-width: 82ch; }
+  .sub code, p code, li code, td code { font-family: var(--font-mono); font-size: .85em;
+    background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+  .scroller { overflow-x: auto; padding: 4px 2px 12px; }
+
+  /* ================= LAYER SPINE ================= */
+  .spine { display: flex; flex-direction: column; gap: 0; }
+  .stratum { background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 18px 20px; position: relative; }
+  .stratum.core { border-top: 3px solid var(--core); }
+  .stratum.demo { border-top: 3px solid var(--demo); }
+  .stratum.web  { border-top: 3px solid var(--web); }
+  .seam { display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 11px 0; color: var(--ink-3); font-family: var(--font-mono); font-size: 11.5px; }
+  .seam .bar { height: 22px; width: 2px; background: var(--line-2); border-radius: 2px; }
+  .seam.up .arrow { color: var(--web); } .seam.down .arrow { color: var(--web); }
+
+  .st-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 3px; }
+  .st-tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; font-weight: 600;
+    padding: 3px 9px; border-radius: 6px; }
+  .stratum.core .st-tag { color: var(--core); background: var(--core-soft); }
+  .stratum.demo .st-tag { color: var(--demo); background: var(--demo-soft); }
+  .stratum.web  .st-tag { color: var(--web);  background: var(--web-soft); }
+  .st-head h3 { margin: 0; font-size: 17px; font-weight: 620; letter-spacing: -.01em; }
+  .st-head .pkg { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-3); }
+  .st-head .dep { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    display: inline-flex; align-items: center; gap: 6px; }
+  .st-head .dep b { color: var(--ink-2); font-weight: 600; }
+  .st-desc { font-size: 13px; color: var(--ink-2); margin: 2px 0 14px; max-width: 92ch; }
+
+  .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .mod { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); }
+  .stratum.core .mod { border-left: 2px solid var(--core); }
+  .stratum.demo .mod { border-left: 2px solid var(--demo); }
+  .stratum.web  .mod { border-left: 2px solid var(--web); }
+  .mod .role { font-size: 12.5px; font-weight: 620; letter-spacing: -.01em; }
+  .mod .path { font-family: var(--font-mono); font-size: 10.5px; color: var(--accent); word-break: break-all;
+    margin: 3px 0 4px; line-height: 1.4; }
+  .mod .what { font-size: 11px; color: var(--ink-2); line-height: 1.45; }
+  .mod .api { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); margin-top: 5px; line-height: 1.5;
+    display: block; }
+
+  .gatechip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono);
+    font-size: 10px; color: var(--ok); background: var(--ok-soft); padding: 1px 7px; border-radius: 20px;
+    margin-left: 6px; vertical-align: middle; }
+
+  /* ================= FLOW LANES ================= */
+  .lane { margin: 26px 0 8px; }
+  .lane-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .lane-tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 6px; font-weight: 600; }
+  .lane.observe .lane-tag { color: var(--demo); background: var(--demo-soft); }
+  .lane.command .lane-tag { color: var(--web);  background: var(--web-soft); }
+  .lane-head h3 { font-size: 16px; margin: 0; font-weight: 620; letter-spacing: -.01em; }
+  .lane-head .dir { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); margin-left: auto; }
+  .lane-desc { font-size: 13px; color: var(--ink-2); margin: 2px 0 14px; max-width: 88ch; }
+
+  .flow { display: flex; align-items: stretch; min-width: min-content; }
+  .node { flex: none; width: 178px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 11px; padding: 11px 12px; box-shadow: var(--shadow); position: relative; }
+  .node .own { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--ink-3); }
+  .node .role { font-size: 13px; font-weight: 620; margin: 6px 0 3px; letter-spacing: -.01em; }
+  .node .path { font-family: var(--font-mono); font-size: 10px; color: var(--accent); word-break: break-all;
+    line-height: 1.4; }
+  .node .what { font-size: 11px; color: var(--ink-2); margin-top: 6px; line-height: 1.4; }
+  .node.term { background: var(--surface-2); }
+  .node.tone-core { border-top: 2px solid var(--core); }
+  .node.tone-demo { border-top: 2px solid var(--demo); }
+  .node.tone-web  { border-top: 2px solid var(--web); }
+  .node.tone-gate { border-top: 2px solid var(--ok); }
+
+  .edge { flex: none; width: 60px; align-self: center; display: flex; flex-direction: column;
+    align-items: center; gap: 5px; padding: 0 2px; }
+  .edge .lbl { font-family: var(--font-mono); font-size: 9px; color: var(--ink-3); text-align: center;
+    line-height: 1.25; letter-spacing: .02em; }
+  .edge .track { position: relative; width: 100%; height: 2px; border-radius: 2px; background: var(--line-2); }
+  .lane.observe .edge .track { background: linear-gradient(90deg, var(--demo) 0 50%, transparent 50%);
+    background-size: 10px 2px; animation: flow 720ms linear infinite; }
+  @keyframes flow { to { background-position: -10px 0; } }
+  @media (prefers-reduced-motion: reduce) { .lane.observe .edge .track { animation: none; background: var(--demo); } }
+  .edge .track::after { content: "\25B6"; position: absolute; right: -3px; top: 50%; transform: translateY(-50%);
+    font-size: 8px; color: var(--demo); }
+  .lane.command .edge .track { background: var(--web); }
+  .lane.command .edge .track::after { color: var(--web); }
+  .returns { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-family: var(--font-mono);
+    font-size: 11px; color: var(--ink-3); }
+  .returns .arc { flex: none; color: var(--demo); font-size: 14px; }
+
+  /* ================= COMPONENT TREE ================= */
+  .tree { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.9; color: var(--ink-2);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 20px 22px; min-width: min-content; }
+  .tree .n { color: var(--ink); font-weight: 600; }
+  .tree .g { color: var(--ink-3); }
+  .tree .f { color: var(--accent); font-size: 11px; }
+  .tree .note { color: var(--ink-3); font-size: 11px; font-style: normal; }
+  .tag-inline { font-family: var(--font-mono); font-size: 9.5px; padding: 1px 6px; border-radius: 12px;
+    margin-left: 6px; white-space: nowrap; }
+  .t-flag { color: var(--core); background: var(--core-soft); }
+  .t-lazy { color: var(--web); background: var(--web-soft); }
+  .t-eb   { color: var(--ok); background: var(--ok-soft); }
+
+  /* ================= FILE MAP ================= */
+  .fmap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 860px) { .fmap { grid-template-columns: 1fr; } }
+  .fcol { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 16px 18px; }
+  .fcol.core { border-top: 3px solid var(--core); }
+  .fcol.demo { border-top: 3px solid var(--demo); }
+  .fcol.web  { border-top: 3px solid var(--web); }
+  .fcol.docs { border-top: 3px solid var(--line-2); }
+  .fcol h4 { margin: 0 0 3px; font-size: 14px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 8px; }
+  .fcol h4 .p { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); font-weight: 500; }
+  .fcol .feat { font-size: 11.5px; color: var(--ink-2); margin: 0 0 12px; }
+  .ftree { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.85; }
+  .ftree .row { display: flex; gap: 8px; align-items: baseline; }
+  .ftree .path { color: var(--ink); white-space: nowrap; }
+  .ftree .path .g { color: var(--ink-3); }
+  .ftree .path .dir { color: var(--accent); }
+  .ftree .ann { color: var(--ink-3); font-family: var(--font-sans); font-size: 10.5px; margin-left: auto;
+    text-align: right; }
+
+  /* ================= KEY CONCEPTS ================= */
+  .concepts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .concept { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+    box-shadow: var(--shadow); border-left: 3px solid var(--accent); }
+  .concept h4 { margin: 0 0 5px; font-size: 13.5px; letter-spacing: -.01em; }
+  .concept p { margin: 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .concept.g { border-left-color: var(--ok); }
+  .concept.d { border-left-color: var(--demo); }
+  .concept.w { border-left-color: var(--web); }
+
+  footer { padding: 30px 0 60px; color: var(--ink-3); font-family: var(--font-mono); font-size: 12px;
+    border-top: 1px solid var(--line); margin-top: 26px; }
+  a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Architecture · top-down · agent visibility + agentic demo</p>
+    <h1>One pure contract, two wrappers, a live LLM on stage</h1>
+    <p class="lede">A framework-free core (<code>@plane/agents</code>) defines the seam — run/event/command
+      types plus a total, idempotent reducer. Two layers wrap the <em>same</em> functions: a private LLM
+      runtime + Plane client + HTTP bridge (<code>@plane/agents-demo</code>), and a flag-gated web surface
+      (<code>apps/web/ce</code>) — MobX store, WebSocket transport, hooks, panel UI. The core has zero
+      framework deps; both wrappers only add I/O, lifecycle, and pixels.</p>
+
+    <div class="legend">
+      <span class="k"><span class="swatch sw-core"></span> <code>@plane/agents</code> — pure contract + reducer (the seam)</span>
+      <span class="k"><span class="swatch sw-demo"></span> <code>@plane/agents-demo</code> — LLM runtime + Plane client + bridge</span>
+      <span class="k"><span class="swatch sw-web"></span> <code>apps/web/ce</code> — store · transport · hooks · UI</span>
+      <span class="k"><span class="swatch sw-gate"></span> human-in-the-loop approval gate</span>
+    </div>
+  </header>
+
+  <!-- ============ 1. THREE LAYERS SPINE ============ -->
+  <section>
+    <p class="kicker">01 · The spine</p>
+    <h2 class="sec">Three layers, one center of gravity</h2>
+    <p class="sub">The pure core sits in the middle. It depends on nothing. The demo runtime wraps it to
+      <em>produce</em> events; the web layer wraps it to <em>project</em> them into UI. Neither wrapper edits
+      the core, and the core never imports React, MobX, Node, or the DOM.</p>
+
+    <div class="scroller">
+    <div class="spine" style="min-width:640px">
+
+      <!-- DEMO stratum (top: producer) -->
+      <div class="stratum demo">
+        <div class="st-head">
+          <span class="st-tag">runtime · producer</span>
+          <h3>@plane/agents-demo</h3>
+          <span class="pkg">private · localhost-guarded · never shipped</span>
+          <span class="dep"><b>depends on →</b> @plane/agents · @anthropic-ai/sdk · zod</span>
+        </div>
+        <p class="st-desc">A real LLM interprets natural language, acts on a local Plane over REST tools, and
+          emits the <em>same</em> <code>TAgentEvent</code> stream the panel consumes. Three entrypoints run via
+          <code>tsx</code> (no bin/scripts): a CLI spike, a seeder, and the HTTP bridge the web panel polls.</p>
+        <div class="mods">
+          <div class="mod"><div class="role">LLM dispatch loop</div>
+            <div class="path">src/runtime/dispatch.ts</div>
+            <div class="what">NL → Anthropic Tool Runner. Mints a <code>TAgentRun</code>, stamps events with a monotonic sequence.</div>
+            <span class="api">dispatch() · toolRunner() · claude-opus-4-8</span></div>
+          <div class="mod"><div class="role">Plane tools + rails</div>
+            <div class="path">src/runtime/tools.ts</div>
+            <div class="what">7 betaZodTools + SYSTEM_PROMPT. Each wrapped in <code>withStep</code> (step_started → step_completed).</div>
+            <span class="api">list · search · create_sub_task · assign · set_status · add_comment · bulk_close<span class="gatechip">gate</span></span></div>
+          <div class="mod"><div class="role">Plane REST client</div>
+            <div class="path">src/client/{plane-client,resources}.ts</div>
+            <div class="what">Token-auth <code>X-Api-Key</code> wrapper over <code>/api/v1</code>; typed resource surface; dry-run.</div>
+            <span class="api">PlaneClient · PlaneResources</span></div>
+          <div class="mod"><div class="role">HTTP bridge</div>
+            <div class="path">src/server.ts</div>
+            <div class="what">Node http on :4000. Folds events into an in-memory reduced state; parks approvals in <code>pendingByRun</code>.</div>
+            <span class="api">GET/POST /api/workspaces/&#123;ws&#125;/agent-runs</span></div>
+          <div class="mod"><div class="role">Config + guardrail</div>
+            <div class="path">src/{config,guardrail}.ts</div>
+            <div class="what">Env → DemoConfig; <code>assertLocalhost()</code> as defense-in-depth on every request.</div>
+            <span class="api">loadConfig() · assertLocalhost()</span></div>
+          <div class="mod"><div class="role">CLI entrypoints</div>
+            <div class="path">src/{dispatch,seed}-cli.ts</div>
+            <div class="what">One-shot NL dispatch to console; idempotent seed of the "September billing close" world.</div>
+            <span class="api">tsx src/dispatch-cli.ts · tsx src/seed-cli.ts</span></div>
+        </div>
+      </div>
+
+      <div class="seam down"><span class="bar"></span><span>emits <code>TAgentEvent</code> · reuses <code>applyEvent</code> / <code>reconcile</code></span><span class="arrow">&#9660;</span><span class="bar"></span></div>
+
+      <!-- CORE stratum (middle: the seam) -->
+      <div class="stratum core">
+        <div class="st-head">
+          <span class="st-tag">contract · the seam</span>
+          <h3>@plane/agents</h3>
+          <span class="pkg">zero runtime dependencies · framework-free</span>
+          <span class="dep"><b>depends on →</b> nothing</span>
+        </div>
+        <p class="st-desc">The shared brain. Domain types, two interface seams, and a pure event→state reducer.
+          Both clients wrap these identical functions, so the highest-value tests live here and cover every
+          consumer at once. State is a <em>projection</em> — never authoritative, always rebuildable.</p>
+        <div class="mods">
+          <div class="mod"><div class="role">Domain types</div>
+            <div class="path">src/types/{session,events,commands}.ts</div>
+            <div class="what">The vocabulary every layer speaks.</div>
+            <span class="api">TAgentRun · TAgentEvent · TAgentCommand · TAgentStep · TAgentTarget</span></div>
+          <div class="mod"><div class="role">Status &amp; discriminants</div>
+            <div class="path">src/types/session.ts · events.ts</div>
+            <div class="what">8 run statuses, 9 event types, 8 command types — all string unions, read defensively.</div>
+            <span class="api">queued·running·paused·waiting_for_input·awaiting_approval·succeeded·failed·cancelled</span></div>
+          <div class="mod"><div class="role">Pure reducer</div>
+            <div class="path">src/state/reducer.ts</div>
+            <div class="what">Total, idempotent, immutable. Ignores unknown runs/types; ordered strictly by sequence.</div>
+            <span class="api">applyEvent(state,event) · reconcile(state,snapshot)</span></div>
+          <div class="mod"><div class="role">Projection + selectors</div>
+            <div class="path">src/state/{types,selectors}.ts</div>
+            <div class="what">Runs-by-id + lastSequence per run. Priority buckets for the panel.</div>
+            <span class="api">emptyAgentState() · selectGroupedRuns · selectActiveCount · selectRunsForTarget</span></div>
+          <div class="mod"><div class="role">Reconnect backoff</div>
+            <div class="path">src/state/backoff.ts</div>
+            <div class="what">Pure capped exponential (base 500ms, cap 30s); jitter left to the caller for determinism.</div>
+            <span class="api">backoffDelay(attempt, opts?)</span></div>
+          <div class="mod"><div class="role">Interface seams</div>
+            <div class="path">src/services/agent.service.ts · src/transport/index.ts</div>
+            <div class="what">Request/response half + real-time half. Mocked in tests; implemented per client.</div>
+            <span class="api">IAgentService{listRuns·getRun·sendCommand} · IAgentEventTransport{subscribe}</span></div>
+        </div>
+      </div>
+
+      <div class="seam up"><span class="bar"></span><span class="arrow">&#9650;</span><span>wraps in MobX · WebSocket · SWR — supplies thin adapters only</span><span class="bar"></span></div>
+
+      <!-- WEB stratum (bottom: projector) -->
+      <div class="stratum web">
+        <div class="st-head">
+          <span class="st-tag">web · projector</span>
+          <h3>apps/web/ce</h3>
+          <span class="pkg">reached via <code>@/plane-web/* → ./ce/*</code> · flag-gated · no core edits</span>
+          <span class="dep"><b>depends on →</b> @plane/agents · MobX · React · SWR</span>
+        </div>
+        <p class="st-desc">Owns only I/O and lifecycle: sockets, polling, MobX observability, feature-flagging,
+          pixels. Wired additively into the CE root store; EE can override any single module through the alias.
+          Mounts at one surface today — the workspace header — and renders <code>null</code> when the flag is off.</p>
+        <div class="mods">
+          <div class="mod"><div class="role">MobX store (reducer bridge)</div>
+            <div class="path">store/agents/agent.store.ts</div>
+            <div class="what">Thin wrapper: projection held as one <code>observable.ref</code>, swapped by reference on each transition.</div>
+            <span class="api">ingestEvent→applyEvent · hydrate→reconcile · runCommand · grouped · activeCount</span></div>
+          <div class="mod"><div class="role">REST service</div>
+            <div class="path">services/agents/agent.service.ts</div>
+            <div class="what">implements IAgentService against the bridge (base :4000). Request/response half only.</div>
+            <span class="api">listRuns · getRun · sendCommand</span></div>
+          <div class="mod"><div class="role">WebSocket transport</div>
+            <div class="path">transport/agents/agent-event-transport.ts</div>
+            <div class="what">implements IAgentEventTransport. Parses frames, drops malformed, catches all errors — never throws into React.</div>
+            <span class="api">subscribe() · createBrowserAgentSocket</span></div>
+          <div class="mod"><div class="role">Hooks (flag · sub · count · cancel)</div>
+            <div class="path">hooks/agents/*</div>
+            <div class="what">Flag gate; lazy WS subscription w/ backoff+jitter; ambient SWR count (45s); deferred-cancel Undo (5s).</div>
+            <span class="api">useAgentsEnabled · useAgentSubscription · useAgentCount · useDeferredCancel</span></div>
+          <div class="mod"><div class="role">Panel UI</div>
+            <div class="path">components/agents/*</div>
+            <div class="what">Grouped run list, master→detail, inline indicator, named status chips. All MobX observers.</div>
+            <span class="api">AgentsRoot · AgentsPanel · AgentRunRow · AgentRunDetail · AgentInlineIndicator</span></div>
+          <div class="mod"><div class="role">Mount point</div>
+            <div class="path">components/common/extended-app-header.tsx</div>
+            <div class="what">Single seam. <code>&lt;AgentsRoot workspaceId=&#123;slug&#125;/&gt;</code> — byte-for-byte today when flag off.</div>
+            <span class="api">VITE_ENABLE_AGENTS === "1"</span></div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. DATA FLOW ============ -->
+  <section>
+    <p class="kicker">02 · Data flow</p>
+    <h2 class="sec">Two directions around the reducer</h2>
+    <p class="sub">Events flow one way (runtime → panel) and commands flow the reverse (panel → runtime) — but a
+      command never optimistically mutates the UI. It resolves a parked promise on the bridge, which emits a
+      <em>new</em> event back through the observe lane. One source of truth, always.</p>
+
+    <!-- OBSERVE LANE -->
+    <div class="lane observe">
+      <div class="lane-head">
+        <span class="lane-tag">Observe</span>
+        <h3>Live &amp; snapshot — a run changes, the panel reflects it</h3>
+        <span class="dir">runtime → panel</span>
+      </div>
+      <p class="lane-desc">The Tool Runner drives tools; each tool call maps to a step and emits a
+        sequence-stamped <code>TAgentEvent</code>. The bridge folds events into an in-memory reduced state and
+        serves it over HTTP. The panel polls <code>listRuns</code> for the authoritative snapshot
+        (<code>reconcile</code>); the WebSocket transport carries live events (<code>applyEvent</code>) — same
+        reducer, two entry points.</p>
+      <div class="scroller">
+        <div class="flow">
+          <div class="node term tone-demo"><div class="own">agents-demo</div>
+            <div class="role">Tool Runner loop</div><div class="path">runtime/dispatch.ts</div>
+            <div class="what">toolRunner(claude-opus-4-8). NL → plan → tool calls.</div></div>
+          <div class="edge"><span class="lbl">step_* /<br>status</span><div class="track"></div></div>
+
+          <div class="node tone-demo"><div class="own">agents-demo</div>
+            <div class="role">Plane tools</div><div class="path">runtime/tools.ts</div>
+            <div class="what">emit(partial event) via withStep → PlaneResources.</div></div>
+          <div class="edge"><span class="lbl">emit()<br>seq++</span><div class="track"></div></div>
+
+          <div class="node tone-demo"><div class="own">agents-demo</div>
+            <div class="role">Bridge · reduce</div><div class="path">server.ts · applyServerEvent</div>
+            <div class="what">applyEvent folds into in-memory TAgentCollectionState.</div></div>
+          <div class="edge"><span class="lbl">GET (poll)<br>/agent-runs</span><div class="track"></div></div>
+
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">AgentService / Transport</div><div class="path">services · transport/agents</div>
+            <div class="what">listRuns snapshot + subscribe() WS events.</div></div>
+          <div class="edge"><span class="lbl">hydrate /<br>ingestEvent</span><div class="track"></div></div>
+
+          <div class="node tone-core"><div class="own">@plane/agents</div>
+            <div class="role">Pure reducer</div><div class="path">state/reducer.ts</div>
+            <div class="what">reconcile(snapshot) · applyEvent(event). By sequence.</div></div>
+          <div class="edge"><span class="lbl">observable<br>.ref swap</span><div class="track"></div></div>
+
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">MobX store</div><div class="path">store/agents/agent.store.ts</div>
+            <div class="what">grouped / activeCount computed selectors.</div></div>
+          <div class="edge"><span class="lbl">observe</span><div class="track"></div></div>
+
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">Panel · rows · inline</div><div class="path">components/agents/*</div>
+            <div class="what">Grouped list, named status, step N of M.</div></div>
+        </div>
+      </div>
+      <div class="returns"><span class="arc">&#8626;</span> Commands re-enter here as events — the panel never optimistically assumes a terminal state.</div>
+    </div>
+
+    <!-- COMMAND LANE -->
+    <div class="lane command">
+      <div class="lane-head">
+        <span class="lane-tag">Command</span>
+        <h3>Control — approve / reject / pause / resume / cancel</h3>
+        <span class="dir">panel → runtime</span>
+      </div>
+      <p class="lane-desc">A control dispatches a <code>TAgentCommand</code> through the store (no optimistic
+        transition). The service POSTs to the bridge, which resolves the run's parked approval promise or flips
+        its status — then the resulting state returns via the Observe lane. The gated <code>bulk_close</code>
+        tool is literally blocked on this round-trip.</p>
+      <div class="scroller">
+        <div class="flow">
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">Inline control</div><div class="path">agent-run-row · agent-run-detail</div>
+            <div class="what">Approve/Reject · Pause/Resume · Cancel · steer.</div></div>
+          <div class="edge"><span class="lbl">runCommand</span><div class="track"></div></div>
+
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">MobX store action</div><div class="path">store/agents/agent.store.ts</div>
+            <div class="what">runCommand → service.sendCommand. No optimistic terminal.</div></div>
+          <div class="edge"><span class="lbl">TAgentCommand</span><div class="track"></div></div>
+
+          <div class="node tone-web"><div class="own">apps/web/ce</div>
+            <div class="role">AgentService</div><div class="path">services/agents/agent.service.ts</div>
+            <div class="what">POST /agent-runs/&#123;id&#125;/commands/.</div></div>
+          <div class="edge"><span class="lbl">POST</span><div class="track"></div></div>
+
+          <div class="node tone-gate"><div class="own">agents-demo</div>
+            <div class="role">Bridge · resolve</div><div class="path">server.ts · pendingByRun</div>
+            <div class="what">approve/reject resolves parked promise; pause/cancel set status.</div></div>
+          <div class="edge"><span class="lbl">resume<br>tool run</span><div class="track"></div></div>
+
+          <div class="node term tone-demo"><div class="own">agents-demo</div>
+            <div class="role">bulk_close.run</div><div class="path">runtime/tools.ts</div>
+            <div class="what">Only mutates if approved → emits new events (→ Observe).</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. COMPONENT TREE ============ -->
+  <section>
+    <p class="kicker">03 · UI composition</p>
+    <h2 class="sec">Component tree — flag before hooks, lazy, error-isolated</h2>
+    <p class="sub">Mounted once in the workspace header. <code>AgentsRoot</code> evaluates the flag
+      <em>before</em> any hook that could open a socket or poll (flag-off returns <code>null</code>, zero
+      network). The panel bundle is <code>React.lazy</code> — not fetched until the flag is on and the drawer
+      opens. The whole surface sits under an error boundary that degrades to "Agents unavailable" instead of
+      white-screening the host.</p>
+    <div class="scroller">
+      <div class="tree">
+<span class="g">components/common/</span><span class="n">ExtendedAppHeader</span> <span class="f">extended-app-header.tsx</span> <span class="note">— mounts when workspaceSlug present</span>
+<span class="g">└─</span> <span class="n">AgentsRoot</span> <span class="f">agents-root.tsx</span><span class="tag-inline t-flag">useAgentsEnabled → null if off</span>
+<span class="g">   └─</span> <span class="n">AgentsErrorBoundary</span> <span class="f">agents-error-boundary.tsx</span><span class="tag-inline t-eb">getDerivedStateFromError</span>
+<span class="g">      ├─</span> <span class="n">AgentsHeaderPip</span> <span class="f">agents-header-pip.tsx</span> <span class="note">— observer · useAgentCount (45s SWR) · motion-safe pulse when count&gt;0</span>
+<span class="g">      └─</span> <span class="n">&lt;Suspense&gt;</span> <span class="g">→</span> <span class="n">AgentsPanel</span> <span class="f">agents-panel.tsx</span><span class="tag-inline t-lazy">React.lazy</span> <span class="note">— observer · polls loadRuns 2500ms</span>
+<span class="g">         └─</span> <span class="n">AgentRunRow[]</span> <span class="f">agent-run-row.tsx</span> <span class="note">— grouped: Needs you → Running → Queued → Recently done</span>
+<span class="g">            ├─</span> <span class="n">AgentStatusChip</span> <span class="f">agent-status-chip.tsx</span> <span class="g">→</span> <span class="f">status-presentation.ts</span> <span class="note">(named, not a %)</span>
+<span class="g">            └─</span> <span class="n">AgentRunDetail</span> <span class="f">agent-run-detail.tsx</span> <span class="note">— master→detail · step timeline · SteerBox (correct / provide_input) · Approve/Reject</span>
+
+<span class="note">   ── separate hybrid entry, from a work item ──</span>
+<span class="g">   </span><span class="n">AgentInlineIndicator</span> <span class="f">agent-inline-indicator.tsx</span> <span class="note">— observer · runsForTarget · useAgentSubscription(enabled: runs&gt;0) · compact chip → onOpen(runId)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. SEMANTIC FILE MAP ============ -->
+  <section>
+    <p class="kicker">04 · Where things live</p>
+    <h2 class="sec">Semantic file map — by feature &amp; role</h2>
+    <p class="sub">A newcomer's index. Each grouping ties a directory to the feature it powers: the contract seam,
+      pure state, the LLM runtime, the Plane client, the bridge, the web adapters, the web UI, and the design
+      docs. Features — Ask / Delegate / Gate, the visibility panel, durability, flag rollout — are noted where
+      they land.</p>
+    <div class="fmap">
+
+      <div class="fcol core">
+        <h4>@plane/agents <span class="p">packages/agents/src</span></h4>
+        <p class="feat">Contract seam · pure state · durability model</p>
+        <div class="ftree">
+          <div class="row"><span class="path"><span class="dir">types/</span>session.ts</span><span class="ann">TAgentRun · statuses</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>events.ts</span><span class="ann">TAgentEvent (9)</span></div>
+          <div class="row"><span class="path"><span class="g">└ </span>commands.ts</span><span class="ann">TAgentCommand (8)</span></div>
+          <div class="row"><span class="path"><span class="dir">state/</span>reducer.ts</span><span class="ann">applyEvent · reconcile</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>selectors.ts</span><span class="ann">grouped · active count</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>types.ts</span><span class="ann">projection · lastSequence</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>backoff.ts</span><span class="ann">reconnect timing</span></div>
+          <div class="row"><span class="path"><span class="g">└ </span>README.md</span><span class="ann">invariants</span></div>
+          <div class="row"><span class="path"><span class="dir">services/</span>agent.service.ts</span><span class="ann">IAgentService</span></div>
+          <div class="row"><span class="path"><span class="dir">transport/</span>index.ts</span><span class="ann">IAgentEventTransport</span></div>
+        </div>
+      </div>
+
+      <div class="fcol demo">
+        <h4>@plane/agents-demo <span class="p">packages/agents-demo/src</span></h4>
+        <p class="feat">Ask · Delegate · Gate — real LLM runtime, client &amp; bridge</p>
+        <div class="ftree">
+          <div class="row"><span class="path"><span class="dir">runtime/</span>dispatch.ts</span><span class="ann">Tool Runner loop</span></div>
+          <div class="row"><span class="path"><span class="g">└ </span>tools.ts</span><span class="ann">7 tools + rails · Gate</span></div>
+          <div class="row"><span class="path"><span class="dir">client/</span>plane-client.ts</span><span class="ann">REST /api/v1</span></div>
+          <div class="row"><span class="path"><span class="g">└ </span>resources.ts</span><span class="ann">typed endpoints</span></div>
+          <div class="row"><span class="path">server.ts</span><span class="ann">HTTP bridge :4000</span></div>
+          <div class="row"><span class="path">dispatch-cli.ts</span><span class="ann">NL spike</span></div>
+          <div class="row"><span class="path">seed-cli.ts</span><span class="ann">seed demo world</span></div>
+          <div class="row"><span class="path">config.ts</span><span class="ann">env → DemoConfig</span></div>
+          <div class="row"><span class="path">guardrail.ts</span><span class="ann">assertLocalhost</span></div>
+        </div>
+      </div>
+
+      <div class="fcol web">
+        <h4>apps/web/ce <span class="p">via @/plane-web alias</span></h4>
+        <p class="feat">Visibility panel · flag rollout · durability adapters</p>
+        <div class="ftree">
+          <div class="row"><span class="path"><span class="dir">store/agents/</span>agent.store.ts</span><span class="ann">MobX bridge</span></div>
+          <div class="row"><span class="path"><span class="dir">services/agents/</span>agent.service.ts</span><span class="ann">REST impl</span></div>
+          <div class="row"><span class="path"><span class="dir">transport/agents/</span>*.ts</span><span class="ann">WS + browser socket</span></div>
+          <div class="row"><span class="path"><span class="dir">hooks/agents/</span>use-agents-enabled</span><span class="ann">flag gate</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>use-agent-subscription</span><span class="ann">lazy WS + backoff</span></div>
+          <div class="row"><span class="path"><span class="g">├ </span>use-agent-count</span><span class="ann">ambient poll</span></div>
+          <div class="row"><span class="path"><span class="g">└ </span>use-deferred-cancel</span><span class="ann">5s Undo</span></div>
+          <div class="row"><span class="path"><span class="dir">components/agents/</span>*.tsx</span><span class="ann">panel · rows · detail · inline</span></div>
+          <div class="row"><span class="path">store/root.store.ts</span><span class="ann">additive wiring</span></div>
+          <div class="row"><span class="path">README.agents.md</span><span class="ann">layer contract</span></div>
+        </div>
+      </div>
+
+      <div class="fcol docs">
+        <h4>Design docs <span class="p">docs/superpowers/specs</span></h4>
+        <p class="feat">Rationale · run-of-show · open questions</p>
+        <div class="ftree">
+          <div class="row"><span class="path">…-agent-task-visibility-design.md</span><span class="ann">panel + contract</span></div>
+          <div class="row"><span class="path">…-agentic-demo-system-design.md</span><span class="ann">LLM demo arc</span></div>
+          <div class="row"><span class="path">…-agent-task-visibility-dataflow.html</span><span class="ann">sibling data-flow</span></div>
+          <div class="row"><span class="path">…-agent-dispatch-prototype.html</span><span class="ann">dispatch UI (wide)</span></div>
+          <div class="row"><span class="path">…-agent-dispatch-mobile-prototype.html</span><span class="ann">dispatch UI (narrow)</span></div>
+          <div class="row"><span class="path">…-demo-run-of-show.md</span><span class="ann">stage script</span></div>
+          <div class="row"><span class="path">…-open-questions.md</span><span class="ann">unresolved</span></div>
+          <div class="row"><span class="path">…-architecture.html</span><span class="ann">this document</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 5. KEY CONCEPTS ============ -->
+  <section>
+    <p class="kicker">05 · Key concepts</p>
+    <h2 class="sec">Five things to hold in your head</h2>
+    <div class="concepts">
+      <div class="concept"><h4>The contract is the seam</h4>
+        <p><code>@plane/agents</code> owns the types, the two interfaces, and the reducer. Change the contract
+          and every layer moves together; change a wrapper and nothing else notices.</p></div>
+      <div class="concept d"><h4>The client is a projection</h4>
+        <p>Local state is never authoritative — it is fully rebuildable from <code>listRuns</code> +
+          the event stream. Refresh, reboot, reconnect all reduce to the normal load path via
+          <code>reconcile</code>.</p></div>
+      <div class="concept w"><h4>Flag-gated, no core edits</h4>
+        <p>Everything enters through <code>@/plane-web</code> and mounts at one header seam.
+          <code>VITE_ENABLE_AGENTS</code> is checked before any socket or poll — flag-off is byte-for-byte
+          today, zero network.</p></div>
+      <div class="concept g"><h4>Human-in-the-loop gate</h4>
+        <p><code>bulk_close</code> can't mutate until a human taps Approve. The gate lives inside the tool's
+          <code>run</code> function — the panel's approval UX is literally the LLM's safety rail.</p></div>
+      <div class="concept d"><h4>The runtime is a real LLM</h4>
+        <p>Anthropic Tool Runner on <code>claude-opus-4-8</code> drives plan → call → loop. The SDK owns the
+          loop; the code owns only the tool functions and the rails prompt.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    grounded in packages/agents · packages/agents-demo · apps/web/ce (verified 2026-07-10) ·
+    companion to the visibility &amp; demo design docs · favicon 🗺️
+  </footer>
+
+</div>
