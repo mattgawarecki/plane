@@ -30,3 +30,35 @@ Parked mid-implementation. Each has a quick lean; none blocks current work.
      need for every event to paint).
    - "Recently done" list — can lag; only the blocked/needs-you state must feel
      immediate. Prioritize freshness for the attention tier, relax it elsewhere.
+
+## Round 2
+
+5. **Bulk-dismiss completions.** The "Recently done" group should have a "Clear
+   all" (and per-row dismiss). Needs a `dismissed` concept — client-local hidden
+   set at minimum, or a real dismiss command if it should persist/sync. Lean:
+   client-local first, promote to a command if cross-device.
+
+6. **Virtualization (elevate from backlog).** The panel currently maps every run;
+   long lists should virtualize. Plane already virtualizes issue lists — reuse
+   that (`react-window`/equivalent) rather than roll our own. Do this before the
+   fleet board / any high-count view.
+
+7. **Correlated / dependent runs (sub-agents).** A running agent may spawn child
+   runs; today `TAgentRun` has `target` (an entity) but no run→run relation.
+   Add an optional `parentRunId` (+ maybe `relationType`) and render nested/
+   threaded (cf. Devin child-Devins, Claude subagent panel). Contract extension —
+   design before building. Ties to how the demo runtime would expose sub-agents.
+
+8. **Streaming the ask/delegate answer (table stakes).** Step events (`step_*`)
+   already stream incrementally, but the final NL _answer_ is delivered whole
+   (the CLI dispatch returns the final message). Add token/delta streaming for the
+   answer (the Tool Runner supports it) so responses render live, not after a
+   pause. Needs an `answer`/message-delta event on the contract + incremental
+   render in the panel/dispatch.
+
+9. **Render efficiency / avoid needless re-renders.** `AgentRunRow` is already an
+   `observer`, but the panel is one big observer mapping `grouped`, so any run's
+   change re-renders the whole list. Lean: observe per-row (rows read their own
+   run), keep `grouped` cheap/memoized, and make sure a single event only repaints
+   its row. Revisit alongside #6 (virtualization) and pin #3 (load). Verify with
+   React DevTools "highlight updates".

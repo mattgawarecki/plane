@@ -9,6 +9,7 @@ import { observer } from "mobx-react";
 import { useParams } from "react-router";
 // components
 import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
+import { AgentsRoot } from "@/plane-web/components/agents/agents-root";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
@@ -16,7 +17,7 @@ import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferen
 export const ExtendedAppHeader = observer(function ExtendedAppHeader(props: { header: ReactNode }) {
   const { header } = props;
   // params
-  const { projectId, workItem } = useParams();
+  const { workspaceSlug, projectId, workItem } = useParams();
   // preferences
   const { preferences: projectPreferences } = useProjectNavigationPreferences();
   // store hooks
@@ -28,6 +29,12 @@ export const ExtendedAppHeader = observer(function ExtendedAppHeader(props: { he
     <>
       {sidebarCollapsed && shouldShowSidebarToggleButton && <AppSidebarToggleButton />}
       <div className="w-full">{header}</div>
+      {/* Agents surface — renders null unless the flag is on (byte-for-byte today when off). */}
+      {workspaceSlug && (
+        <div className="flex items-center pr-2">
+          <AgentsRoot workspaceId={workspaceSlug} />
+        </div>
+      )}
     </>
   );
 });
