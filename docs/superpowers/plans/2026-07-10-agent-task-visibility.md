@@ -458,10 +458,11 @@ describe("selectors", () => {
         run("c", "queued"),
         run("d", "succeeded"),
         run("e", "waiting_for_input"),
+        run("f", "paused"),
       ])
     );
     expect(g.blocked.map((r) => r.id).sort()).toEqual(["b", "e"]);
-    expect(g.running.map((r) => r.id)).toEqual(["a"]);
+    expect(g.running.map((r) => r.id).sort()).toEqual(["a", "f"]);
     expect(g.queued.map((r) => r.id)).toEqual(["c"]);
     expect(g.done.map((r) => r.id)).toEqual(["d"]);
   });
@@ -509,7 +510,7 @@ export const selectGroupedRuns = (state: TAgentCollectionState) => {
   };
   for (const run of all(state)) {
     if (AGENT_BLOCKED_STATUSES.includes(run.status)) groups.blocked.push(run);
-    else if (run.status === "running") groups.running.push(run);
+    else if (run.status === "running" || run.status === "paused") groups.running.push(run);
     else if (run.status === "queued") groups.queued.push(run);
     else if (AGENT_TERMINAL_STATUSES.includes(run.status)) groups.done.push(run);
   }
@@ -1335,65 +1336,116 @@ import { observer } from "mobx-react";
 import type { TAgentCommand, TAgentRun } from "@plane/agents";
 import { AgentStatusChip } from "./agent-status-chip";
 
-export const AgentRunRow = observer(({ run, onCommand }: { run: TAgentRun; onCommand: (c: TAgentCommand) => void }) => {
-  const steps = run.progress?.totalSteps ?? 0;
-  const done = run.progress?.currentStep ?? 0;
-  return (
-    <div className="px-4 py-3 border-b border-custom-border-200" role="status" aria-live="polite">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <span className="truncate">{run.title}</span>
-        <AgentStatusChip status={run.status} />
-      </div>
-      {run.target?.entityName && <div className="text-xs text-custom-text-300 mt-0.5">{run.target.entityName}</div>}
-      {run.status === "running" && steps > 0 && (
-        <div className="flex gap-0.5 mt-2" aria-label={`step ${done} of ${steps}`}>
-          {Array.from({ length: steps }).map((_, i) => (
-            <span key={i} className={`h-1 flex-1 rounded-sm ${i < done ? "bg-[--live]" : "bg-custom-background-80"}`} />
-          ))}
+export const AgentRunRow = observer(
+  ({
+    run,
+    onCommand,
+    onRequestCancel,
+    onUndoCancel,
+    pendingCancel,
+  }: {
+    run: TAgentRun;
+    onCommand: (c: TAgentCommand) => void;
+    onRequestCancel: (runId: string) => void;
+    onUndoCancel: (runId: string) => void;
+    pendingCancel: boolean;
+  }) => {
+    const steps = run.progress?.totalSteps ?? 0;
+    const done = run.progress?.currentStep ?? 0;
+    return (
+      <div className="px-4 py-3 border-b border-custom-border-200" role="status" aria-live="polite">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <span className="truncate">{run.title}</span>
+          <AgentStatusChip status={run.status} />
         </div>
-      )}
-      <div className="flex gap-1.5 mt-2">
-        {run.status === "awaiting_approval" && (
-          <>
-            <button
-              className="text-xs font-medium rounded px-2.5 py-1 bg-[--attention] text-white"
-              onClick={() => onCommand({ runId: run.id, type: "approve", payload: { approvalId: "" } })}
-            >
-              Approve
-            </button>
+        {run.target?.entityName && <div className="text-xs text-custom-text-300 mt-0.5">{run.target.entityName}</div>}
+        {run.status === "running" && steps > 0 && (
+          <div className="flex gap-0.5 mt-2" aria-label={`step ${done} of ${steps}`}>
+            {Array.from({ length: steps }).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 flex-1 rounded-sm ${i < done ? "bg-[--live]" : "bg-custom-background-80"}`}
+              />
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1.5 mt-2">
+          {run.status === "awaiting_approval" && (
+            <>
+              <button
+                className="text-xs font-medium rounded px-2.5 py-1 bg-[--attention] text-white"
+                onClick={() => onCommand({ runId: run.id, type: "approve", payload: { approvalId: "" } })}
+              >
+                Approve
+              </button>
+              <button
+                className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
+                onClick={() => onCommand({ runId: run.id, type: "reject", payload: { approvalId: "" } })}
+              >
+                Reject
+              </button>
+            </>
+          )}
+          {/* Recovery model: Pause is the non-destructive default; hard Cancel is
+            secondary and deferred behind an Undo (onRequestCancel/onUndoCancel). */}
+          {!pendingCancel && run.status === "running" && (
             <button
               className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
-              onClick={() => onCommand({ runId: run.id, type: "reject", payload: { approvalId: "" } })}
+              onClick={() => onCommand({ runId: run.id, type: "pause", payload: {} })}
             >
-              Reject
+              Pause
             </button>
-          </>
-        )}
-        {(run.status === "running" || run.status === "queued") && (
-          <button
-            className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
-            onClick={() => onCommand({ runId: run.id, type: "cancel", payload: {} })}
-          >
-            Stop
-          </button>
-        )}
-        {run.status === "failed" && (
-          <button
-            className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
-            onClick={() => onCommand({ runId: run.id, type: "retry", payload: {} })}
-          >
-            Retry
-          </button>
-        )}
-        {run.status === "succeeded" && run.result?.reviewUrl && (
-          <a className="text-xs font-medium text-custom-primary-100 py-1" href={run.result.reviewUrl}>
-            Review changes →
-          </a>
-        )}
+          )}
+          {!pendingCancel && run.status === "paused" && (
+            <>
+              <button
+                className="text-xs font-medium rounded px-2.5 py-1 bg-[--live] text-white"
+                onClick={() => onCommand({ runId: run.id, type: "resume", payload: {} })}
+              >
+                Resume
+              </button>
+              <button
+                className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
+                onClick={() => onRequestCancel(run.id)}
+              >
+                Cancel run
+              </button>
+            </>
+          )}
+          {!pendingCancel && run.status === "queued" && (
+            <button
+              className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
+              onClick={() => onRequestCancel(run.id)}
+            >
+              Cancel
+            </button>
+          )}
+          {pendingCancel && (
+            <button
+              className="text-xs font-medium rounded px-2.5 py-1 border border-[--accent] text-[--accent]"
+              onClick={() => onUndoCancel(run.id)}
+            >
+              ↩ Undo stop
+            </button>
+          )}
+          {run.status === "failed" && (
+            <button
+              className="text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300"
+              onClick={() => onCommand({ runId: run.id, type: "retry", payload: {} })}
+            >
+              Retry
+            </button>
+          )}
+          {run.status === "succeeded" && run.result?.reviewUrl && (
+            <a className="text-xs font-medium text-custom-primary-100 py-1" href={run.result.reviewUrl}>
+              Review changes →
+            </a>
+          )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 ```
 
 Note: `approvalId` is threaded from the run's latest `approval_requested` event via the store's blocking-event pass-through (Task 7 `onBlockingEvent`); wire the real id when that hook lands. For v1 the row reads it from `run` once the contract carries the pending approval id (add `pendingApprovalId?: string` to `TAgentRun` if backend provides it — otherwise the detail view (Task 12) owns approvals).
@@ -1413,6 +1465,7 @@ import { ScrollArea } from "@plane/propel/scrollarea";
 import { useAgentStore } from "@/plane-web/hooks/agents/use-agent-store";
 import { useAgentSubscription } from "@/plane-web/hooks/agents/use-agent-subscription";
 import { AgentRunRow } from "./agent-run-row";
+import { useDeferredCancel } from "@/plane-web/hooks/agents/use-deferred-cancel";
 import "./agents.styles.css";
 
 const GROUPS: { key: "blocked" | "running" | "queued" | "done"; label: string }[] = [
@@ -1432,6 +1485,7 @@ export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) =
   const grouped = store.grouped;
   const onCommand = (c: Parameters<typeof store.runCommand>[0]["command"]) =>
     store.runCommand({ workspaceId, command: c });
+  const { pending, requestCancel, undoCancel } = useDeferredCancel(workspaceId);
 
   const empty = GROUPS.every((g) => grouped[g.key].length === 0);
   return (
@@ -1442,7 +1496,14 @@ export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) =
           <div key={g.key}>
             <div className="px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide text-custom-text-400">{g.label}</div>
             {grouped[g.key].map((run) => (
-              <AgentRunRow key={run.id} run={run} onCommand={onCommand} />
+              <AgentRunRow
+                key={run.id}
+                run={run}
+                onCommand={onCommand}
+                onRequestCancel={requestCancel}
+                onUndoCancel={undoCancel}
+                pendingCancel={pending.has(run.id)}
+              />
             ))}
           </div>
         ) : null
@@ -1452,12 +1513,66 @@ export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) =
 });
 ```
 
-- [ ] **Step 4: Typecheck** — `cd apps/web && pnpm check:types` → no errors.
+- [ ] **Step 4: Implement `use-deferred-cancel.ts`** (recovery model)
 
-- [ ] **Step 5: Commit**
+Create `apps/web/ce/hooks/agents/use-deferred-cancel.ts`. Hard-cancel is **not**
+dispatched immediately: it is held for `CANCEL_UNDO_MS` behind an Undo. If undone,
+the `cancel` command is never sent and the agent never stopped.
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useAgentStore } from "@/plane-web/hooks/agents/use-agent-store";
+
+export const CANCEL_UNDO_MS = 5000;
+
+export const useDeferredCancel = (workspaceId: string) => {
+  const store = useAgentStore();
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const clear = useCallback((runId: string) => {
+    const tm = timers.current.get(runId);
+    if (tm) clearTimeout(tm);
+    timers.current.delete(runId);
+    setPending((prev) => {
+      const next = new Set(prev);
+      next.delete(runId);
+      return next;
+    });
+  }, []);
+
+  const requestCancel = useCallback(
+    (runId: string) => {
+      setPending((prev) => new Set(prev).add(runId));
+      const tm = setTimeout(() => {
+        clear(runId);
+        void store.runCommand({ workspaceId, command: { runId, type: "cancel", payload: {} } });
+      }, CANCEL_UNDO_MS);
+      timers.current.set(runId, tm);
+    },
+    [clear, store, workspaceId]
+  );
+
+  const undoCancel = useCallback((runId: string) => clear(runId), [clear]); // command never sent
+
+  useEffect(() => () => timers.current.forEach((tm) => clearTimeout(tm)), []);
+
+  return { pending, requestCancel, undoCancel };
+};
+```
+
+- [ ] **Step 5: Typecheck** — `cd apps/web && pnpm check:types` → no errors.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add apps/web/ce/components/agents/agent-run-row.tsx apps/web/ce/components/agents/agents-panel.tsx apps/web/ce/components/agents/agents.styles.css
+git add apps/web/ce/components/agents/agent-run-row.tsx apps/web/ce/components/agents/agents-panel.tsx apps/web/ce/components/agents/agents.styles.css apps/web/ce/hooks/agents/use-deferred-cancel.ts
 git commit -m "feat(web): add agent run row + grouped panel"
 ```
 

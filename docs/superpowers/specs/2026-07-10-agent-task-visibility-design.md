@@ -157,7 +157,10 @@ only inline surface in v1.
 
 **Controls, inline, never modal:**
 
-- Running → **Stop** (`cancel`), and a **steer** input (`correct`) in detail.
+- Running → **Pause** (`pause`, resumable — the non-destructive default) plus a
+  **steer** input (`correct`) in detail. Hard **Cancel** (`cancel`) is a
+  _secondary_ action, not the one-tap default (see recovery below).
+- Paused → **Resume** (`resume`) or **Cancel run**.
 - `awaiting_approval` → **Approve** / **Reject** in the row; irreversible actions
   flagged.
 - `waiting_for_input` → inline prompt + reply (`provide_input`).
@@ -180,6 +183,14 @@ only inline surface in v1.
   ignored) so a backend that runs ahead of the client never breaks the panel.
 - **Terminal runs** receive no further updates; the store stops subscribing to
   them.
+- **Accidental stop is recoverable.** The one-tap default is **Pause**
+  (resumable), not Cancel — so the common misclick suspends the run (agent keeps
+  its context/checkpoint) and recovery is a one-tap **Resume**. Hard **Cancel** is
+  a deliberate secondary action whose dispatch is **deferred ~5s behind an inline
+  Undo**: undo means the command is never sent and the agent never stopped. The
+  cancelled row is a client-local _pending_ state during the window, reconciled by
+  the real terminal event once dispatched. (A backend soft-`cancelling` state is
+  the more refresh-robust variant → backlog.)
 
 ## Scale, resilience & performance
 
