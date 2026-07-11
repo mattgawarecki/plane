@@ -26,15 +26,12 @@ const SteerBox = ({ placeholder, onSubmit }: { placeholder: string; onSubmit: (v
       }}
     >
       <input
-        className="text-xs border-custom-border-300 bg-custom-background-90 text-custom-text-100 flex-1 rounded border px-2 py-1"
+        className="flex-1 rounded border border-subtle-1 bg-surface-2 px-2 py-1 text-11 text-primary"
         placeholder={placeholder}
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      <button
-        className="text-xs border-custom-border-300 text-custom-text-200 rounded border px-2.5 py-1"
-        type="submit"
-      >
+      <button className="rounded border border-subtle-1 px-2.5 py-1 text-11 text-secondary" type="submit">
         Send
       </button>
     </form>
@@ -47,14 +44,14 @@ export const AgentRunDetail = observer(({ run, workspaceId }: { run: TAgentRun; 
 
   return (
     <div className="p-4">
-      <ol className="text-xs space-y-1.5" aria-live="polite">
+      <ol className="space-y-1.5 text-11" aria-live="polite">
         {(run.steps ?? []).map((s) => (
-          <li key={s.id} className="text-custom-text-200 flex gap-2">
-            <span className="text-custom-text-400 w-3 text-center">{glyph(s.status)}</span>
+          <li key={s.id} className="flex gap-2 text-secondary">
+            <span className="w-3 text-center text-placeholder">{glyph(s.status)}</span>
             <span>{s.label}</span>
           </li>
         ))}
-        {(run.steps ?? []).length === 0 && <li className="text-custom-text-400">No steps yet.</li>}
+        {(run.steps ?? []).length === 0 && <li className="text-placeholder">No steps yet.</li>}
       </ol>
 
       {run.status === "waiting_for_input" && (
@@ -72,14 +69,14 @@ export const AgentRunDetail = observer(({ run, workspaceId }: { run: TAgentRun; 
       {run.status === "awaiting_approval" && (
         <div className="mt-3 flex gap-2">
           <button
-            className="text-xs rounded px-2.5 py-1 font-medium text-white"
+            className="rounded px-2.5 py-1 text-11 font-medium text-white"
             style={{ backgroundColor: "var(--color-label-indigo-text)" }}
             onClick={() => send({ runId: run.id, type: "approve", payload: { approvalId: "" } })}
           >
             Approve
           </button>
           <button
-            className="text-xs border-custom-border-300 text-custom-text-200 rounded border px-2.5 py-1"
+            className="rounded border border-subtle-1 px-2.5 py-1 text-11 text-secondary"
             onClick={() => send({ runId: run.id, type: "reject", payload: { approvalId: "" } })}
           >
             Reject

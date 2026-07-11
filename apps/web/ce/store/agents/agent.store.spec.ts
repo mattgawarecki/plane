@@ -21,7 +21,7 @@ const run = (id: string, status: TAgentRun["status"] = "running"): TAgentRun => 
 
 describe("AgentStore", () => {
   it("hydrates from a snapshot and exposes grouped runs + active count", () => {
-    const store = new AgentStore({}, { listRuns: vi.fn(), getRun: vi.fn(), sendCommand: vi.fn() });
+    const store = new AgentStore({}, { listRuns: vi.fn(), getRun: vi.fn(), sendCommand: vi.fn(), dispatch: vi.fn() });
     store.hydrate([run("a", "running"), run("b", "awaiting_approval")]);
     expect(store.grouped.running.map((r) => r.id)).toEqual(["a"]);
     expect(store.grouped.blocked.map((r) => r.id)).toEqual(["b"]);
@@ -29,7 +29,7 @@ describe("AgentStore", () => {
   });
 
   it("ingests an event through the reducer", () => {
-    const store = new AgentStore({}, { listRuns: vi.fn(), getRun: vi.fn(), sendCommand: vi.fn() });
+    const store = new AgentStore({}, { listRuns: vi.fn(), getRun: vi.fn(), sendCommand: vi.fn(), dispatch: vi.fn() });
     store.hydrate([run("a", "running")]);
     store.ingestEvent({
       runId: "a",
@@ -46,6 +46,7 @@ describe("AgentStore", () => {
       listRuns: vi.fn().mockResolvedValue({ runs: [run("a")] }),
       getRun: vi.fn(),
       sendCommand: vi.fn(),
+      dispatch: vi.fn(),
     };
     const store = new AgentStore({}, service);
     await store.loadRuns({ workspaceId: "w1" });
@@ -53,12 +54,34 @@ describe("AgentStore", () => {
     expect(store.grouped.running.map((r) => r.id)).toEqual(["a"]);
   });
 
-  it("runCommand delegates to the service without optimistic mutation", async () => {
-    const service = { listRuns: vi.fn(), getRun: vi.fn(), sendCommand: vi.fn().mockResolvedValue(undefined) };
+  it("runCommand optimistically reflects a reversible transition, then reconciles", async () => {
+    const service = {
+      listRuns: vi.fn(),
+      getRun: vi.fn(),
+      sendCommand: vi.fn().mockResolvedValue(undefined),
+      dispatch: vi.fn(),
+    };
     const store = new AgentStore({}, service);
     store.hydrate([run("a", "running")]);
     await store.runCommand({ workspaceId: "w1", command: { runId: "a", type: "cancel", payload: {} } });
     expect(service.sendCommand).toHaveBeenCalled();
-    expect(store.grouped.running.map((r) => r.id)).toEqual(["a"]); // unchanged until an event arrives
+    // Optimistic: the run leaves "running" at once, before any server event.
+    expect(store.grouped.running.map((r) => r.id)).toEqual([]);
+    // Server confirms the cancel → optimistic override is retired, server truth stands.
+    store.hydrate([run("a", "cancelled")]);
+    expect(store.grouped.done.map((r) => r.id)).toEqual(["a"]);
+  });
+
+  it("dispatch delegates to the service and returns the runId", async () => {
+    const service = {
+      listRuns: vi.fn(),
+      getRun: vi.fn(),
+      sendCommand: vi.fn(),
+      dispatch: vi.fn().mockResolvedValue({ runId: "r1" }),
+    };
+    const store = new AgentStore({}, service);
+    const result = await store.dispatch("What is in flight?");
+    expect(service.dispatch).toHaveBeenCalledWith("What is in flight?");
+    expect(result).toEqual({ runId: "r1" });
   });
 });

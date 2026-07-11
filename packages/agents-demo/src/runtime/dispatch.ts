@@ -69,6 +69,8 @@ export async function dispatch(deps: TDispatchDeps, request: string): Promise<{ 
     .join("\n")
     .trim();
 
-  emit({ type: "completed", payload: { status: "succeeded", result: { summary: answer.slice(0, 140) } } });
+  // Store the FULL answer — the panel collapses/ellipsifies for display. A hard
+  // char-slice here would cut mid-word with no ellipsis (a bad look in the UI).
+  emit({ type: "completed", payload: { status: "succeeded", result: { summary: answer } } });
   return { runId, answer };
 }

@@ -18,7 +18,20 @@ const AGENTS_API_BASE = import.meta.env.VITE_AGENTS_API_BASE || API_BASE_URL || 
  * Endpoints are provisional — the source can be a real backend or the demo
  * runtime's HTTP surface; the store doesn't care which.
  */
-export class AgentService extends APIService implements IAgentService {
+
+/**
+ * CE-local extension of the read-only `@plane/agents` `IAgentService`. Adds the
+ * write-path used to START a run from the dock. Kept here (not in the package)
+ * because the contract in `packages/agents` is frozen for this milestone.
+ */
+export interface IAgentDispatchService extends IAgentService {
+  /** Start an agent run from a free-text request. Resolves with the new run id
+   *  (which the demo bridge may return empty until the run registers — the
+   *  panel poll surfaces the run either way). */
+  dispatch(request: string): Promise<{ runId: string }>;
+}
+
+export class AgentService extends APIService implements IAgentDispatchService {
   constructor(baseURL: string = AGENTS_API_BASE) {
     super(baseURL);
   }
@@ -42,5 +55,10 @@ export class AgentService extends APIService implements IAgentService {
   async sendCommand(params: { workspaceId: string; command: TAgentCommand }): Promise<void> {
     const { runId, ...body } = params.command;
     await this.post(`/api/workspaces/${params.workspaceId}/agent-runs/${runId}/commands/`, body);
+  }
+
+  async dispatch(request: string): Promise<{ runId: string }> {
+    const res = await this.post(`/dispatch`, { request });
+    return res.data;
   }
 }

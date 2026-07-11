@@ -33,10 +33,10 @@ export const AgentInlineIndicator = observer(
     if (!runs.length) return null;
     const primary = runs[0];
     return (
-      <button className="text-xs inline-flex items-center gap-1.5" onClick={() => onOpen(primary.id)}>
-        <span className="text-custom-text-300">🤖</span>
+      <button className="inline-flex items-center gap-1.5 text-11" onClick={() => onOpen(primary.id)}>
+        <span className="text-tertiary">🤖</span>
         <AgentStatusChip status={primary.status} />
-        {runs.length > 1 && <span className="text-custom-text-400">+{runs.length - 1}</span>}
+        {runs.length > 1 && <span className="text-placeholder">+{runs.length - 1}</span>}
       </button>
     );
   }

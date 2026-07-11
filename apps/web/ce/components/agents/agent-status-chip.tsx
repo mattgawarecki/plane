@@ -21,7 +21,7 @@ export const AgentStatusChip = ({ status }: { status: TAgentRunStatus }) => {
   const name = TONE_LABEL[tone];
   return (
     <span
-      className="rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase"
+      className="rounded px-1.5 py-0.5 text-10 font-medium tracking-wide uppercase"
       style={{ backgroundColor: `var(--color-label-${name}-bg)`, color: `var(--color-label-${name}-text)` }}
     >
       {label}

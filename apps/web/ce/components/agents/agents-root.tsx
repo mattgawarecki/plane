@@ -4,47 +4,32 @@
  * See the LICENSE file for details.
  */
 
-import { lazy, Suspense, useState } from "react";
+import { observer } from "mobx-react";
+import { useAgentStore } from "@/plane-web/hooks/agents/use-agent-store";
 import { useAgentsEnabled } from "@/plane-web/hooks/agents/use-agents-enabled";
 import { AgentsErrorBoundary } from "./agents-error-boundary";
 import { AgentsHeaderPip } from "./agents-header-pip";
 
-// Lazy-loaded: the panel bundle isn't fetched until the flag is on and it opens.
-const AgentsPanel = lazy(() => import("./agents-panel").then((m) => ({ default: m.AgentsPanel })));
-
 /**
- * Single entry point for the agents surface, mounted in the workspace header.
+ * Header entry point: the ambient pip only. Toggling it flips `store.panelOpen`,
+ * which the shell-mounted <AgentsDock/> observes — the panel lives in the shell
+ * (a flex sibling of <main>) so it pushes content instead of overlaying it.
+ *
  * The flag is evaluated BEFORE any hook that opens a socket/poll — flag-off
  * returns null, so it's byte-for-byte today's behavior with zero network.
  */
-export const AgentsRoot = ({ workspaceId }: { workspaceId: string }) => {
+export const AgentsRoot = observer(({ workspaceId }: { workspaceId: string }) => {
   const enabled = useAgentsEnabled();
-  const [open, setOpen] = useState(false);
+  const store = useAgentStore();
 
   if (!enabled) return null;
 
+  // While the dock is open the pip lives inside the panel, so drop it from the header.
+  if (store.panelOpen) return null;
+
   return (
     <AgentsErrorBoundary>
-      <AgentsHeaderPip workspaceId={workspaceId} enabled={enabled} onClick={() => setOpen((v) => !v)} />
-      {open && (
-        <div className="border-custom-border-200 bg-custom-background-100 shadow-lg fixed top-14 right-0 bottom-0 z-20 w-[340px] border-l">
-          <div className="border-custom-border-200 flex items-center justify-between border-b px-4 py-3">
-            <span className="text-sm text-custom-text-100 font-semibold">Agents</span>
-            <button
-              className="text-custom-text-300 hover:text-custom-text-100"
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="h-[calc(100%-49px)]">
-            <Suspense fallback={<div className="text-xs text-custom-text-400 p-4">Loading…</div>}>
-              <AgentsPanel workspaceId={workspaceId} />
-            </Suspense>
-          </div>
-        </div>
-      )}
+      <AgentsHeaderPip workspaceId={workspaceId} enabled={enabled} onClick={() => store.togglePanel()} />
     </AgentsErrorBoundary>
   );
-};
+});
