@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/16</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-07-10T19-30-30-042Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T19-30-30-042Z" class="timestamp-link"><time datetime="2026-07-10T19:30:30.042Z" data-timestamp="2026-07-10T19:30:30.042Z">2026-07-10T19:30:30.042Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Base directory for this skill: /Users/mattgawarecki/.claude/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/brainstorming</p>
+<h1>Brainstorming Ideas Into Designs</h1>
+<p>Help turn ideas into fully formed designs and specs through natural collaborative dialogue.</p>
+<p>Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.</p>
+<p><HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE></p>
+<h2>Anti-Pattern: "This Is Too Simple To Need A Design"</h2>
+<p>Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.</p>
+<h2>Checklist</h2>
+<p>You MUST create a task for each of these items and complete them in order:</p>
+<ol>
+<li><strong>Explore project context</strong> — check files, docs, recent commits</li>
+<li><strong>Offer the visual companion just-in-time</strong> — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.</li>
+<li><strong>Ask clarifying questions</strong> — one at a time, understand purpose/constraints/success criteria</li>
+<li><strong>Propose 2-3 approaches</strong> — with trade-offs and your recommendation</li>
+<li><strong>Present design</strong> — in sections scaled to their complexity, get user approval after each section</li>
+<li><strong>Write design doc</strong> — save to <code>docs/superpowers/specs/YYYY-MM-DD-&lt;topic&gt;-design.md</code> and commit</li>
+<li><strong>Spec self-review</strong> — quick inline check for placeholders, contradictions, ambiguity, scope (see below)</li>
+<li><strong>User reviews written spec</strong> — ask user to review the spec file before proceeding</li>
+<li><strong>Transition to implementation</strong> — invoke writing-plans skill to create implementation plan</li>
+</ol>
+<h2>Process Flow</h2>
+<pre><code class="language-dot">digraph brainstorming {
+    &quot;Explore project context&quot; [shape=box];
+    &quot;Ask clarifying questions&quot; [shape=box];
+    &quot;Propose 2-3 approaches&quot; [shape=box];
+    &quot;Present design sections&quot; [shape=box];
+    &quot;User approves design?&quot; [shape=diamond];
+    &quot;Write design doc&quot; [shape=box];
+    &quot;Spec self-review\n(fix inline)&quot; [shape=box];
+    &quot;User reviews spec?&quot; [shape=diamond];
+    &quot;Invoke writing-plans skill&quot; [shape=doublecircle];
+
+    &quot;Explore project context&quot; -&gt; &quot;Ask clarifying questions&quot;;
+    &quot;Ask clarifying questions&quot; -&gt; &quot;Propose 2-3 approaches&quot;;
+    &quot;Propose 2-3 approaches&quot; -&gt; &quot;Present design sections&quot;;
+    &quot;Present design sections&quot; -&gt; &quot;User approves design?&quot;;
+    &quot;User approves design?&quot; -&gt; &quot;Present design sections&quot; [label=&quot;no, revise&quot;];
+    &quot;User approves design?&quot; -&gt; &quot;Write design doc&quot; [label=&quot;yes&quot;];
+    &quot;Write design doc&quot; -&gt; &quot;Spec self-review\n(fix inline)&quot;;
+    &quot;Spec self-review\n(fix inline)&quot; -&gt; &quot;User reviews spec?&quot;;
+    &quot;User reviews spec?&quot; -&gt; &quot;Write design doc&quot; [label=&quot;changes requested&quot;];
+    &quot;User reviews spec?&quot; -&gt; &quot;Invoke writing-plans skill&quot; [label=&quot;approved&quot;];
+}
+</code></pre>
+<p><strong>The terminal state is invoking writing-plans.</strong> Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.</p>
+<h2>The Process</h2>
+<p><strong>Understanding the idea:</strong></p>
+<ul>
+<li>Check out the current project state first (files, docs, recent commits)</li>
+<li>Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.</li>
+<li>If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.</li>
+<li>For appropriately-scoped projects, ask questions one at a time to refine the idea</li>
+<li>Prefer multiple choice questions when possible, but open-ended is fine too</li>
+<li>Only one question per message - if a topic needs more exploration, break it into multiple questions</li>
+<li>Focus on understanding: purpose, constraints, success criteria</li>
+</ul>
+<p><strong>Exploring approaches:</strong></p>
+<ul>
+<li>Propose 2-3 different approaches with trade-offs</li>
+<li>Present options conversationally with your recommendation and reasoning</li>
+<li>Lead with your recommended option and explain why</li>
+</ul>
+<p><strong>Presenting the design:</strong></p>
+<ul>
+<li>Once you believe you understand what you're building, present the design</li>
+<li>Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced</li>
+<li>Ask after each section whether it looks right so far</li>
+<li>Cover: architecture, components, data flow, error handling, testing</li>
+<li>Be ready to go back and clarify if something doesn't make sense</li>
+</ul>
+<p><strong>Design for isolation and clarity:</strong></p>
+<ul>
+<li>Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently</li>
+<li>For each unit, you should be able to answer: what does it do, how do you use it, and what does it depend on?</li>
+<li>Can someone understand what a unit does without reading its internals? Can you change the internals without breaking consumers? If not, the boundaries need work.</li>
+<li>Smaller, well-bounded units are also easier for you to work with - you reason better about code you can hold in context at once, and your edits are more reliable when files are focused. When a file grows large, that's often a signal that it's doing too much.</li>
+</ul>
+<p><strong>Working in existing codebases:</strong></p>
+<ul>
+<li>Explore the current structure before proposing changes. Follow existing patterns.</li>
+<li>Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.</li>
+<li>Don't propose unrelated refactoring. Stay focused on what serves the current goal.</li>
+</ul>
+<h2>After the Design</h2>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li>Write the validated design (spec) to <code>docs/superpowers/specs/YYYY-MM-DD-&lt;topic&gt;-design.md</code></li>
+<li>(User preferences for spec location override this default)</li>
+<li>Use elements-of-style:writing-clearly-and-concisely skill if available</li>
+<li>Commit the design document to git</li>
+</ul>
+<p><strong>Spec Self-Review:</strong>
+After writing the spec document, look at it with fresh eyes:</p>
+<ol>
+<li><strong>Placeholder scan:</strong> Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.</li>
+<li><strong>Internal consistency:</strong> Do any sections contradict each other? Does the architecture match the feature descriptions?</li>
+<li><strong>Scope check:</strong> Is this focused enough for a single implementation plan, or does it need decomposition?</li>
+<li><strong>Ambiguity check:</strong> Could any requirement be interpreted two different ways? If so, pick one and make it explicit.</li>
+</ol>
+<p>Fix any issues inline. No need to re-review — just fix and move on.</p>
+<p><strong>User Review Gate:</strong>
+After the spec review loop passes, ask the user to review the written spec before proceeding:</p>
+<blockquote>
+<p>"Spec written and committed to <code>&lt;path&gt;</code>. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."</p>
+</blockquote>
+<p>Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.</p>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Invoke the writing-plans skill to create a detailed implementation plan</li>
+<li>Do NOT invoke any other skill. writing-plans is the next step.</li>
+</ul>
+<h2>Key Principles</h2>
+<ul>
+<li><strong>One question at a time</strong> - Don't overwhelm with multiple questions</li>
+<li><strong>Multiple choice preferred</strong> - Easier to answer than open-ended when possible</li>
+<li><strong>YAGNI ruthlessly</strong> - Remove unnecessary features from all designs</li>
+<li><strong>Explore alternatives</strong> - Always propose 2-3 approaches before settling</li>
+<li><strong>Incremental validation</strong> - Present design, get approval before moving on</li>
+<li><strong>Be flexible</strong> - Go back and clarify when something doesn't make sense</li>
+</ul>
+<h2>Visual Companion</h2>
+<p>A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.</p>
+<p><strong>Offering the companion (just-in-time):</strong> Do NOT offer it upfront. Wait until a question would genuinely be clearer shown than told — a real mockup / layout / diagram question, not merely a UI <em>topic</em>. The first time that happens, offer it then, as its own message:</p>
+<blockquote>
+<p>"This next part might be easier if I show you — I can put together mockups, diagrams, and comparisons in a browser tab as we go. It's still new and can be token-intensive. Want me to? I'll open it for you."</p>
+</blockquote>
+<p><strong>This offer MUST be its own message.</strong> Only the offer — no clarifying question, summary, or other content. Wait for the user's response. If they accept, start the server with <code>--open</code> so their browser opens to the first screen automatically. If they decline, continue text-only and don't offer again unless they raise it.</p>
+<p><strong>Per-question decision:</strong> Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: <strong>would the user understand this better by seeing it than reading it?</strong></p>
+<ul>
+<li><strong>Use the browser</strong> for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs</li>
+<li><strong>Use the terminal</strong> for content that is text — requirements questions, conceptual choices, tradeoff lists, A/B/C/D text options, scope decisions</li>
+</ul>
+<p>A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the terminal. "Which wizard layout works better?" is a visual question — use the browser.</p>
+<p>If they agree to the companion, read the detailed guide before proceeding:
+<code>skills/brainstorming/visual-companion.md</code></p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-35-062Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-35-062Z" class="timestamp-link"><time datetime="2026-07-10T19:30:35.062Z" data-timestamp="2026-07-10T19:30:35.062Z">2026-07-10T19:30:35.062Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-35-837Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-35-837Z" class="timestamp-link"><time datetime="2026-07-10T19:30:35.837Z" data-timestamp="2026-07-10T19:30:35.837Z">2026-07-10T19:30:35.837Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Brainstorming mode. Creating checklist tasks.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-35-867Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-35-867Z" class="timestamp-link"><time datetime="2026-07-10T19:30:35.867Z" data-timestamp="2026-07-10T19:30:35.867Z">2026-07-10T19:30:35.867Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01JXtCYsLZ14Ta3GVtrny3Yh"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;select:TaskCreate&#34;,
+  &#34;max_results&#34;: 3
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-35-869Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-35-869Z" class="timestamp-link"><time datetime="2026-07-10T19:30:35.869Z" data-timestamp="2026-07-10T19:30:35.869Z">2026-07-10T19:30:35.869Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;TaskCreate&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-42-677Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-42-677Z" class="timestamp-link"><time datetime="2026-07-10T19:30:42.677Z" data-timestamp="2026-07-10T19:30:42.677Z">2026-07-10T19:30:42.677Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01DbtaViXQtdxDhhLwAxafB7"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">Check files, docs, recent commits for agentic-task-visibility feature. Largely done via 3 explorers (plugin arch, design system, packages).</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Explore project context&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-42-693Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-42-693Z" class="timestamp-link"><time datetime="2026-07-10T19:30:42.693Z" data-timestamp="2026-07-10T19:30:42.693Z">2026-07-10T19:30:42.693Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #1 created successfully: Explore project context</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-44-192Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-44-192Z" class="timestamp-link"><time datetime="2026-07-10T19:30:44.192Z" data-timestamp="2026-07-10T19:30:44.192Z">2026-07-10T19:30:44.192Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_016JJ84WvAp7pdT6ADwgdDCE"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">One at a time: purpose, constraints, success criteria for agent-task visibility UI. Cover data/behavior contract, real-time transport, surface/placement, interrupt/correct semantics.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Ask clarifying questions&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-44-204Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-44-204Z" class="timestamp-link"><time datetime="2026-07-10T19:30:44.204Z" data-timestamp="2026-07-10T19:30:44.204Z">2026-07-10T19:30:44.204Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #2 created successfully: Ask clarifying questions</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-45-180Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-45-180Z" class="timestamp-link"><time datetime="2026-07-10T19:30:45.180Z" data-timestamp="2026-07-10T19:30:45.180Z">2026-07-10T19:30:45.180Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01DBfeXvS1jD9ZxzeHDwoCSv"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">Approaches for surfacing in-flight + historical agent tasks with trade-offs and a recommendation.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Propose 2-3 approaches&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-45-195Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-45-195Z" class="timestamp-link"><time datetime="2026-07-10T19:30:45.195Z" data-timestamp="2026-07-10T19:30:45.195Z">2026-07-10T19:30:45.195Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #3 created successfully: Propose 2-3 approaches</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-46-181Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-46-181Z" class="timestamp-link"><time datetime="2026-07-10T19:30:46.181Z" data-timestamp="2026-07-10T19:30:46.181Z">2026-07-10T19:30:46.181Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01V38HZj2HFP8enc9gez967w"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">Architecture, components, data flow, real-time, error/interrupt handling, testing. Approval after each section.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Present design sections&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-46-193Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-46-193Z" class="timestamp-link"><time datetime="2026-07-10T19:30:46.193Z" data-timestamp="2026-07-10T19:30:46.193Z">2026-07-10T19:30:46.193Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #4 created successfully: Present design sections</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-47-683Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-47-683Z" class="timestamp-link"><time datetime="2026-07-10T19:30:47.683Z" data-timestamp="2026-07-10T19:30:47.683Z">2026-07-10T19:30:47.683Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01G3C4HMdJsHP8UgJejWQPqe"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">Save to docs/superpowers/specs/YYYY-MM-DD-agent-task-visibility-design.md, commit, self-review, user review gate.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Write + review design doc&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-47-697Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-47-697Z" class="timestamp-link"><time datetime="2026-07-10T19:30:47.697Z" data-timestamp="2026-07-10T19:30:47.697Z">2026-07-10T19:30:47.697Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #5 created successfully: Write + review design doc</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-30-48-251Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-30-48-251Z" class="timestamp-link"><time datetime="2026-07-10T19:30:48.251Z" data-timestamp="2026-07-10T19:30:48.251Z">2026-07-10T19:30:48.251Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01R9oEPXNvS4AVqFzWRoGgib"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">After spec approval, invoke writing-plans skill for implementation plan.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Transition to writing-plans&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-30-48-260Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-30-48-260Z" class="timestamp-link"><time datetime="2026-07-10T19:30:48.260Z" data-timestamp="2026-07-10T19:30:48.260Z">2026-07-10T19:30:48.260Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #6 created successfully: Transition to writing-plans</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message user" id="msg-2026-07-10T19-56-01-440Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T19-56-01-440Z" class="timestamp-link"><time datetime="2026-07-10T19:56:01.440Z" data-timestamp="2026-07-10T19:56:01.440Z">2026-07-10T19:56:01.440Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T19-56-05-824Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T19-56-05-824Z" class="timestamp-link"><time datetime="2026-07-10T19:56:05.824Z" data-timestamp="2026-07-10T19:56:05.824Z">2026-07-10T19:56:05.824Z</time></a></div><div class="message-content">
+<div class="user-content"><p>retry</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-11-977Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-11-977Z" class="timestamp-link"><time datetime="2026-07-10T19:56:11.977Z" data-timestamp="2026-07-10T19:56:11.977Z">2026-07-10T19:56:11.977Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-12-480Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-12-480Z" class="timestamp-link"><time datetime="2026-07-10T19:56:12.480Z" data-timestamp="2026-07-10T19:56:12.480Z">2026-07-10T19:56:12.480Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Context mostly mapped. One gap before questions: what real-time transport the web app already uses. Quick check.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-16-928Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-16-928Z" class="timestamp-link"><time datetime="2026-07-10T19:56:16.928Z" data-timestamp="2026-07-10T19:56:16.928Z">2026-07-10T19:56:16.928Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012ry3AWDkTaWKKPuYbMmqEh">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check web app real-time transport mechanisms</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== live app deps ===&#34;; grep -E &#39;&#34;(hocuspocus|ws|socket|@hocuspocus)&#39; apps/live/package.json
+echo &#34;=== web: websocket/realtime refs ===&#34;; grep -rlE &#34;WebSocket|new WebSocket|socket\.io|EventSource|hocuspocus|Hocuspocus&#34; apps/web/core apps/web/app 2&gt;/dev/null | head -20
+echo &#34;=== web: polling/SWR refresh patterns for notifications ===&#34;; grep -rlE &#34;refreshInterval|revalidate&#34; apps/web/core/store/notifications apps/web/core/services 2&gt;/dev/null | head
+echo &#34;=== live provider usage in web ===&#34;; grep -rlE &#34;useLiveProvider|LiveProvider|collaboration&#34; apps/web/core 2&gt;/dev/null | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-56-20-084Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-56-20-084Z" class="timestamp-link"><time datetime="2026-07-10T19:56:20.084Z" data-timestamp="2026-07-10T19:56:20.084Z">2026-07-10T19:56:20.084Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== live app deps ===
+    &quot;@hocuspocus/extension-database&quot;: &quot;2.15.2&quot;,
+    &quot;@hocuspocus/extension-logger&quot;: &quot;2.15.2&quot;,
+    &quot;@hocuspocus/extension-redis&quot;: &quot;2.15.2&quot;,
+    &quot;@hocuspocus/server&quot;: &quot;2.15.2&quot;,
+    &quot;@hocuspocus/transformer&quot;: &quot;2.15.2&quot;,
+    &quot;ws&quot;: &quot;^8.18.3&quot;,
+=== web: websocket/realtime refs ===
+apps/web/core/components/pages/editor/editor-body.tsx
+=== web: polling/SWR refresh patterns for notifications ===
+=== live provider usage in web ===
+apps/web/core/components/pages/editor/page-root.tsx
+apps/web/core/components/pages/editor/editor-body.tsx
+apps/web/core/hooks/use-page-fallback.ts</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-25-183Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-25-183Z" class="timestamp-link"><time datetime="2026-07-10T19:56:25.183Z" data-timestamp="2026-07-10T19:56:25.183Z">2026-07-10T19:56:25.183Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-26-212Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-26-212Z" class="timestamp-link"><time datetime="2026-07-10T19:56:26.212Z" data-timestamp="2026-07-10T19:56:26.212Z">2026-07-10T19:56:26.212Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Real-time today = only editor collab (Hocuspocus/Yjs). No general websocket for domain data. Notifications likely SWR/polled. Check notification refresh:</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-30-027Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-30-027Z" class="timestamp-link"><time datetime="2026-07-10T19:56:30.027Z" data-timestamp="2026-07-10T19:56:30.027Z">2026-07-10T19:56:30.027Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JC2Pfu3KPDXJspSpV69nix">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check notification polling and any SSE/channels infra</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== notification store/service refresh ===&#34;; grep -rnE &#34;refreshInterval|setInterval|useSWR|revalidateOnFocus&#34; apps/web/core/store/notifications apps/web/core/services/*notif* apps/web/core/hooks 2&gt;/dev/null | head -15
+echo &#34;=== any SSE / server-sent ===&#34;; grep -rlE &#34;text/event-stream|EventSource&#34; apps/web apps/api/plane 2&gt;/dev/null | head
+echo &#34;=== django channels / asgi ===&#34;; grep -rlE &#34;channels|ASGI|asgi|daphne&#34; apps/api/plane/settings 2&gt;/dev/null | head; grep -iE &#34;channels|daphne|uvicorn&#34; apps/api/requirements*.txt apps/api/pyproject.toml 2&gt;/dev/null | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-56-33-114Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-56-33-114Z" class="timestamp-link"><time datetime="2026-07-10T19:56:33.114Z" data-timestamp="2026-07-10T19:56:33.114Z">2026-07-10T19:56:33.114Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== notification store/service refresh ===
+apps/web/core/hooks/use-auto-save.tsx:23:    intervalIdRef.current = setInterval(() =&gt; {
+apps/web/core/hooks/use-auto-save.tsx:50:        intervalIdRef.current = setInterval(() =&gt; {
+apps/web/core/hooks/use-auto-scroller.tsx:22:  const intervalId = useRef&lt;ReturnType&lt;typeof setInterval&gt; | undefined&gt;(undefined);
+apps/web/core/hooks/use-auto-scroller.tsx:95:      intervalId.current = setInterval(() =&gt; {
+apps/web/core/hooks/use-timer.tsx:15:    const interval = setInterval(() =&gt; {
+apps/web/core/hooks/use-integration-popup.tsx:36:    const check = setInterval(() =&gt; {
+apps/web/core/hooks/use-workspace-issue-properties.ts:7:import useSWR from &quot;swr&quot;;
+apps/web/core/hooks/use-workspace-issue-properties.ts:27:  useSWR(
+apps/web/core/hooks/use-workspace-issue-properties.ts:30:    { revalidateIfStale: false, revalidateOnFocus: false }
+apps/web/core/hooks/use-workspace-issue-properties.ts:34:  useSWR(
+apps/web/core/hooks/use-workspace-issue-properties.ts:37:    { revalidateIfStale: false, revalidateOnFocus: false }
+apps/web/core/hooks/use-workspace-issue-properties.ts:41:  useSWR(
+apps/web/core/hooks/use-workspace-issue-properties.ts:44:    { revalidateIfStale: false, revalidateOnFocus: false }
+apps/web/core/hooks/use-workspace-issue-properties.ts:48:  useSWR(
+apps/web/core/hooks/use-workspace-issue-properties.ts:51:    { revalidateIfStale: false, revalidateOnFocus: false }
+=== any SSE / server-sent ===
+apps/web/node_modules/.vite/deps/throttle-7KTi493A.js
+apps/web/node_modules/.vite/deps/omit-B-iGei0U.js
+apps/web/node_modules/.vite/deps/omit-B-iGei0U.js.map
+apps/web/node_modules/.vite/deps/throttle-7KTi493A.js.map
+=== django channels / asgi ===
+apps/api/plane/settings/common.py</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-50-424Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-50-424Z" class="timestamp-link"><time datetime="2026-07-10T19:56:50.424Z" data-timestamp="2026-07-10T19:56:50.424Z">2026-07-10T19:56:50.424Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-56-51-934Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-56-51-934Z" class="timestamp-link"><time datetime="2026-07-10T19:56:51.934Z" data-timestamp="2026-07-10T19:56:51.934Z">2026-07-10T19:56:51.934Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Full transport picture: no Django Channels/ASGI/SSE. App data = MobX stores + SWR fetch. Only real-time = Hocuspocus (editor). But <code>apps/live</code> (Node, <code>ws</code> + Redis) = existing real-time seam we could extend.</p>
+<p>Enough context. First clarifying question — the anchor decision.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-57-05-920Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-57-05-920Z" class="timestamp-link"><time datetime="2026-07-10T19:57:05.920Z" data-timestamp="2026-07-10T19:57:05.920Z">2026-07-10T19:57:05.920Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01CNiuRj2AcFprckcm6ZFTvu"><div class="tool-header"><span class="tool-icon">⚙</span> AskUserQuestion</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;questions&#34;: [
+    {
+      &#34;question&#34;: &#34;Where should the primary surface for agent-task visibility live? This anchors the whole UX.&#34;,
+      &#34;header&#34;: &#34;Primary surface&#34;,
+      &#34;multiSelect&#34;: false,
+      &#34;options&#34;: [
+        {
+          &#34;label&#34;: &#34;Dedicated side panel / drawer&#34;,
+          &#34;description&#34;: &#34;Persistent, non-modal right-side panel (collapsed by default) listing active + past agent tasks. Open while working, doesn&#39;t steal focus. Global across workspace.&#34;,
+          &#34;preview&#34;: &#34;┌───────────────┬──────────┐\n│ work area     │ ● Agents │\n│               │──────────│\n│               │ ▶ Task A │\n│               │   45% ██▌│\n│               │ ✓ Task B │\n│               │ ✗ Task C │\n└───────────────┴──────────┘\nNon-modal, toggle from header/statusbar&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Inbox/notifications-style hub&#34;,
+          &#34;description&#34;: &#34;Model on existing workspace-notifications: a bell/badge in header opens a dropdown feed. Agent tasks are a filterable category alongside notifications. Detail on click.&#34;,
+          &#34;preview&#34;: &#34;header: [🔔3] ← click\n ┌─────────────────┐\n │ Notifs | Agents │\n │─────────────────│\n │ ▶ Task A  45%   │\n │ ✓ Task B  done  │\n │ ✗ Task C  fail  │\n └─────────────────┘\nReuses notification patterns&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Embedded per-entity (in issue/page)&#34;,
+          &#34;description&#34;: &#34;Agent progress shown inline where the agent acts — e.g. in the work-item detail activity timeline. No global view; visibility is contextual to the object.&#34;,
+          &#34;preview&#34;: &#34;Issue #123 detail\n ...\n Activity ▼\n  ● agent started \&#34;triage\&#34;\n    ▶ running 45% ██▌\n    ↳ [interrupt] [correct]\n  · comment added\nContextual, no global list&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Hybrid: global panel + inline&#34;,
+          &#34;description&#34;: &#34;Dedicated global panel as home base, PLUS a compact inline indicator on the entity an agent is acting on (deep-links to panel). Most complete but larger build.&#34;,
+          &#34;preview&#34;: &#34;Global drawer (home base)\n        +\nInline chip on entity:\n Issue #123  [🤖 running ▸]\n              └ opens panel\nBest coverage, more surfaces&#34;
+        }
+      ]
+    }
+  ]
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-57-20-329Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-57-20-329Z" class="timestamp-link"><time datetime="2026-07-10T19:57:20.329Z" data-timestamp="2026-07-10T19:57:20.329Z">2026-07-10T19:57:20.329Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>The user doesn&#x27;t want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). To tell you how to proceed, the user said:
+The user wants to clarify these questions.
+    This means they may have additional information, context or questions for you.
+    Take their response into account and then reformulate the questions if appropriate.
+    Start by asking them what they would like to clarify.
+
+    Questions asked:
+- &quot;Where should the primary surface for agent-task visibility live? This anchors the whole UX.&quot;
+  (No answer provided)
+
+Note: The user&#x27;s next message may contain a correction or preference. Pay close attention — if they explain what went wrong or how they&#x27;d prefer you to work, consider saving that to memory for future sessions.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-57-22-736Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-57-22-736Z" class="timestamp-link"><time datetime="2026-07-10T19:57:22.736Z" data-timestamp="2026-07-10T19:57:22.736Z">2026-07-10T19:57:22.736Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>What to clarify? Ask away — question, the options, scope, whatever.</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T19-58-17-806Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T19-58-17-806Z" class="timestamp-link"><time datetime="2026-07-10T19:58:17.806Z" data-timestamp="2026-07-10T19:58:17.806Z">2026-07-10T19:58:17.806Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Additional context to consider: research current patterns used by leading AI apps (e.g., Claude, Cursor, Copilot, v0, Superhuman, etc etc etc). Don't lean on outdated training data -- the space is moving too quickly. Seek out current information on the web.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-58-26-445Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-58-26-445Z" class="timestamp-link"><time datetime="2026-07-10T19:58:26.445Z" data-timestamp="2026-07-10T19:58:26.445Z">2026-07-10T19:58:26.445Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-58-26-874Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-58-26-874Z" class="timestamp-link"><time datetime="2026-07-10T19:58:26.874Z" data-timestamp="2026-07-10T19:58:26.874Z">2026-07-10T19:58:26.874Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good call — research first, reformulate after. Fanning out web researchers on current (2025-26) agent-UX patterns.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-58-36-961Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-58-36-961Z" class="timestamp-link"><time datetime="2026-07-10T19:58:36.961Z" data-timestamp="2026-07-10T19:58:36.961Z">2026-07-10T19:58:36.961Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0199Y7JiLJPhiKtqMyNqWQaW"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research background-agent task UIs</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research CURRENT (2025-2026) UX patterns for how leading AI coding/agent products surface long-running, asynchronous/background AGENT TASKS to users. Use web search and fetch real sources — do NOT rely on training data, the space moves fast. Prioritize 2025-2026 material.\n\nFocus products: Cursor (background agents / agent tab), GitHub Copilot coding agent + \&#34;Agents panel\&#34; / agents.md, Devin (Cognition), v0 (Vercel), Claude Code / Claude.ai agents &amp; \&#34;Projects\&#34;, Replit Agent, Windsurf/Codeium Cascade, Lovable, Google Jules, OpenAI Codex cloud agents.\n\nAnswer specifically:\n1. WHERE do they put the surface? (dedicated panel/drawer, list/inbox view, per-file/per-entity inline, separate page, task board). Describe the layout.\n2. How do they show a task LIST vs a single task DETAIL? Master-detail? Timeline/log?\n3. What STATUS model do they show (queued/running/paused/waiting-for-input/succeeded/failed) and how is progress represented (steps, streaming log, % bar, spinner, diff preview)?\n4. How do they handle MANY concurrent tasks without overwhelming the user? Grouping, collapsing, badges?\n5. Real-time vs after-the-fact: how do in-flight updates appear (streaming, polling, notifications)?\n\nReturn a concise structured report: per-product bullet of what they do, then a synthesized list of the dominant/emerging patterns with source URLs. Cite URLs. Keep it tight.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-58-38-362Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-58-38-362Z" class="timestamp-link"><time datetime="2026-07-10T19:58:38.362Z" data-timestamp="2026-07-10T19:58:38.362Z">2026-07-10T19:58:38.362Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: aaf43e40235cf77b3 (internal ID - do not mention to user. Use SendMessage with to: &#x27;aaf43e40235cf77b3&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-mattgawarecki-projects-plane/6f39fbeb-8fe0-450b-a115-779c01590288/tasks/aaf43e40235cf77b3.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-58-47-442Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-58-47-442Z" class="timestamp-link"><time datetime="2026-07-10T19:58:47.442Z" data-timestamp="2026-07-10T19:58:47.442Z">2026-07-10T19:58:47.442Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0197vw8jtCNEFH8B14CTtwGQ"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research agent steering/interrupt UX</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research CURRENT (2025-2026) UX patterns for how leading AI/agent products let users INTERRUPT, STEER, CORRECT, or hand-off-to/from a running agent, and how they handle agent OUTCOMES (success, failure, needs-approval, waiting-for-human-input). Use web search + fetch real sources; do NOT rely on training data — prioritize 2025-2026 material.\n\nFocus products: Cursor, GitHub Copilot agent, Devin, Claude Code, OpenAI Codex/AgentKit, v0, Replit Agent, Windsurf Cascade, Lingo/Lovable, Superhuman AI, Linear (agents/AI), Notion AI agents.\n\nAnswer specifically:\n1. INTERRUPTION: How does a user stop or pause an in-flight agent? (stop button, esc, queue-new-instruction while running, \&#34;steer\&#34; mid-task). What happens to in-progress work?\n2. CORRECTION/STEERING: How do users inject a correction or new guidance without killing the task? Follow-up messages, checkpoints, \&#34;take over\&#34;?\n3. HUMAN-IN-THE-LOOP GATES: approval prompts before risky/irreversible actions — how surfaced without being a spammy modal? Inline approve/reject?\n4. FAILURE handling: how are upstream failures / errors / timeouts shown and recovered (retry, resume, rollback, checkpoints/undo)?\n5. SUCCESS/completion: how is done signaled non-intrusively? (badge, quiet notification, diff to review, summary card)\n6. Terminology conventions users now expect (e.g. \&#34;steer\&#34;, \&#34;checkpoint\&#34;, \&#34;background\&#34;, \&#34;review changes\&#34;).\n\nReturn a concise structured report: per-pattern findings with which products do them, plus source URLs. Cite URLs. Keep tight.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-58-48-883Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-58-48-883Z" class="timestamp-link"><time datetime="2026-07-10T19:58:48.883Z" data-timestamp="2026-07-10T19:58:48.883Z">2026-07-10T19:58:48.883Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: ae72f07c886c06477 (internal ID - do not mention to user. Use SendMessage with to: &#x27;ae72f07c886c06477&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-mattgawarecki-projects-plane/6f39fbeb-8fe0-450b-a115-779c01590288/tasks/ae72f07c886c06477.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-58-57-762Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-58-57-762Z" class="timestamp-link"><time datetime="2026-07-10T19:58:57.762Z" data-timestamp="2026-07-10T19:58:57.762Z">2026-07-10T19:58:57.762Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0179D4td1TpRgTGyMQoW77Pr"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research ambient non-intrusive AI UX</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research CURRENT (2025-2026) UX patterns for NON-INTRUSIVE, ambient / low-distraction ways to keep users aware of ongoing AI agent activity — the opposite of spammy toasts and focus-stealing modals. Use web search + fetch real sources; do NOT rely on training data — prioritize 2025-2026 material and design-community writing.\n\nCover:\n1. AMBIENT STATUS patterns: status bar indicators, subtle badges/pips, breathing/pulsing dots, presence indicators, progress in a persistent chrome location. Which products (Cursor, Linear, Superhuman, Raycast, Warp, Notion, Slack AI, Arc/Dia browser) do this well and how.\n2. NOTIFICATION strategy for async agent completion: when to use a quiet inbox vs an OS/toast notification vs nothing; batching/digest patterns; how to avoid alert fatigue with multiple agents.\n3. PROGRESSIVE DISCLOSURE: showing a simple summary by default and hiding step-by-step complexity behind expand/detail; \&#34;explain what you&#39;re doing\&#34; toggles; collapsed-by-default logs.\n4. REAL-TIME transport UX expectations: do users expect live streaming token-by-token, periodic step updates, or is polling/refresh acceptable? Any writing on the cost/benefit for background (not foreground-chat) agents.\n5. Design-system / a11y considerations for continuous motion (reduced-motion), and keeping long-running indicators calm.\n\nReturn a concise structured report of patterns with product examples and source URLs. Cite URLs. Keep tight.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-58-59-496Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-58-59-496Z" class="timestamp-link"><time datetime="2026-07-10T19:58:59.496Z" data-timestamp="2026-07-10T19:58:59.496Z">2026-07-10T19:58:59.496Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: ace21fcb6c0f8e30c (internal ID - do not mention to user. Use SendMessage with to: &#x27;ace21fcb6c0f8e30c&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-mattgawarecki-projects-plane/6f39fbeb-8fe0-450b-a115-779c01590288/tasks/ace21fcb6c0f8e30c.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-01-688Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-01-688Z" class="timestamp-link"><time datetime="2026-07-10T19:59:01.688Z" data-timestamp="2026-07-10T19:59:01.688Z">2026-07-10T19:59:01.688Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>3 web researchers running (background agents, steering/interrupt, ambient UX). Will synthesize + reformulate questions on return.</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T19-59-10-822Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T19-59-10-822Z" class="timestamp-link"><time datetime="2026-07-10T19:59:10.822Z" data-timestamp="2026-07-10T19:59:10.822Z">2026-07-10T19:59:10.822Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Do we have enough information to create stubs of the new packages we'll need? If so, create them now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-40-514Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-40-514Z" class="timestamp-link"><time datetime="2026-07-10T19:59:40.514Z" data-timestamp="2026-07-10T19:59:40.514Z">2026-07-10T19:59:40.514Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-43-509Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-43-509Z" class="timestamp-link"><time datetime="2026-07-10T19:59:43.509Z" data-timestamp="2026-07-10T19:59:43.509Z">2026-07-10T19:59:43.509Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Honest answer: enough for <strong>one</strong> isolated frontend package — the container + build scaffolding + the data/behavior contract (types) — because those follow fixed monorepo conventions and the contract is ours to define + mock. <strong>Not</strong> enough yet to justify a second package, a logic/UI split, or a backend Django app — those depend on pending UX + transport decisions. So I'll scaffold one contract-first package, <code>@plane/agents</code>, and defer the rest.</p>
+<p>Reading exact templates first (react-library package) so the stub matches Plane conventions precisely.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-45-489Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-45-489Z" class="timestamp-link"><time datetime="2026-07-10T19:59:45.489Z" data-timestamp="2026-07-10T19:59:45.489Z">2026-07-10T19:59:45.489Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01BwMMy1ToXtjWvaeLLfZK9N">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read hooks package as react-library template</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== hooks package.json ===&#34;; cat packages/hooks/package.json
+echo &#34;&#34;; echo &#34;=== hooks tsconfig ===&#34;; cat packages/hooks/tsconfig.json
+echo &#34;&#34;; echo &#34;=== hooks tsdown.config ===&#34;; cat packages/hooks/tsdown.config.ts 2&gt;/dev/null
+echo &#34;&#34;; echo &#34;=== typescript-config presets ===&#34;; ls packages/typescript-config/</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-59-47-272Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-59-47-272Z" class="timestamp-link"><time datetime="2026-07-10T19:59:47.272Z" data-timestamp="2026-07-10T19:59:47.272Z">2026-07-10T19:59:47.272Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== hooks package.json ===
+{
+  &quot;name&quot;: &quot;@plane/hooks&quot;,
+  &quot;version&quot;: &quot;1.3.1&quot;,
+  &quot;private&quot;: true,
+  &quot;description&quot;: &quot;React hooks that are shared across multiple apps internally&quot;,
+  &quot;license&quot;: &quot;AGPL-3.0&quot;,
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;main&quot;: &quot;./dist/index.js&quot;,
+  &quot;module&quot;: &quot;./dist/index.js&quot;,
+  &quot;types&quot;: &quot;./dist/index.d.ts&quot;,
+  &quot;exports&quot;: {
+    &quot;.&quot;: &quot;./dist/index.js&quot;,
+    &quot;./package.json&quot;: &quot;./package.json&quot;
+  },
+  &quot;scripts&quot;: {
+    &quot;build&quot;: &quot;tsdown&quot;,
+    &quot;dev&quot;: &quot;tsdown --watch --no-clean&quot;,
+    &quot;check:lint&quot;: &quot;oxlint --max-warnings=4 .&quot;,
+    &quot;check:types&quot;: &quot;tsc --noEmit&quot;,
+    &quot;check:format&quot;: &quot;oxfmt --check .&quot;,
+    &quot;fix:lint&quot;: &quot;oxlint --fix .&quot;,
+    &quot;fix:format&quot;: &quot;oxfmt .&quot;,
+    &quot;clean&quot;: &quot;rm -rf .turbo &amp;&amp; rm -rf .next &amp;&amp; rm -rf node_modules &amp;&amp; rm -rf dist&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;catalog:&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@plane/typescript-config&quot;: &quot;workspace:*&quot;,
+    &quot;@types/node&quot;: &quot;catalog:&quot;,
+    &quot;@types/react&quot;: &quot;catalog:&quot;,
+    &quot;tsdown&quot;: &quot;catalog:&quot;,
+    &quot;typescript&quot;: &quot;catalog:&quot;
+  }
+}
+
+=== hooks tsconfig ===
+{
+  &quot;extends&quot;: &quot;@plane/typescript-config/react-library.json&quot;,
+  &quot;include&quot;: [&quot;./src&quot;],
+  &quot;exclude&quot;: [&quot;dist&quot;, &quot;build&quot;, &quot;node_modules&quot;]
+}
+
+=== hooks tsdown.config ===
+import { defineConfig } from &quot;tsdown&quot;;
+
+export default defineConfig({
+  entry: [&quot;src/index.ts&quot;],
+  format: [&quot;esm&quot;],
+  dts: true,
+  platform: &quot;neutral&quot;,
+  exports: true,
+});
+
+=== typescript-config presets ===
+.prettierignore  102B
+base.json  851B
+nextjs.json  272B
+node-library.json  158B
+package.json  211B
+react-library.json  182B
+react-router.json  425B</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-50-057Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-50-057Z" class="timestamp-link"><time datetime="2026-07-10T19:59:50.057Z" data-timestamp="2026-07-10T19:59:50.057Z">2026-07-10T19:59:50.057Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T19-59-51-992Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T19-59-51-992Z" class="timestamp-link"><time datetime="2026-07-10T19:59:51.992Z" data-timestamp="2026-07-10T19:59:51.992Z">2026-07-10T19:59:51.992Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JTXzjMWNSFixsZUuhxVE7F">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check types exports, source header, propel subpath exports</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== types package.json exports ===&#34;; sed -n &#39;1,40p&#39; packages/types/package.json
+echo &#34;=== a source header sample (hooks) ===&#34;; head -8 packages/hooks/src/index.ts 2&gt;/dev/null; echo &#34;---&#34;; ls packages/hooks/src | head
+echo &#34;=== propel package.json exports style (subpath) ===&#34;; sed -n &#39;1,50p&#39; packages/propel/package.json</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T19-59-53-483Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T19-59-53-483Z" class="timestamp-link"><time datetime="2026-07-10T19:59:53.483Z" data-timestamp="2026-07-10T19:59:53.483Z">2026-07-10T19:59:53.483Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== types package.json exports ===
+{
+  &quot;name&quot;: &quot;@plane/types&quot;,
+  &quot;version&quot;: &quot;1.3.1&quot;,
+  &quot;private&quot;: true,
+  &quot;license&quot;: &quot;AGPL-3.0&quot;,
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;main&quot;: &quot;./dist/index.mjs&quot;,
+  &quot;module&quot;: &quot;./dist/index.mjs&quot;,
+  &quot;types&quot;: &quot;./dist/index.d.mts&quot;,
+  &quot;exports&quot;: {
+    &quot;.&quot;: &quot;./dist/index.mjs&quot;,
+    &quot;./package.json&quot;: &quot;./package.json&quot;
+  },
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;tsdown --watch --no-clean&quot;,
+    &quot;build&quot;: &quot;tsdown&quot;,
+    &quot;check:lint&quot;: &quot;oxlint --max-warnings=1 .&quot;,
+    &quot;check:types&quot;: &quot;tsc --noEmit&quot;,
+    &quot;check:format&quot;: &quot;oxfmt --check .&quot;,
+    &quot;fix:lint&quot;: &quot;oxlint --fix .&quot;,
+    &quot;fix:format&quot;: &quot;oxfmt .&quot;,
+    &quot;clean&quot;: &quot;rm -rf .turbo &amp;&amp; rm -rf .next &amp;&amp; rm -rf node_modules &amp;&amp; rm -rf dist&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@plane/typescript-config&quot;: &quot;workspace:*&quot;,
+    &quot;@types/node&quot;: &quot;catalog:&quot;,
+    &quot;@types/react&quot;: &quot;catalog:&quot;,
+    &quot;@types/react-dom&quot;: &quot;catalog:&quot;,
+    &quot;tsdown&quot;: &quot;catalog:&quot;,
+    &quot;typescript&quot;: &quot;catalog:&quot;
+  },
+  &quot;peerDependencies&quot;: {
+    &quot;react&quot;: &quot;catalog:&quot;,
+    &quot;react-dom&quot;: &quot;catalog:&quot;
+  }
+}
+=== a source header sample (hooks) ===
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+export * from &quot;./use-hash-scroll&quot;;
+export * from &quot;./use-local-storage&quot;;
+export * from &quot;./use-outside-click-detector&quot;;
+[3 more lines]---
+index.ts  309B
+use-hash-scroll.ts  3.8K
+use-local-storage.tsx  1.8K
+use-outside-click-detector.tsx  1.1K
+use-platform-os.tsx  993B
+=== propel package.json exports style (subpath) ===
+{
+  &quot;name&quot;: &quot;@plane/propel&quot;,
+  &quot;version&quot;: &quot;1.3.1&quot;,
+  &quot;private&quot;: true,
+  &quot;license&quot;: &quot;AGPL-3.0&quot;,
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;exports&quot;: {
+    &quot;./accordion&quot;: &quot;./dist/accordion/index.js&quot;,
+    &quot;./animated-counter&quot;: &quot;./dist/animated-counter/index.js&quot;,
+    &quot;./avatar&quot;: &quot;./dist/avatar/index.js&quot;,
+    &quot;./badge&quot;: &quot;./dist/badge/index.js&quot;,
+    &quot;./banner&quot;: &quot;./dist/banner/index.js&quot;,
+    &quot;./button&quot;: &quot;./dist/button/index.js&quot;,
+    &quot;./calendar&quot;: &quot;./dist/calendar/index.js&quot;,
+    &quot;./card&quot;: &quot;./dist/card/index.js&quot;,
+    &quot;./charts/area-chart&quot;: &quot;./dist/charts/area-chart/index.js&quot;,
+    &quot;./charts/bar-chart&quot;: &quot;./dist/charts/bar-chart/index.js&quot;,
+    &quot;./charts/line-chart&quot;: &quot;./dist/charts/line-chart/index.js&quot;,
+    &quot;./charts/pie-chart&quot;: &quot;./dist/charts/pie-chart/index.js&quot;,
+    &quot;./charts/radar-chart&quot;: &quot;./dist/charts/radar-chart/index.js&quot;,
+    &quot;./charts/scatter-chart&quot;: &quot;./dist/charts/scatter-chart/index.js&quot;,
+    &quot;./charts/tree-map&quot;: &quot;./dist/charts/tree-map/index.js&quot;,
+    &quot;./collapsible&quot;: &quot;./dist/collapsible/index.js&quot;,
+    &quot;./combobox&quot;: &quot;./dist/combobox/index.js&quot;,
+    &quot;./command&quot;: &quot;./dist/command/index.js&quot;,
+    &quot;./context-menu&quot;: &quot;./dist/context-menu/index.js&quot;,
+    &quot;./dialog&quot;: &quot;./dist/dialog/index.js&quot;,
+    &quot;./emoji-icon-picker&quot;: &quot;./dist/emoji-icon-picker/index.js&quot;,
+    &quot;./emoji-reaction&quot;: &quot;./dist/emoji-reaction/index.js&quot;,
+    &quot;./empty-state&quot;: &quot;./dist/empty-state/index.js&quot;,
+    &quot;./icon-button&quot;: &quot;./dist/icon-button/index.js&quot;,
+    &quot;./icons&quot;: &quot;./dist/icons/index.js&quot;,
+    &quot;./input&quot;: &quot;./dist/input/index.js&quot;,
+    &quot;./menu&quot;: &quot;./dist/menu/index.js&quot;,
+    &quot;./pill&quot;: &quot;./dist/pill/index.js&quot;,
+    &quot;./popover&quot;: &quot;./dist/popover/index.js&quot;,
+    &quot;./portal&quot;: &quot;./dist/portal/index.js&quot;,
+    &quot;./scrollarea&quot;: &quot;./dist/scrollarea/index.js&quot;,
+    &quot;./skeleton&quot;: &quot;./dist/skeleton/index.js&quot;,
+    &quot;./switch&quot;: &quot;./dist/switch/index.js&quot;,
+    &quot;./tab-navigation&quot;: &quot;./dist/tab-navigation/index.js&quot;,
+    &quot;./table&quot;: &quot;./dist/table/index.js&quot;,
+    &quot;./tabs&quot;: &quot;./dist/tabs/index.js&quot;,
+    &quot;./toast&quot;: &quot;./dist/toast/index.js&quot;,
+    &quot;./toolbar&quot;: &quot;./dist/toolbar/index.js&quot;,
+    &quot;./tooltip&quot;: &quot;./dist/tooltip/index.js&quot;,
+    &quot;./utils&quot;: &quot;./dist/utils/index.js&quot;,
+    &quot;./package.json&quot;: &quot;./package.json&quot;,
+    &quot;./styles/react-day-picker.css&quot;: &quot;./dist/styles/react-day-picker.css&quot;,
+    &quot;./styles/react-day-picker&quot;: &quot;./dist/styles/react-day-picker.css&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-17-207Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-17-207Z" class="timestamp-link"><time datetime="2026-07-10T20:00:17.207Z" data-timestamp="2026-07-10T20:00:17.207Z">2026-07-10T20:00:17.207Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-19-727Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-19-727Z" class="timestamp-link"><time datetime="2026-07-10T20:00:19.727Z" data-timestamp="2026-07-10T20:00:19.727Z">2026-07-10T20:00:19.727Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All templates captured. Scoping the stub conservatively to what's unambiguous regardless of pending UX/transport decisions: <strong>the contract</strong> — data types, the real-time event envelope, the behavior/command contract (interrupt/correct/retry), and service + transport <em>interfaces</em> (impls deferred, freely mockable in tests). Deferring store + components since Plane norms may keep those in <code>apps/web/ce</code> — that's a design decision.</p>
+<p>Creating <code>@plane/agents</code>:</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-24-702Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-24-702Z" class="timestamp-link"><time datetime="2026-07-10T20:00:24.702Z" data-timestamp="2026-07-10T20:00:24.702Z">2026-07-10T20:00:24.702Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01FGtLUYEz23CsX9SbvfMQ6T">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">package.json</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/package.json</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">{
+  &#34;name&#34;: &#34;@plane/agents&#34;,
+  &#34;version&#34;: &#34;1.3.1&#34;,
+  &#34;private&#34;: true,
+  &#34;description&#34;: &#34;Contracts and shared logic for agentic task visibility and control, shared across apps internally&#34;,
+  &#34;license&#34;: &#34;AGPL-3.0&#34;,
+  &#34;type&#34;: &#34;module&#34;,
+  &#34;main&#34;: &#34;./dist/index.js&#34;,
+  &#34;module&#34;: &#34;./dist/index.js&#34;,
+  &#34;types&#34;: &#34;./dist/index.d.ts&#34;,
+  &#34;exports&#34;: {
+    &#34;.&#34;: &#34;./dist/index.js&#34;,
+    &#34;./package.json&#34;: &#34;./package.json&#34;
+  },
+  &#34;scripts&#34;: {
+    &#34;build&#34;: &#34;tsdown&#34;,
+    &#34;dev&#34;: &#34;tsdown --watch --no-clean&#34;,
+    &#34;check:lint&#34;: &#34;oxlint --max-warnings=4 .&#34;,
+    &#34;check:types&#34;: &#34;tsc --noEmit&#34;,
+    &#34;check:format&#34;: &#34;oxfmt --check .&#34;,
+    &#34;fix:lint&#34;: &#34;oxlint --fix .&#34;,
+    &#34;fix:format&#34;: &#34;oxfmt .&#34;,
+    &#34;clean&#34;: &#34;rm -rf .turbo &amp;&amp; rm -rf .next &amp;&amp; rm -rf node_modules &amp;&amp; rm -rf dist&#34;
+  },
+  &#34;devDependencies&#34;: {
+    &#34;@plane/typescript-config&#34;: &#34;workspace:*&#34;,
+    &#34;@types/node&#34;: &#34;catalog:&#34;,
+    &#34;tsdown&#34;: &#34;catalog:&#34;,
+    &#34;typescript&#34;: &#34;catalog:&#34;
+  }
+}
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-00-24-742Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-00-24-742Z" class="timestamp-link"><time datetime="2026-07-10T20:00:24.742Z" data-timestamp="2026-07-10T20:00:24.742Z">2026-07-10T20:00:24.742Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/package.json (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-25-700Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-25-700Z" class="timestamp-link"><time datetime="2026-07-10T20:00:25.700Z" data-timestamp="2026-07-10T20:00:25.700Z">2026-07-10T20:00:25.700Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01EvGLfa5gpMtterE14t921e">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">tsconfig.json</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/tsconfig.json</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">{
+  &#34;extends&#34;: &#34;@plane/typescript-config/node-library.json&#34;,
+  &#34;include&#34;: [&#34;./src&#34;],
+  &#34;exclude&#34;: [&#34;dist&#34;, &#34;build&#34;, &#34;node_modules&#34;]
+}
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-00-25-711Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-00-25-711Z" class="timestamp-link"><time datetime="2026-07-10T20:00:25.711Z" data-timestamp="2026-07-10T20:00:25.711Z">2026-07-10T20:00:25.711Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/tsconfig.json (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-26-868Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-26-868Z" class="timestamp-link"><time datetime="2026-07-10T20:00:26.868Z" data-timestamp="2026-07-10T20:00:26.868Z">2026-07-10T20:00:26.868Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01NUB1kFH8bPye21SPbipgft">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">tsdown.config.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/tsdown.config.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import { defineConfig } from &#34;tsdown&#34;;
+
+export default defineConfig({
+  entry: [&#34;src/index.ts&#34;],
+  format: [&#34;esm&#34;],
+  dts: true,
+  platform: &#34;neutral&#34;,
+  exports: true,
+});
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-00-26-905Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-00-26-905Z" class="timestamp-link"><time datetime="2026-07-10T20:00:26.905Z" data-timestamp="2026-07-10T20:00:26.905Z">2026-07-10T20:00:26.905Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/tsdown.config.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-38-664Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-38-664Z" class="timestamp-link"><time datetime="2026-07-10T20:00:38.664Z" data-timestamp="2026-07-10T20:00:38.664Z">2026-07-10T20:00:38.664Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-39-160Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-39-160Z" class="timestamp-link"><time datetime="2026-07-10T20:00:39.160Z" data-timestamp="2026-07-10T20:00:39.160Z">2026-07-10T20:00:39.160Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now the contract source files:</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-00-57-227Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-00-57-227Z" class="timestamp-link"><time datetime="2026-07-10T20:00:57.227Z" data-timestamp="2026-07-10T20:00:57.227Z">2026-07-10T20:00:57.227Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_011kMCHB2TKG7UHhyJVBMmbz">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">session.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/types/session.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+/**
+ * PROVISIONAL CONTRACT.
+ *
+ * These shapes are the seam between the (separately built) agent runtime and
+ * Plane&#39;s UI. They are intentionally transport-agnostic. Field names and the
+ * status set are expected to be finalized during design; anything consuming
+ * them should treat unknown status values defensively.
+ */
+
+/**
+ * Lifecycle state of a single agent run.
+ *
+ * - `queued`            accepted, not yet started
+ * - `running`           actively working
+ * - `paused`            suspended by the user, resumable
+ * - `waiting_for_input` blocked; needs the user to answer a question
+ * - `awaiting_approval` blocked; needs the user to approve a proposed action
+ * - `succeeded`         finished, terminal
+ * - `failed`            errored, terminal
+ * - `cancelled`         interrupted by the user, terminal
+ */
+export type TAgentRunStatus =
+  | &#34;queued&#34;
+  | &#34;running&#34;
+  | &#34;paused&#34;
+  | &#34;waiting_for_input&#34;
+  | &#34;awaiting_approval&#34;
+  | &#34;succeeded&#34;
+  | &#34;failed&#34;
+  | &#34;cancelled&#34;;
+
+/** Terminal states — no further updates expected after these. */
+export const AGENT_TERMINAL_STATUSES: readonly TAgentRunStatus[] = [
+  &#34;succeeded&#34;,
+  &#34;failed&#34;,
+  &#34;cancelled&#34;,
+] as const;
+
+/** States where the agent is blocked on the user before it can proceed. */
+export const AGENT_BLOCKED_STATUSES: readonly TAgentRunStatus[] = [
+  &#34;waiting_for_input&#34;,
+  &#34;awaiting_approval&#34;,
+] as const;
+
+/** What a run is acting on, so the UI can deep-link back to the entity. */
+export type TAgentTarget = {
+  /** e.g. &#34;work_item&#34;, &#34;page&#34;, &#34;cycle&#34;, &#34;project&#34;, &#34;workspace&#34; */
+  entityType: string;
+  entityId: string;
+  /** Optional human label for display without a second fetch. */
+  entityName?: string;
+};
+
+/** A single step in the run&#39;s timeline (the progress log). */
+export type TAgentStep = {
+  id: string;
+  label: string;
+  status: &#34;pending&#34; | &#34;running&#34; | &#34;succeeded&#34; | &#34;failed&#34; | &#34;skipped&#34;;
+  startedAt?: string;
+  endedAt?: string;
+  /** Optional short human-readable detail; NOT a full raw log dump. */
+  detail?: string;
+};
+
+/** Coarse progress hint. All fields optional — agents may not know totals. */
+export type TAgentProgress = {
+  /** 0–100, if the agent can estimate it. */
+  percent?: number;
+  currentStep?: number;
+  totalSteps?: number;
+};
+
+export type TAgentError = {
+  code?: string;
+  message: string;
+  /** Whether the runtime considers this recoverable via retry/resume. */
+  recoverable?: boolean;
+};
+
+/** Terminal summary shown after completion. */
+export type TAgentResult = {
+  /** One-line outcome for list rows. */
+  summary?: string;
+  /** Optional link the user can open to review changes/output. */
+  reviewUrl?: string;
+};
+
+/**
+ * A single spun-off agentic task (one &#34;run&#34;).
+ * This is the primary object the visibility UI renders.
+ */
+export type TAgentRun = {
+  id: string;
+  /** Stable identifier of the agent kind, e.g. &#34;triage&#34;, &#34;summarize&#34;. */
+  agentKey: string;
+  /** Human title for the run, e.g. &#34;Triage new work items&#34;. */
+  title: string;
+  status: TAgentRunStatus;
+
+  workspaceId: string;
+  projectId?: string;
+  target?: TAgentTarget;
+
+  /** User who initiated the run. */
+  initiatedBy: string;
+
+  progress?: TAgentProgress;
+  /** Most recent steps; full history may be paged separately. */
+  steps?: TAgentStep[];
+
+  result?: TAgentResult;
+  error?: TAgentError;
+
+  createdAt: string;
+  updatedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+};
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-00-57-251Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-00-57-251Z" class="timestamp-link"><time datetime="2026-07-10T20:00:57.251Z" data-timestamp="2026-07-10T20:00:57.251Z">2026-07-10T20:00:57.251Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/types/session.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-06-231Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-06-231Z" class="timestamp-link"><time datetime="2026-07-10T20:01:06.231Z" data-timestamp="2026-07-10T20:01:06.231Z">2026-07-10T20:01:06.231Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01V4tnkPWG24NLfnQVExMUYe">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">events.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/types/events.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentError, TAgentProgress, TAgentResult, TAgentRunStatus, TAgentStep } from &#34;./session&#34;;
+
+/**
+ * PROVISIONAL CONTRACT.
+ *
+ * Real-time envelope the runtime pushes to the client (over whatever transport
+ * is chosen — poll/SSE/WS; see the transport seam). Events are ordered per run
+ * by `sequence` so a client can detect gaps and reconcile after reconnect.
+ */
+
+export type TAgentEventType =
+  | &#34;status_changed&#34;
+  | &#34;progress&#34;
+  | &#34;step_started&#34;
+  | &#34;step_updated&#34;
+  | &#34;step_completed&#34;
+  | &#34;input_requested&#34;
+  | &#34;approval_requested&#34;
+  | &#34;completed&#34;
+  | &#34;error&#34;;
+
+type TAgentEventBase&lt;T extends TAgentEventType, P&gt; = {
+  /** Which run this event belongs to. */
+  runId: string;
+  /** Monotonic per-run sequence number for ordering + gap detection. */
+  sequence: number;
+  timestamp: string;
+  type: T;
+  payload: P;
+};
+
+export type TAgentInputRequest = {
+  promptId: string;
+  /** Question posed to the user. */
+  prompt: string;
+};
+
+export type TAgentApprovalRequest = {
+  approvalId: string;
+  /** What the agent proposes to do and wants approved. */
+  summary: string;
+  /** Hint that the action is hard to undo, so the UI can weight it. */
+  irreversible?: boolean;
+};
+
+export type TAgentEvent =
+  | TAgentEventBase&lt;&#34;status_changed&#34;, { status: TAgentRunStatus }&gt;
+  | TAgentEventBase&lt;&#34;progress&#34;, TAgentProgress&gt;
+  | TAgentEventBase&lt;&#34;step_started&#34;, TAgentStep&gt;
+  | TAgentEventBase&lt;&#34;step_updated&#34;, TAgentStep&gt;
+  | TAgentEventBase&lt;&#34;step_completed&#34;, TAgentStep&gt;
+  | TAgentEventBase&lt;&#34;input_requested&#34;, TAgentInputRequest&gt;
+  | TAgentEventBase&lt;&#34;approval_requested&#34;, TAgentApprovalRequest&gt;
+  | TAgentEventBase&lt;&#34;completed&#34;, { status: TAgentRunStatus; result?: TAgentResult }&gt;
+  | TAgentEventBase&lt;&#34;error&#34;, TAgentError&gt;;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-06-249Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-06-249Z" class="timestamp-link"><time datetime="2026-07-10T20:01:06.249Z" data-timestamp="2026-07-10T20:01:06.249Z">2026-07-10T20:01:06.249Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/types/events.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-14-046Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-14-046Z" class="timestamp-link"><time datetime="2026-07-10T20:01:14.046Z" data-timestamp="2026-07-10T20:01:14.046Z">2026-07-10T20:01:14.046Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_013hrnVRj5KFNT8QWXpqZjD1">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">commands.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/types/commands.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+/**
+ * PROVISIONAL CONTRACT.
+ *
+ * User -&gt; agent control messages. This is the &#34;behavior contract&#34;: how a user
+ * interrupts, steers, or answers a running agent. The runtime is responsible
+ * for honoring these; the UI only emits them.
+ */
+
+export type TAgentCommandType =
+  /** Terminally stop the run and discard in-progress work. */
+  | &#34;cancel&#34;
+  /** Suspend the run so it can be resumed later. */
+  | &#34;pause&#34;
+  /** Resume a paused run. */
+  | &#34;resume&#34;
+  /** Inject new guidance WITHOUT killing the run (steering). */
+  | &#34;correct&#34;
+  /** Answer a `waiting_for_input` prompt. */
+  | &#34;provide_input&#34;
+  /** Approve an `awaiting_approval` gate. */
+  | &#34;approve&#34;
+  /** Reject an `awaiting_approval` gate. */
+  | &#34;reject&#34;
+  /** Re-run a failed run, optionally from its last checkpoint. */
+  | &#34;retry&#34;;
+
+type TAgentCommandBase&lt;T extends TAgentCommandType, P&gt; = {
+  runId: string;
+  type: T;
+  payload: P;
+};
+
+export type TAgentCommand =
+  | TAgentCommandBase&lt;&#34;cancel&#34;, { reason?: string }&gt;
+  | TAgentCommandBase&lt;&#34;pause&#34;, Record&lt;string, never&gt;&gt;
+  | TAgentCommandBase&lt;&#34;resume&#34;, Record&lt;string, never&gt;&gt;
+  | TAgentCommandBase&lt;&#34;correct&#34;, { guidance: string }&gt;
+  | TAgentCommandBase&lt;&#34;provide_input&#34;, { promptId: string; response: string }&gt;
+  | TAgentCommandBase&lt;&#34;approve&#34;, { approvalId: string; note?: string }&gt;
+  | TAgentCommandBase&lt;&#34;reject&#34;, { approvalId: string; note?: string }&gt;
+  | TAgentCommandBase&lt;&#34;retry&#34;, { fromCheckpoint?: boolean }&gt;;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-14-084Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-14-084Z" class="timestamp-link"><time datetime="2026-07-10T20:01:14.084Z" data-timestamp="2026-07-10T20:01:14.084Z">2026-07-10T20:01:14.084Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/types/commands.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-16-941Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-16-941Z" class="timestamp-link"><time datetime="2026-07-10T20:01:16.941Z" data-timestamp="2026-07-10T20:01:16.941Z">2026-07-10T20:01:16.941Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-20-667Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-20-667Z" class="timestamp-link"><time datetime="2026-07-10T20:01:20.667Z" data-timestamp="2026-07-10T20:01:20.667Z">2026-07-10T20:01:20.667Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Ambient research back — validates the contract (blocked-status gates, milestone events not token streams, quiet-inbox default). Finishing stub: service + transport interfaces, barrel, README.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-25-042Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-25-042Z" class="timestamp-link"><time datetime="2026-07-10T20:01:25.042Z" data-timestamp="2026-07-10T20:01:25.042Z">2026-07-10T20:01:25.042Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01XeHaAcDMLguf2spwVc7aCC">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">agent.service.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/services/agent.service.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentCommand } from &#34;../types/commands&#34;;
+import type { TAgentRun } from &#34;../types/session&#34;;
+
+/**
+ * PROVISIONAL CONTRACT.
+ *
+ * Request/response surface for agent runs (the non-real-time half; live updates
+ * arrive via the transport seam). Concrete implementations live in the app
+ * layer; tests mock this interface directly.
+ */
+export interface IAgentService {
+  /** List runs visible to the caller, newest first. */
+  listRuns(params: {
+    workspaceId: string;
+    /** Narrow to a specific entity (e.g. a work item&#39;s runs). */
+    target?: { entityType: string; entityId: string };
+    /** Omit to include all; pass to filter (e.g. only active). */
+    statuses?: TAgentRun[&#34;status&#34;][];
+    cursor?: string;
+  }): Promise&lt;{ runs: TAgentRun[]; nextCursor?: string }&gt;;
+
+  /** Fetch a single run with its step history. */
+  getRun(params: { workspaceId: string; runId: string }): Promise&lt;TAgentRun&gt;;
+
+  /** Send a control command (interrupt/steer/answer/approve/retry). */
+  sendCommand(params: { workspaceId: string; command: TAgentCommand }): Promise&lt;void&gt;;
+}
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-25-093Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-25-093Z" class="timestamp-link"><time datetime="2026-07-10T20:01:25.093Z" data-timestamp="2026-07-10T20:01:25.093Z">2026-07-10T20:01:25.093Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/services/agent.service.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-26-564Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-26-564Z" class="timestamp-link"><time datetime="2026-07-10T20:01:26.564Z" data-timestamp="2026-07-10T20:01:26.564Z">2026-07-10T20:01:26.564Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01BuqaVG5xq5qqdL5uYhFidM">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">index.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/services/index.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+export * from &#34;./agent.service&#34;;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-26-608Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-26-608Z" class="timestamp-link"><time datetime="2026-07-10T20:01:26.608Z" data-timestamp="2026-07-10T20:01:26.608Z">2026-07-10T20:01:26.608Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/services/index.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-32-608Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-32-608Z" class="timestamp-link"><time datetime="2026-07-10T20:01:32.608Z" data-timestamp="2026-07-10T20:01:32.608Z">2026-07-10T20:01:32.608Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01FyB9GvbhNxTTzxpiyT8Muz">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">index.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/transport/index.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentEvent } from &#34;../types/events&#34;;
+
+/**
+ * PROVISIONAL CONTRACT.
+ *
+ * Real-time seam. Deliberately abstracts the wire protocol so the concrete
+ * mechanism (SSE, WebSocket via the `live` app, or SWR polling) can be chosen
+ * during design without touching consumers. Research favors pushing
+ * milestone-level events for background runs rather than token streams.
+ */
+export interface IAgentEventTransport {
+  /**
+   * Subscribe to live events for one or more runs in a workspace.
+   * Returns an unsubscribe handle. The `sequence` on each event lets a
+   * consumer detect gaps and reconcile via IAgentService after reconnect.
+   */
+  subscribe(params: {
+    workspaceId: string;
+    runIds?: string[];
+    onEvent: (event: TAgentEvent) =&gt; void;
+    onStatusChange?: (connected: boolean) =&gt; void;
+  }): TAgentTransportSubscription;
+}
+
+export type TAgentTransportSubscription = {
+  unsubscribe: () =&gt; void;
+};
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-32-654Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-32-654Z" class="timestamp-link"><time datetime="2026-07-10T20:01:32.654Z" data-timestamp="2026-07-10T20:01:32.654Z">2026-07-10T20:01:32.654Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/transport/index.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-34-110Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-34-110Z" class="timestamp-link"><time datetime="2026-07-10T20:01:34.110Z" data-timestamp="2026-07-10T20:01:34.110Z">2026-07-10T20:01:34.110Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_011irUfN8MjK5ajCD9VDBH1A">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">index.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/types/index.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+export * from &#34;./session&#34;;
+export * from &#34;./events&#34;;
+export * from &#34;./commands&#34;;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-34-133Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-34-133Z" class="timestamp-link"><time datetime="2026-07-10T20:01:34.133Z" data-timestamp="2026-07-10T20:01:34.133Z">2026-07-10T20:01:34.133Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/types/index.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-35-171Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-35-171Z" class="timestamp-link"><time datetime="2026-07-10T20:01:35.171Z" data-timestamp="2026-07-10T20:01:35.171Z">2026-07-10T20:01:35.171Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01PtswXqzRZhUSMY7FHW9X9K">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">index.ts</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/src/index.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+export * from &#34;./types&#34;;
+export * from &#34;./services&#34;;
+export * from &#34;./transport&#34;;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-35-222Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-35-222Z" class="timestamp-link"><time datetime="2026-07-10T20:01:35.222Z" data-timestamp="2026-07-10T20:01:35.222Z">2026-07-10T20:01:35.222Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/src/index.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-45-474Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-45-474Z" class="timestamp-link"><time datetime="2026-07-10T20:01:45.474Z" data-timestamp="2026-07-10T20:01:45.474Z">2026-07-10T20:01:45.474Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-46-293Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-46-293Z" class="timestamp-link"><time datetime="2026-07-10T20:01:46.293Z" data-timestamp="2026-07-10T20:01:46.293Z">2026-07-10T20:01:46.293Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Steering research back — confirms the command contract (my <code>correct</code>=steer vs <code>cancel</code>=interrupt split matches the #1 documented pattern; <code>reviewUrl</code> = completion-artifact pattern). Writing README, then verifying the stub typechecks.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-58-156Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-58-156Z" class="timestamp-link"><time datetime="2026-07-10T20:01:58.156Z" data-timestamp="2026-07-10T20:01:58.156Z">2026-07-10T20:01:58.156Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01YJZq8WtbvsKLL3jxq73jjU">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">README.md</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/packages/agents/README.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># @plane/agents
+
+Shared contracts and framework-agnostic logic for **agentic task visibility and
+control** in Plane — the seam between spun-off agent runs (built separately) and
+the Plane UI that observes and steers them.
+
+&gt; **Status: stub / provisional.** Only the data + behavior contracts and the
+&gt; service/transport interfaces exist so far. Stores and UI components are
+&gt; intentionally deferred until the design is settled — see
+&gt; `docs/superpowers/specs/` for the design in progress. Field names and the
+&gt; status set may still change.
+
+## Why a separate package
+
+Keeps agent-visibility code compartmentalized away from the core apps. It is
+consumed via the `workspace:*` protocol and exposes only its `exports` surface,
+so the wiring to a specific UI surface or real-time transport is decided by
+consumers, not baked in here.
+
+## What&#39;s in here
+
+| Area                | File(s)                    | Purpose                                                        |
+| ------------------- | -------------------------- | ------------------------------------------------------------- |
+| Data contract       | `src/types/session.ts`     | `TAgentRun`, status model, steps, progress, result, error     |
+| Real-time contract  | `src/types/events.ts`      | `TAgentEvent` envelope pushed over the transport              |
+| Behavior contract   | `src/types/commands.ts`    | `TAgentCommand` — interrupt / steer / answer / approve / retry |
+| Request surface     | `src/services/`            | `IAgentService` — list/get runs, send commands (mockable)      |
+| Real-time seam      | `src/transport/`           | `IAgentEventTransport` — SSE / WS / polling, chosen later      |
+
+Consumers mock `IAgentService` / `IAgentEventTransport` freely in tests; no live
+agent runtime is required.
+
+## Build
+
+Follows the standard `@plane/*` toolchain (tsdown + oxlint/oxfmt):
+
+```bash
+pnpm --filter @plane/agents build
+pnpm --filter @plane/agents check:types
+```
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-01-58-178Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-01-58-178Z" class="timestamp-link"><time datetime="2026-07-10T20:01:58.178Z" data-timestamp="2026-07-10T20:01:58.178Z">2026-07-10T20:01:58.178Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/packages/agents/README.md (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-01-59-198Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-01-59-198Z" class="timestamp-link"><time datetime="2026-07-10T20:01:59.198Z" data-timestamp="2026-07-10T20:01:59.198Z">2026-07-10T20:01:59.198Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01ErrCzvT5bpPC9iPW4SpRnE">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Install workspace deps for new package</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">pnpm install --filter @plane/agents 2&gt;&amp;1 | tail -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-02-02-407Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-02-02-407Z" class="timestamp-link"><time datetime="2026-07-10T20:02:02.407Z" data-timestamp="2026-07-10T20:02:02.407Z">2026-07-10T20:02:02.407Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-10.32.1.tgz</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-08-419Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-08-419Z" class="timestamp-link"><time datetime="2026-07-10T20:02:08.419Z" data-timestamp="2026-07-10T20:02:08.419Z">2026-07-10T20:02:08.419Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-09-424Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-09-424Z" class="timestamp-link"><time datetime="2026-07-10T20:02:09.424Z" data-timestamp="2026-07-10T20:02:09.424Z">2026-07-10T20:02:09.424Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Answering your mid-turn question: last research agent (background-agent UI patterns) still running. Productive things while we wait — verify the stub typechecks, and I can pre-draft the spec skeleton. Doing the verify now; corepack is fetching pnpm.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-11-028Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-11-028Z" class="timestamp-link"><time datetime="2026-07-10T20:02:11.028Z" data-timestamp="2026-07-10T20:02:11.028Z">2026-07-10T20:02:11.028Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014pmLcYvRiveySN9LVmwZXt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run pnpm install for workspace</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install 2&gt;&amp;1 | tail -25</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-02-12-897Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-02-12-897Z" class="timestamp-link"><time datetime="2026-07-10T20:02:12.897Z" data-timestamp="2026-07-10T20:02:12.897Z">2026-07-10T20:02:12.897Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>(Bash completed with no output)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-15-727Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-15-727Z" class="timestamp-link"><time datetime="2026-07-10T20:02:15.727Z" data-timestamp="2026-07-10T20:02:15.727Z">2026-07-10T20:02:15.727Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Ck5A5HvUjKkHvhmF3VGzKt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Typecheck the new package</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --filter @plane/agents check:types 2&gt;&amp;1 | tail -30; echo &#34;EXIT: $?&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-02-17-583Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-02-17-583Z" class="timestamp-link"><time datetime="2026-07-10T20:02:17.583Z" data-timestamp="2026-07-10T20:02:17.583Z">2026-07-10T20:02:17.583Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&gt; @plane/agents@1.3.1 check:types /Users/mattgawarecki/projects/plane/packages/agents
+&gt; tsc --noEmit
+
+sh: tsc: command not found
+/Users/mattgawarecki/projects/plane/packages/agents:
+[41m[30m ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL [39m[49m [31m@plane/agents@1.3.1 check:types: `tsc --noEmit`[39m
+[31mspawn ENOENT[39m
+[43m[30m WARN [39m[49m  Local package.json exists, but node_modules missing, did you mean to install?
+EXIT: 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-20-362Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-20-362Z" class="timestamp-link"><time datetime="2026-07-10T20:02:20.362Z" data-timestamp="2026-07-10T20:02:20.362Z">2026-07-10T20:02:20.362Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-21-411Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-21-411Z" class="timestamp-link"><time datetime="2026-07-10T20:02:21.411Z" data-timestamp="2026-07-10T20:02:21.411Z">2026-07-10T20:02:21.411Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>node_modules not populated — install likely didn't complete. Re-running install with confirmation.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-22-636Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-22-636Z" class="timestamp-link"><time datetime="2026-07-10T20:02:22.636Z" data-timestamp="2026-07-10T20:02:22.636Z">2026-07-10T20:02:22.636Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016T2hQ3Qhude2KJtpt2tDp5">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Install and verify node_modules created</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install 2&gt;&amp;1 | tail -30; echo &#34;---EXIT $?---&#34;; ls packages/agents/node_modules 2&gt;&amp;1 | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-02-24-297Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-02-24-297Z" class="timestamp-link"><time datetime="2026-07-10T20:02:24.297Z" data-timestamp="2026-07-10T20:02:24.297Z">2026-07-10T20:02:24.297Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>---EXIT 0---
+ls: cannot access &#x27;packages/agents/node_modules&#x27;: No such file or directory</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-30-767Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-30-767Z" class="timestamp-link"><time datetime="2026-07-10T20:02:30.767Z" data-timestamp="2026-07-10T20:02:30.767Z">2026-07-10T20:02:30.767Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-02-34-262Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-02-34-262Z" class="timestamp-link"><time datetime="2026-07-10T20:02:34.262Z" data-timestamp="2026-07-10T20:02:34.262Z">2026-07-10T20:02:34.262Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01BfM4CcoA3vRqHY25sSeh7Q">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Debug pnpm install, check tsc binary</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+grep -iE &#34;frozen|prefer-frozen|reporter|shamefully&#34; .npmrc 2&gt;/dev/null
+echo &#34;--- try install with debug ---&#34;
+COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install --reporter=append-only --config.confirmModulesPurge=false 2&gt;&amp;1 | tail -30
+echo &#34;---EXIT $?---&#34;
+ls -la packages/agents/ | grep node_modules
+echo &#34;--- root node_modules/.bin/tsc? ---&#34;; ls node_modules/.bin/tsc 2&gt;&amp;1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-03-43-622Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-03-43-622Z" class="timestamp-link"><time datetime="2026-07-10T20:03:43.622Z" data-timestamp="2026-07-10T20:03:43.622Z">2026-07-10T20:03:43.622Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>prefer-frozen-lockfile = true
+--- try install with debug ---
+├─┬ @storybook/react [90m8.6.14[39m
+│ ├── [93m✕ unmet peer[39m storybook@^8.6.14: found 9.1.19
+│ ├─┬ @storybook/components [90m8.6.14[39m
+│ │ └── [93m✕ unmet peer[39m storybook@&quot;^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0&quot;: found 9.1.19
+│ ├─┬ @storybook/manager-api [90m8.6.14[39m
+│ │ └── [93m✕ unmet peer[39m storybook@&quot;^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0&quot;: found 9.1.19
+│ ├─┬ @storybook/preview-api [90m8.6.14[39m
+│ │ └── [93m✕ unmet peer[39m storybook@&quot;^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0&quot;: found 9.1.19
+│ └─┬ @storybook/theming [90m8.6.14[39m
+│   └── [93m✕ unmet peer[39m storybook@&quot;^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0&quot;: found 9.1.19
+├─┬ @storybook/react-webpack5 [90m8.6.14[39m
+│ ├── [93m✕ unmet peer[39m storybook@^8.6.14: found 9.1.19
+│ ├─┬ @storybook/builder-webpack5 [90m8.6.14[39m
+│ │ ├── [93m✕ unmet peer[39m storybook@^8.6.14: found 9.1.19
+│ │ └─┬ @storybook/core-webpack [90m8.6.14[39m
+│ │   └── [93m✕ unmet peer[39m storybook@^8.6.14: found 9.1.19
+│ └─┬ @storybook/preset-react-webpack [90m8.6.14[39m
+│   └── [93m✕ unmet peer[39m storybook@^8.6.14: found 9.1.19
+└─┬ @blueprintjs/core [90m4.20.2[39m
+  └─┬ react-popper [90m1.3.11[39m
+    └── [93m✕ unmet peer[39m react@&quot;0.14.x || ^15.0.0 || ^16.0.0 || ^17.0.0&quot;: found 18.3.1
+
+[96mdevDependencies:[39m
+[32m+[39m husky [90m9.1.7[39m
+[32m+[39m lint-staged [90m16.2.7[39m
+[32m+[39m oxfmt [90m0.35.0[39m
+[32m+[39m oxlint [90m1.51.0[39m
+[32m+[39m turbo [90m2.9.4[39m
+
+Done in 1m 7.5s using pnpm v10.32.1
+---EXIT 0---
+drwxr-xr-x@    - mattgawarecki 10 Jul 13:03 node_modules
+--- root node_modules/.bin/tsc? ---
+node_modules/.bin/tsc  998B</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-03-51-597Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-03-51-597Z" class="timestamp-link"><time datetime="2026-07-10T20:03:51.597Z" data-timestamp="2026-07-10T20:03:51.597Z">2026-07-10T20:03:51.597Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-03-52-237Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-03-52-237Z" class="timestamp-link"><time datetime="2026-07-10T20:03:52.237Z" data-timestamp="2026-07-10T20:03:52.237Z">2026-07-10T20:03:52.237Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>node_modules populated now (<code>prefer-frozen-lockfile</code> was the blocker). Verifying typecheck, then building the HTML pre-draft. Per the Artifact workflow I must load the design skill first.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-03-57-822Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-03-57-822Z" class="timestamp-link"><time datetime="2026-07-10T20:03:57.822Z" data-timestamp="2026-07-10T20:03:57.822Z">2026-07-10T20:03:57.822Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Ag84DhWW4LwwC6R8qh8WyR">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Typecheck new package</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --filter @plane/agents check:types 2&gt;&amp;1 | tail -20; echo &#34;EXIT: $?&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-03-57-933Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-03-57-933Z" class="timestamp-link"><time datetime="2026-07-10T20:03:57.933Z" data-timestamp="2026-07-10T20:03:57.933Z">2026-07-10T20:03:57.933Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01SHpbKAw2uLsDUa5ntjN6EU"><div class="tool-header"><span class="tool-icon">⚙</span> Skill</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;skill&#34;: &#34;artifact-design&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-04-04-825Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-04-04-825Z" class="timestamp-link"><time datetime="2026-07-10T20:04:04.825Z" data-timestamp="2026-07-10T20:04:04.825Z">2026-07-10T20:04:04.825Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&gt; @plane/agents@1.3.1 check:types /Users/mattgawarecki/projects/plane/packages/agents
+&gt; tsc --noEmit
+
+EXIT: 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-04-08-231Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-04-08-231Z" class="timestamp-link"><time datetime="2026-07-10T20:04:08.231Z" data-timestamp="2026-07-10T20:04:08.231Z">2026-07-10T20:04:08.231Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Launching skill: artifact-design</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 5</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 5/16</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-006.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-07-10T20-35-33-453Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T20-35-33-453Z" class="timestamp-link"><time datetime="2026-07-10T20:35:33.453Z" data-timestamp="2026-07-10T20:35:33.453Z">2026-07-10T20:35:33.453Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T20-35-51-597Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T20-35-51-597Z" class="timestamp-link"><time datetime="2026-07-10T20:35:51.597Z" data-timestamp="2026-07-10T20:35:51.597Z">2026-07-10T20:35:51.597Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Commit the planning and design artifacts we have now (not the code yet, though).</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-35-58-608Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-35-58-608Z" class="timestamp-link"><time datetime="2026-07-10T20:35:58.608Z" data-timestamp="2026-07-10T20:35:58.608Z">2026-07-10T20:35:58.608Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-35-59-010Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-35-59-010Z" class="timestamp-link"><time datetime="2026-07-10T20:35:59.010Z" data-timestamp="2026-07-10T20:35:59.010Z">2026-07-10T20:35:59.010Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>On the ask. Committing docs only — leaving <code>@plane/agents</code> code uncommitted. Checking status first to stage precisely.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-00-114Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-00-114Z" class="timestamp-link"><time datetime="2026-07-10T20:36:00.114Z" data-timestamp="2026-07-10T20:36:00.114Z">2026-07-10T20:36:00.114Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01QQjojjZMXG9WDFy5e2omJq">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show working tree status</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-36-01-548Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-36-01-548Z" class="timestamp-link"><time datetime="2026-07-10T20:36:01.548Z" data-timestamp="2026-07-10T20:36:01.548Z">2026-07-10T20:36:01.548Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> M pnpm-lock.yaml
+?? docs/superpowers/
+?? packages/agents/
+?? packages/i18n/src/types/keys.generated.ts</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-07-517Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-07-517Z" class="timestamp-link"><time datetime="2026-07-10T20:36:07.517Z" data-timestamp="2026-07-10T20:36:07.517Z">2026-07-10T20:36:07.517Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-08-865Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-08-865Z" class="timestamp-link"><time datetime="2026-07-10T20:36:08.865Z" data-timestamp="2026-07-10T20:36:08.865Z">2026-07-10T20:36:08.865Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01KdnaLeAv4VgpxqJrdGpEDx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Stage docs dir, confirm staged set</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+git add docs/superpowers/
+git status --short
+echo &#34;--- staged files ---&#34;
+git diff --cached --name-only</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-36-10-548Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-36-10-548Z" class="timestamp-link"><time datetime="2026-07-10T20:36:10.548Z" data-timestamp="2026-07-10T20:36:10.548Z">2026-07-10T20:36:10.548Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>A  docs/superpowers/specs/2026-07-10-agent-task-visibility-dataflow.html
+A  docs/superpowers/specs/2026-07-10-agent-task-visibility-design.md
+A  docs/superpowers/specs/2026-07-10-agent-task-visibility-predraft.html
+ M pnpm-lock.yaml
+?? packages/agents/
+?? packages/i18n/src/types/keys.generated.ts
+--- staged files ---
+docs/superpowers/specs/2026-07-10-agent-task-visibility-dataflow.html
+docs/superpowers/specs/2026-07-10-agent-task-visibility-design.md
+docs/superpowers/specs/2026-07-10-agent-task-visibility-predraft.html</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-14-377Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-14-377Z" class="timestamp-link"><time datetime="2026-07-10T20:36:14.377Z" data-timestamp="2026-07-10T20:36:14.377Z">2026-07-10T20:36:14.377Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Only the 3 docs staged — package code, lock, and pre-existing generated file left alone. Committing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-18-964Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-18-964Z" class="timestamp-link"><time datetime="2026-07-10T20:36:18.964Z" data-timestamp="2026-07-10T20:36:18.964Z">2026-07-10T20:36:18.964Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0141Un5u4CKcfknm7xjRWvbc">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the three design docs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+git commit -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+docs: add agent task visibility design + data-flow specs
+
+Design pre-draft, dataflow diagram, and full spec for calm agent-task
+visibility in Plane (v1). Covers the @plane/agents contract seam, hybrid
+UI, live-relay transport via apps/live, client-agnostic durable state,
+scale/resilience, and feature-flag rollout. Code not yet included.
+
+Co-Authored-By: Claude Opus 4.8 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34;
+echo &#34;--- result ---&#34;
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-36-30-945Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-36-30-945Z" class="timestamp-link"><time datetime="2026-07-10T20:36:30.945Z" data-timestamp="2026-07-10T20:36:30.945Z">2026-07-10T20:36:30.945Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>[33m[STARTED][39m Backing up original state...
+[32m[COMPLETED][39m Backed up original state in git stash (898990805a)
+[33m[STARTED][39m Running tasks for staged files...
+[33m[STARTED][39m package.json — 3 files
+[33m[STARTED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts,json,css,md} — 1 file
+[33m[STARTED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts} — 0 files
+[33m[SKIPPED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts} — no files
+[33m[STARTED][39m pnpm exec oxfmt --no-error-on-unmatched-pattern
+[32m[COMPLETED][39m pnpm exec oxfmt --no-error-on-unmatched-pattern
+[32m[COMPLETED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts,json,css,md} — 1 file
+[32m[COMPLETED][39m package.json — 3 files
+[32m[COMPLETED][39m Running tasks for staged files...
+[33m[STARTED][39m Applying modifications from tasks...
+[32m[COMPLETED][39m Applying modifications from tasks...
+[33m[STARTED][39m Cleaning up temporary files...
+[32m[COMPLETED][39m Cleaning up temporary files...</pre><div class="commit-card"><span class="commit-card-hash">58b3030</span> docs: add agent task visibility design + data-flow specs</div><pre>3 files changed, 1286 insertions(+)
+ create mode 100644 docs/superpowers/specs/2026-07-10-agent-task-visibility-dataflow.html
+ create mode 100644 docs/superpowers/specs/2026-07-10-agent-task-visibility-design.md
+ create mode 100644 docs/superpowers/specs/2026-07-10-agent-task-visibility-predraft.html
+--- result ---
+58b3030ba0 docs: add agent task visibility design + data-flow specs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-39-649Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-39-649Z" class="timestamp-link"><time datetime="2026-07-10T20:36:39.649Z" data-timestamp="2026-07-10T20:36:39.649Z">2026-07-10T20:36:39.649Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-36-41-389Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-36-41-389Z" class="timestamp-link"><time datetime="2026-07-10T20:36:41.389Z" data-timestamp="2026-07-10T20:36:41.389Z">2026-07-10T20:36:41.389Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Committed — <code>58b3030ba0</code>, 3 docs, +1286 lines. Code (<code>packages/agents/</code>) + <code>pnpm-lock.yaml</code> left uncommitted as asked. (oxfmt tidied one line of the <code>.md</code> on commit — cosmetic.)</p>
+<p>You interrupted writing-plans to slot the commit in. Want me to resume and write the implementation plan now (<code>docs/superpowers/plans/2026-07-10-agent-task-visibility.md</code>), or pause here?</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T20-37-00-183Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T20-37-00-183Z" class="timestamp-link"><time datetime="2026-07-10T20:37:00.183Z" data-timestamp="2026-07-10T20:37:00.183Z">2026-07-10T20:37:00.183Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Continue writing plans.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-07-744Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-07-744Z" class="timestamp-link"><time datetime="2026-07-10T20:37:07.744Z" data-timestamp="2026-07-10T20:37:07.744Z">2026-07-10T20:37:07.744Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-08-745Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-08-745Z" class="timestamp-link"><time datetime="2026-07-10T20:37:08.745Z" data-timestamp="2026-07-10T20:37:08.745Z">2026-07-10T20:37:08.745Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Resuming. I'm using the writing-plans skill to create the implementation plan.</p>
+<p>Before writing test commands (the plan is TDD — commands must be real), checking the repo's test tooling.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-13-043Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-13-043Z" class="timestamp-link"><time datetime="2026-07-10T20:37:13.043Z" data-timestamp="2026-07-10T20:37:13.043Z">2026-07-10T20:37:13.043Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014GjKoWcnkeFgScDR58BLC4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Detect test tooling in repo</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== test scripts in packages ===&#34;; grep -rn &#39;&#34;test&#34;&#39; packages/*/package.json 2&gt;/dev/null | head
+echo &#34;=== vitest / jest present ===&#34;; grep -riE &#34;vitest|jest&#34; pnpm-workspace.yaml package.json 2&gt;/dev/null | head
+echo &#34;=== any vitest config in repo ===&#34;; find apps packages -maxdepth 2 -iname &#34;vitest.config.*&#34; -o -maxdepth 2 -iname &#34;jest.config.*&#34; 2&gt;/dev/null | grep -v node_modules | head
+echo &#34;=== existing test files (sample) ===&#34;; find apps/web packages -type f \( -name &#34;*.test.ts&#34; -o -name &#34;*.test.tsx&#34; -o -name &#34;*.spec.ts&#34; \) 2&gt;/dev/null | grep -v node_modules | head
+echo &#34;=== turbo test pipeline ===&#34;; grep -nA3 &#39;&#34;test&#34;&#39; turbo.json 2&gt;/dev/null | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-37-14-881Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-37-14-881Z" class="timestamp-link"><time datetime="2026-07-10T20:37:14.881Z" data-timestamp="2026-07-10T20:37:14.881Z">2026-07-10T20:37:14.881Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== test scripts in packages ===
+packages/codemods/package.json:6:    &quot;test&quot;: &quot;vitest run&quot;,
+=== vitest / jest present ===
+=== any vitest config in repo ===
+apps/live/vitest.config.ts
+packages/codemods/vitest.config.ts
+=== existing test files (sample) ===
+packages/codemods/tests/remove-directives.spec.ts
+packages/codemods/tests/function-declaration.spec.ts
+=== turbo test pipeline ===
+88:    &quot;test&quot;: {
+89-      &quot;dependsOn&quot;: [&quot;^build&quot;],
+90-      &quot;outputs&quot;: []
+91-    }</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-18-593Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-18-593Z" class="timestamp-link"><time datetime="2026-07-10T20:37:18.593Z" data-timestamp="2026-07-10T20:37:18.593Z">2026-07-10T20:37:18.593Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-19-597Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-19-597Z" class="timestamp-link"><time datetime="2026-07-10T20:37:19.597Z" data-timestamp="2026-07-10T20:37:19.597Z">2026-07-10T20:37:19.597Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Vitest is the runner (<code>packages/codemods</code>, <code>apps/live</code> both use it; turbo has a <code>test</code> task). Reading the codemods setup to mirror exactly.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-37-21-575Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-37-21-575Z" class="timestamp-link"><time datetime="2026-07-10T20:37:21.575Z" data-timestamp="2026-07-10T20:37:21.575Z">2026-07-10T20:37:21.575Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FmDQ1YAb6nxMBtmTLfSGjb">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read codemods vitest setup as template</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== codemods package.json ===&#34;; cat packages/codemods/package.json
+echo &#34;&#34;; echo &#34;=== codemods vitest.config ===&#34;; cat packages/codemods/vitest.config.ts
+echo &#34;&#34;; echo &#34;=== live vitest.config ===&#34;; cat apps/live/vitest.config.ts
+echo &#34;&#34;; echo &#34;=== a sample spec structure ===&#34;; head -25 packages/codemods/tests/function-declaration.spec.ts</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-37-22-992Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-37-22-992Z" class="timestamp-link"><time datetime="2026-07-10T20:37:22.992Z" data-timestamp="2026-07-10T20:37:22.992Z">2026-07-10T20:37:22.992Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== codemods package.json ===
+{
+  &quot;name&quot;: &quot;@plane/codemods&quot;,
+  &quot;version&quot;: &quot;1.3.1&quot;,
+  &quot;private&quot;: true,
+  &quot;scripts&quot;: {
+    &quot;test&quot;: &quot;vitest run&quot;,
+    &quot;function-declaration&quot;: &quot;jscodeshift -t ./function-declaration.ts --extensions=tsx --parser=tsx ../../apps/*/app ../../apps/*/ce ../../apps/*/core ../../apps/*/ee ../../apps/*/helpers ../../packages/*/src --ignore-pattern=&#x27;**/node_modules/**&#x27; --ignore-pattern=&#x27;**/dist/**&#x27; --ignore-pattern=&#x27;**/build/**&#x27; --ignore-pattern=&#x27;**/*.d.ts&#x27;&quot;,
+    &quot;remove-directives&quot;: &quot;jscodeshift -t ./remove-directives.ts --extensions=ts,tsx --parser=tsx ../../apps/*/app ../../apps/*/ce ../../apps/*/core ../../apps/*/ee ../../apps/*/helpers ../../apps/*/src ../../packages/*/src --ignore-pattern=&#x27;**/node_modules/**&#x27; --ignore-pattern=&#x27;**/dist/**&#x27; --ignore-pattern=&#x27;**/build/**&#x27; --ignore-pattern=&#x27;**/*.d.ts&#x27;&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@hypermod/utils&quot;: &quot;^0.7.1&quot;,
+    &quot;@types/jscodeshift&quot;: &quot;^17.3.0&quot;,
+    &quot;ast-types&quot;: &quot;0.14.2&quot;,
+    &quot;jscodeshift&quot;: &quot;^17.3.0&quot;,
+    &quot;vitest&quot;: &quot;^4.0.8&quot;
+  }
+}
+
+=== codemods vitest.config ===
+import { defineConfig } from &quot;vitest/config&quot;;
+
+export default defineConfig({
+  test: {
+    environment: &quot;node&quot;,
+  },
+});
+
+=== live vitest.config ===
+import { defineConfig } from &quot;vitest/config&quot;;
+import path from &quot;path&quot;;
+
+export default defineConfig({
+  test: {
+    environment: &quot;node&quot;,
+    globals: true,
+    include: [&quot;tests/**/*.test.ts&quot;, &quot;tests/**/*.spec.ts&quot;],
+    coverage: {
+      provider: &quot;v8&quot;,
+      reporter: [&quot;text&quot;, &quot;json&quot;, &quot;html&quot;],
+      include: [&quot;src/**/*.ts&quot;],
+      exclude: [&quot;src/**/*.d.ts&quot;, &quot;src/**/types.ts&quot;],
+    },
+  },
+  resolve: {
+    alias: {
+      &quot;@&quot;: path.resolve(__dirname, &quot;./src&quot;),
+    },
+  },
+});
+
+=== a sample spec structure ===
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { describe, it, expect } from &quot;vitest&quot;;
+import { applyTransform } from &quot;@hypermod/utils&quot;;
+import * as transformer from &quot;../function-declaration&quot;;
+
+describe(&quot;function-declaration&quot;, () =&gt; {
+  it(&quot;should convert arrow function components to function declarations&quot;, async () =&gt; {
+      import React from &quot;react&quot;;
+      export const MyComponent: React.FC&lt;{}&gt; = () =&gt; {
+            export function MyComponent() {
+      import React from &quot;react&quot;;
+      interface IMyComponentProps {
+      }
+      export const MyComponent: React.FC&lt;IMyComponentProps&gt; = ({ name }) =&gt; {
+            interface IMyComponentProps {
+            }
+            export function MyComponent(
+              {
+      import React from &quot;react&quot;;
+[548 more lines]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-38-04-073Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-38-04-073Z" class="timestamp-link"><time datetime="2026-07-10T20:38:04.073Z" data-timestamp="2026-07-10T20:38:04.073Z">2026-07-10T20:38:04.073Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-38-05-623Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-38-05-623Z" class="timestamp-link"><time datetime="2026-07-10T20:38:05.623Z" data-timestamp="2026-07-10T20:38:05.623Z">2026-07-10T20:38:05.623Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Vitest template captured (<code>vitest@^4</code>, node env, SPDX headers, <code>describe/it/expect</code>). Two last pattern checks — the base API service class to extend and how CE stores attach to the root store — so the plan's web-layer tasks reference real base classes, not invented ones.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-38-09-946Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-38-09-946Z" class="timestamp-link"><time datetime="2026-07-10T20:38:09.946Z" data-timestamp="2026-07-10T20:38:09.946Z">2026-07-10T20:38:09.946Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01PU4h3TopAw94L7R5DQkjsg">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find base API service and root store wiring</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+echo &#34;=== base API service in @plane/services ===&#34;; find packages/services/src -maxdepth 2 -iname &#34;*api*&#34; -o -iname &#34;*base*&#34; 2&gt;/dev/null | grep -v node_modules | head; echo &#34;---&#34;; grep -rnE &#34;class APIService|export class .*Service&#34; packages/services/src/api* packages/services/src/*.ts 2&gt;/dev/null | grep -v node_modules | head
+echo &#34;&#34;; echo &#34;=== a CE store example + root store wiring ===&#34;; ls apps/web/ce/store 2&gt;/dev/null | head; echo &#34;--- root store ---&#34;; find apps/web/core/store -maxdepth 1 -iname &#34;root*&#34; 2&gt;/dev/null | head; grep -rnE &#34;class RootStore|this\.\w+ = new&#34; apps/web/core/store/root.store.ts 2&gt;/dev/null | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-38-11-588Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-38-11-588Z" class="timestamp-link"><time datetime="2026-07-10T20:38:11.588Z" data-timestamp="2026-07-10T20:38:11.588Z">2026-07-10T20:38:11.588Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== base API service in @plane/services ===
+packages/services/src/api.service.ts
+packages/services/src/developer/api-token.service.ts
+---
+packages/services/src/api.service.ts:14:export abstract class APIService {
+packages/services/src/api.service.ts:14:export abstract class APIService {
+
+=== a CE store example + root store wiring ===
+cycle/
+estimates/
+issue/
+member/
+pages/
+timeline/
+user/
+workspace/
+analytics.store.ts  495B
+command-palette.store.ts  922B
+--- root store ---
+apps/web/core/store/root.store.ts
+apps/web/core/store/root.store.ts:106:    this.router = new RouterStore();
+apps/web/core/store/root.store.ts:107:    this.commandPalette = new CommandPaletteStore();
+apps/web/core/store/root.store.ts:108:    this.instance = new InstanceStore();
+apps/web/core/store/root.store.ts:109:    this.user = new UserStore(this as unknown as RootStore);
+apps/web/core/store/root.store.ts:110:    this.theme = new ThemeStore();
+apps/web/core/store/root.store.ts:111:    this.workspaceRoot = new WorkspaceRootStore(this as unknown as RootStore);
+apps/web/core/store/root.store.ts:112:    this.projectRoot = new ProjectRootStore(this);
+apps/web/core/store/root.store.ts:113:    this.memberRoot = new MemberRootStore(this as unknown as RootStore);
+apps/web/core/store/root.store.ts:114:    this.cycle = new CycleStore(this);
+apps/web/core/store/root.store.ts:115:    this.cycleFilter = new CycleFilterStore(this);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-38-42-277Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-38-42-277Z" class="timestamp-link"><time datetime="2026-07-10T20:38:42.277Z" data-timestamp="2026-07-10T20:38:42.277Z">2026-07-10T20:38:42.277Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-38-44-138Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-38-44-138Z" class="timestamp-link"><time datetime="2026-07-10T20:38:44.138Z" data-timestamp="2026-07-10T20:38:44.138Z">2026-07-10T20:38:44.138Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All base classes confirmed real: <code>APIService</code> (<code>packages/services/src/api.service.ts</code>) to extend, RootStore composition pattern (<code>new XStore(this)</code>) for wiring. Web app has no test runner yet, so the plan concentrates testable logic in the pure package (where vitest already lives) and adds a node-env vitest to <code>apps/web</code> only for store/service/transport unit tests — components verified via app-run + stories.</p>
+<p>Writing the plan.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-32-789Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-32-789Z" class="timestamp-link"><time datetime="2026-07-10T20:43:32.789Z" data-timestamp="2026-07-10T20:43:32.789Z">2026-07-10T20:43:32.789Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01FaeJzksRcfJAPJZkXq8EPV">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">2026-07-10-agent-task-visibility.md</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/plans/2026-07-10-agent-task-visibility.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Agent Task Visibility Implementation Plan
+
+&gt; **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Give Plane users calm, non-intrusive visibility into long-running agent runs — watch, steer, interrupt, and review them live and after — via a compartmentalized `@plane/agents` package plus thin web adapters.
+
+**Architecture:** All authoritative logic (contract types + a pure event→state reducer) lives framework-free in `@plane/agents`. `apps/web` adds thin adapters: a MobX store, a REST service (`APIService`), and a WebSocket transport that subscribes to a new agent-events channel on `apps/live`. The client holds no authoritative state — it is a projection rebuildable from `listRuns` + the event stream. Everything mounts behind a feature flag + error boundary via the `@/plane-web` CE alias, so &#34;off&#34; is byte-for-byte today&#39;s behavior.
+
+**Tech Stack:** TypeScript, tsdown, Vitest, MobX / mobx-react, SWR, axios (via `@plane/services` `APIService`), `@plane/propel` + `@plane/ui` components, `apps/live` (Node + `ws` + Redis).
+
+## Global Constraints
+
+- Package name/namespace: `@plane/agents`; `&#34;version&#34;: &#34;1.3.1&#34;`; `&#34;private&#34;: true`; `&#34;license&#34;: &#34;AGPL-3.0&#34;`; `&#34;type&#34;: &#34;module&#34;`.
+- Every source file starts with the SPDX header (see Task 1).
+- Node `&gt;=22.18.0`; pnpm `10.32.1`; deps pinned via `catalog:` where available.
+- Lint/format: `oxlint` + `oxfmt` (NOT eslint/prettier). Test runner: `vitest`.
+- Reducer must be **total** (never throw): unknown event types / statuses are ignored, not errors.
+- No optimistic terminal transitions: command results are reflected only when the backend echoes an event.
+- Gate evaluated **before** any socket/poll opens (flag-off ⇒ zero network footprint).
+- Reduced-motion-safe; `role=&#34;status&#34;` / `aria-live` on live state changes.
+- Commit after every task with a Conventional Commit message.
+
+## File Structure
+
+**`@plane/agents` (package — pure core):**
+- `packages/agents/vitest.config.ts` — node-env test config (create).
+- `packages/agents/src/types/*` — contract (exists; extend with state types in Task 1).
+- `packages/agents/src/state/types.ts` — `TAgentCollectionState` shape.
+- `packages/agents/src/state/reducer.ts` — `applyEvent`, `reconcile` (pure).
+- `packages/agents/src/state/selectors.ts` — grouping/ordering selectors (pure).
+- `packages/agents/src/state/backoff.ts` — pure reconnect-backoff calc.
+- `packages/agents/src/index.ts` — barrel (exists; extend).
+- `packages/agents/tests/*.spec.ts` — vitest specs.
+
+**`apps/web/ce/**` (thin adapters + UI, wired via `@/plane-web`):**
+- `apps/web/vitest.config.ts` — node-env config for adapter unit tests (create, Task 5).
+- `apps/web/ce/services/agents/agent.service.ts` — `AgentService extends APIService implements IAgentService`.
+- `apps/web/ce/store/agents/agent.store.ts` — MobX adapter over the reducer.
+- `apps/web/ce/transport/agents/agent-event-transport.ts` — `IAgentEventTransport` WS impl.
+- `apps/web/ce/hooks/agents/*` — `use-agent-subscription`, `use-agent-count`.
+- `apps/web/ce/components/agents/*` — `agent-status-chip`, `agent-run-row`, `agents-panel`, `agent-run-detail`, `agent-inline-indicator`, `agents-header-pip`, `agents-error-boundary`, `agents-root` (lazy + flag gate).
+
+**`apps/live/**`:**
+- `apps/live/src/controllers/agent-events.controller.ts` — authed subscribe + Redis relay + coalescing.
+- `apps/live/tests/agent-events.spec.ts` — vitest.
+
+---
+
+## Phase 1 — `@plane/agents` pure core (fully TDD)
+
+### Task 1: Test harness + state types
+
+**Files:**
+- Create: `packages/agents/vitest.config.ts`
+- Create: `packages/agents/src/state/types.ts`
+- Modify: `packages/agents/package.json` (add `test` script + `vitest` devDep)
+- Modify: `packages/agents/src/index.ts` (export state types)
+- Test: `packages/agents/tests/smoke.spec.ts`
+
+**Interfaces:**
+- Produces: `TAgentCollectionState = { runs: Record&lt;string, TAgentRun&gt;; lastSequence: Record&lt;string, number&gt; }`.
+
+- [ ] **Step 1: Add test tooling to `package.json`**
+
+Add to `scripts`: `&#34;test&#34;: &#34;vitest run&#34;`, `&#34;test:watch&#34;: &#34;vitest&#34;`. Add to `devDependencies`: `&#34;vitest&#34;: &#34;^4.0.8&#34;`.
+
+- [ ] **Step 2: Create `vitest.config.ts`**
+
+```ts
+import { defineConfig } from &#34;vitest/config&#34;;
+
+export default defineConfig({
+  test: {
+    environment: &#34;node&#34;,
+    globals: true,
+    include: [&#34;tests/**/*.spec.ts&#34;],
+  },
+});
+```
+
+- [ ] **Step 3: Create `src/state/types.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentRun } from &#34;../types/session&#34;;
+
+/** Client-side projection of server-owned run state. Never authoritative. */
+export type TAgentCollectionState = {
+  /** Runs by id. */
+  runs: Record&lt;string, TAgentRun&gt;;
+  /** Highest applied event `sequence` per run id (gap detection). */
+  lastSequence: Record&lt;string, number&gt;;
+};
+
+export const emptyAgentState = (): TAgentCollectionState =&gt; ({
+  runs: {},
+  lastSequence: {},
+});
+```
+
+- [ ] **Step 4: Export from `src/index.ts`**
+
+Add `export * from &#34;./state/types&#34;;` to the barrel.
+
+- [ ] **Step 5: Write smoke test** — `tests/smoke.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { emptyAgentState } from &#34;../src/state/types&#34;;
+
+describe(&#34;emptyAgentState&#34;, () =&gt; {
+  it(&#34;starts with no runs and no sequences&#34;, () =&gt; {
+    const s = emptyAgentState();
+    expect(s.runs).toEqual({});
+    expect(s.lastSequence).toEqual({});
+  });
+});
+```
+
+- [ ] **Step 6: Install + run**
+
+Run: `COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install &amp;&amp; pnpm --filter @plane/agents test`
+Expected: 1 passing test.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add packages/agents pnpm-lock.yaml
+git commit -m &#34;test(agents): add vitest harness and collection state type&#34;
+```
+
+---
+
+### Task 2: `applyEvent` reducer
+
+**Files:**
+- Create: `packages/agents/src/state/reducer.ts`
+- Modify: `packages/agents/src/index.ts`
+- Test: `packages/agents/tests/apply-event.spec.ts`
+
+**Interfaces:**
+- Consumes: `TAgentCollectionState`, `emptyAgentState` (Task 1); `TAgentEvent`, `TAgentRun`, `AGENT_TERMINAL_STATUSES` (contract).
+- Produces: `applyEvent(state: TAgentCollectionState, event: TAgentEvent): TAgentCollectionState` — pure, returns a new state; ignores stale/duplicate `sequence` and unknown types.
+
+- [ ] **Step 1: Write failing tests** — `tests/apply-event.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { emptyAgentState } from &#34;../src/state/types&#34;;
+import { applyEvent } from &#34;../src/state/reducer&#34;;
+import type { TAgentEvent } from &#34;../src/types/events&#34;;
+import type { TAgentRun } from &#34;../src/types/session&#34;;
+
+const baseRun = (over: Partial&lt;TAgentRun&gt; = {}): TAgentRun =&gt; ({
+  id: &#34;r1&#34;,
+  agentKey: &#34;triage&#34;,
+  title: &#34;Triage&#34;,
+  status: &#34;running&#34;,
+  workspaceId: &#34;w1&#34;,
+  initiatedBy: &#34;u1&#34;,
+  createdAt: &#34;t0&#34;,
+  updatedAt: &#34;t0&#34;,
+  ...over,
+});
+
+const stateWith = (run: TAgentRun, seq = 0) =&gt; ({
+  runs: { [run.id]: run },
+  lastSequence: { [run.id]: seq },
+});
+
+const evt = (over: Partial&lt;TAgentEvent&gt; = {}): TAgentEvent =&gt;
+  ({ runId: &#34;r1&#34;, sequence: 1, timestamp: &#34;t1&#34;, type: &#34;status_changed&#34;, payload: { status: &#34;succeeded&#34; } }) as TAgentEvent;
+
+describe(&#34;applyEvent&#34;, () =&gt; {
+  it(&#34;applies a status change when sequence advances&#34;, () =&gt; {
+    const next = applyEvent(stateWith(baseRun()), evt());
+    expect(next.runs.r1.status).toBe(&#34;succeeded&#34;);
+    expect(next.lastSequence.r1).toBe(1);
+  });
+
+  it(&#34;ignores a stale or duplicate sequence&#34;, () =&gt; {
+    const next = applyEvent(stateWith(baseRun(), 5), evt({ sequence: 5 }));
+    expect(next.runs.r1.status).toBe(&#34;running&#34;);
+    expect(next.lastSequence.r1).toBe(5);
+  });
+
+  it(&#34;ignores events for an unknown run&#34;, () =&gt; {
+    const next = applyEvent(emptyAgentState(), evt());
+    expect(next.runs.r1).toBeUndefined();
+  });
+
+  it(&#34;ignores an unknown event type without throwing&#34;, () =&gt; {
+    const next = applyEvent(stateWith(baseRun()), evt({ type: &#34;bogus&#34; as TAgentEvent[&#34;type&#34;], payload: {} as never }));
+    expect(next.runs.r1.status).toBe(&#34;running&#34;);
+    expect(next.lastSequence.r1).toBe(1);
+  });
+
+  it(&#34;appends a step on step_started&#34;, () =&gt; {
+    const e = evt({ type: &#34;step_started&#34;, payload: { id: &#34;s1&#34;, label: &#34;label&#34;, status: &#34;running&#34; } });
+    const next = applyEvent(stateWith(baseRun()), e);
+    expect(next.runs.r1.steps).toEqual([{ id: &#34;s1&#34;, label: &#34;label&#34;, status: &#34;running&#34; }]);
+  });
+
+  it(&#34;merges progress&#34;, () =&gt; {
+    const e = evt({ type: &#34;progress&#34;, payload: { percent: 40, currentStep: 2, totalSteps: 5 } });
+    const next = applyEvent(stateWith(baseRun()), e);
+    expect(next.runs.r1.progress).toEqual({ percent: 40, currentStep: 2, totalSteps: 5 });
+  });
+
+  it(&#34;sets result + status on completed&#34;, () =&gt; {
+    const e = evt({ type: &#34;completed&#34;, payload: { status: &#34;succeeded&#34;, result: { summary: &#34;done&#34; } } });
+    const next = applyEvent(stateWith(baseRun()), e);
+    expect(next.runs.r1.status).toBe(&#34;succeeded&#34;);
+    expect(next.runs.r1.result).toEqual({ summary: &#34;done&#34; });
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pnpm --filter @plane/agents test`
+Expected: FAIL — `applyEvent` not found.
+
+- [ ] **Step 3: Implement `src/state/reducer.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentEvent } from &#34;../types/events&#34;;
+import type { TAgentRun, TAgentStep } from &#34;../types/session&#34;;
+import type { TAgentCollectionState } from &#34;./types&#34;;
+
+/** Merge a step into a run by id, appending if new. */
+const upsertStep = (steps: TAgentStep[] | undefined, step: TAgentStep): TAgentStep[] =&gt; {
+  const list = steps ? [...steps] : [];
+  const i = list.findIndex((s) =&gt; s.id === step.id);
+  if (i === -1) list.push(step);
+  else list[i] = { ...list[i], ...step };
+  return list;
+};
+
+/** Apply one event to one run, producing an updated run. */
+const reduceRun = (run: TAgentRun, event: TAgentEvent): TAgentRun =&gt; {
+  switch (event.type) {
+    case &#34;status_changed&#34;:
+      return { ...run, status: event.payload.status };
+    case &#34;progress&#34;:
+      return { ...run, progress: { ...run.progress, ...event.payload } };
+    case &#34;step_started&#34;:
+    case &#34;step_updated&#34;:
+    case &#34;step_completed&#34;:
+      return { ...run, steps: upsertStep(run.steps, event.payload) };
+    case &#34;completed&#34;:
+      return { ...run, status: event.payload.status, result: event.payload.result ?? run.result };
+    case &#34;error&#34;:
+      return { ...run, status: &#34;failed&#34;, error: event.payload };
+    default:
+      return run; // total: unknown types are ignored
+  }
+};
+
+/**
+ * Pure. Apply one event to the collection state.
+ * Ignores events for unknown runs and stale/duplicate sequences.
+ */
+export const applyEvent = (
+  state: TAgentCollectionState,
+  event: TAgentEvent
+): TAgentCollectionState =&gt; {
+  const run = state.runs[event.runId];
+  if (!run) return state;
+  const last = state.lastSequence[event.runId] ?? -Infinity;
+  if (event.sequence &lt;= last) return state;
+
+  return {
+    runs: { ...state.runs, [event.runId]: reduceRun(run, event) },
+    lastSequence: { ...state.lastSequence, [event.runId]: event.sequence },
+  };
+};
+```
+
+Note: `input_requested` / `approval_requested` carry no run-field change here (the run&#39;s `status` is driven by a paired `status_changed`); they are surfaced to the UI via the store&#39;s event pass-through (Task 6). They fall through to `default` and are safely ignored by the reducer.
+
+- [ ] **Step 4: Export from barrel** — add `export * from &#34;./state/reducer&#34;;` to `src/index.ts`.
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `pnpm --filter @plane/agents test`
+Expected: PASS (all `applyEvent` tests).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add packages/agents
+git commit -m &#34;feat(agents): add pure applyEvent reducer&#34;
+```
+
+---
+
+### Task 3: `reconcile` (snapshot rehydrate)
+
+**Files:**
+- Modify: `packages/agents/src/state/reducer.ts`
+- Modify: `packages/agents/src/index.ts` (already re-exports reducer)
+- Test: `packages/agents/tests/reconcile.spec.ts`
+
+**Interfaces:**
+- Consumes: `TAgentCollectionState`, `TAgentRun`.
+- Produces: `reconcile(state: TAgentCollectionState, snapshot: TAgentRun[]): TAgentCollectionState` — replaces each run in the snapshot by id; runs absent from a *scoped* snapshot are preserved (caller controls scope). Resets `lastSequence` to `-1` for freshly-loaded runs so the next event applies.
+
+- [ ] **Step 1: Write failing tests** — `tests/reconcile.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { emptyAgentState } from &#34;../src/state/types&#34;;
+import { reconcile } from &#34;../src/state/reducer&#34;;
+import type { TAgentRun } from &#34;../src/types/session&#34;;
+
+const run = (id: string, status: TAgentRun[&#34;status&#34;] = &#34;running&#34;): TAgentRun =&gt; ({
+  id, agentKey: &#34;k&#34;, title: id, status, workspaceId: &#34;w1&#34;, initiatedBy: &#34;u1&#34;, createdAt: &#34;t&#34;, updatedAt: &#34;t&#34;,
+});
+
+describe(&#34;reconcile&#34;, () =&gt; {
+  it(&#34;loads snapshot runs by id&#34;, () =&gt; {
+    const next = reconcile(emptyAgentState(), [run(&#34;a&#34;), run(&#34;b&#34;)]);
+    expect(Object.keys(next.runs).sort()).toEqual([&#34;a&#34;, &#34;b&#34;]);
+    expect(next.lastSequence.a).toBe(-1);
+  });
+
+  it(&#34;replaces an existing run with the authoritative snapshot version&#34;, () =&gt; {
+    const start = { runs: { a: run(&#34;a&#34;, &#34;running&#34;) }, lastSequence: { a: 9 } };
+    const next = reconcile(start, [run(&#34;a&#34;, &#34;succeeded&#34;)]);
+    expect(next.runs.a.status).toBe(&#34;succeeded&#34;);
+    expect(next.lastSequence.a).toBe(-1);
+  });
+
+  it(&#34;preserves runs not present in the snapshot&#34;, () =&gt; {
+    const start = { runs: { a: run(&#34;a&#34;) }, lastSequence: { a: 3 } };
+    const next = reconcile(start, [run(&#34;b&#34;)]);
+    expect(next.runs.a).toBeDefined();
+    expect(next.lastSequence.a).toBe(3);
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pnpm --filter @plane/agents test reconcile`
+Expected: FAIL — `reconcile` not found.
+
+- [ ] **Step 3: Implement — append to `src/state/reducer.ts`**
+
+```ts
+/**
+ * Pure. Merge an authoritative snapshot into state, keyed by run id.
+ * Runs absent from the snapshot are preserved (scope is the caller&#39;s choice).
+ * lastSequence resets to -1 so the next streamed event applies cleanly.
+ */
+export const reconcile = (
+  state: TAgentCollectionState,
+  snapshot: TAgentRun[]
+): TAgentCollectionState =&gt; {
+  const runs = { ...state.runs };
+  const lastSequence = { ...state.lastSequence };
+  for (const run of snapshot) {
+    runs[run.id] = run;
+    lastSequence[run.id] = -1;
+  }
+  return { runs, lastSequence };
+};
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pnpm --filter @plane/agents test`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add packages/agents
+git commit -m &#34;feat(agents): add reconcile for snapshot rehydrate&#34;
+```
+
+---
+
+### Task 4: Selectors — priority grouping
+
+**Files:**
+- Create: `packages/agents/src/state/selectors.ts`
+- Modify: `packages/agents/src/index.ts`
+- Test: `packages/agents/tests/selectors.spec.ts`
+
+**Interfaces:**
+- Consumes: `TAgentCollectionState`, `TAgentRun`, `AGENT_BLOCKED_STATUSES`, `AGENT_TERMINAL_STATUSES`.
+- Produces:
+  - `selectGroupedRuns(state): { blocked: TAgentRun[]; running: TAgentRun[]; queued: TAgentRun[]; done: TAgentRun[] }`
+  - `selectActiveCount(state): number` (blocked + running + queued)
+  - `selectRunsForTarget(state, target: { entityType: string; entityId: string }): TAgentRun[]`
+
+- [ ] **Step 1: Write failing tests** — `tests/selectors.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { selectGroupedRuns, selectActiveCount, selectRunsForTarget } from &#34;../src/state/selectors&#34;;
+import type { TAgentRun } from &#34;../src/types/session&#34;;
+
+const run = (id: string, status: TAgentRun[&#34;status&#34;], over: Partial&lt;TAgentRun&gt; = {}): TAgentRun =&gt; ({
+  id, agentKey: &#34;k&#34;, title: id, status, workspaceId: &#34;w1&#34;, initiatedBy: &#34;u1&#34;, createdAt: &#34;t&#34;, updatedAt: &#34;t&#34;, ...over,
+});
+
+const state = (runs: TAgentRun[]) =&gt; ({
+  runs: Object.fromEntries(runs.map((r) =&gt; [r.id, r])),
+  lastSequence: {},
+});
+
+describe(&#34;selectors&#34;, () =&gt; {
+  it(&#34;groups by priority: blocked, running, queued, done&#34;, () =&gt; {
+    const g = selectGroupedRuns(state([
+      run(&#34;a&#34;, &#34;running&#34;), run(&#34;b&#34;, &#34;awaiting_approval&#34;), run(&#34;c&#34;, &#34;queued&#34;),
+      run(&#34;d&#34;, &#34;succeeded&#34;), run(&#34;e&#34;, &#34;waiting_for_input&#34;),
+    ]));
+    expect(g.blocked.map((r) =&gt; r.id).sort()).toEqual([&#34;b&#34;, &#34;e&#34;]);
+    expect(g.running.map((r) =&gt; r.id)).toEqual([&#34;a&#34;]);
+    expect(g.queued.map((r) =&gt; r.id)).toEqual([&#34;c&#34;]);
+    expect(g.done.map((r) =&gt; r.id)).toEqual([&#34;d&#34;]);
+  });
+
+  it(&#34;counts active runs (excludes terminal)&#34;, () =&gt; {
+    expect(selectActiveCount(state([run(&#34;a&#34;, &#34;running&#34;), run(&#34;d&#34;, &#34;cancelled&#34;)]))).toBe(1);
+  });
+
+  it(&#34;filters runs by target&#34;, () =&gt; {
+    const rs = selectRunsForTarget(
+      state([run(&#34;a&#34;, &#34;running&#34;, { target: { entityType: &#34;work_item&#34;, entityId: &#34;PLAT-1&#34; } }), run(&#34;b&#34;, &#34;running&#34;)]),
+      { entityType: &#34;work_item&#34;, entityId: &#34;PLAT-1&#34; }
+    );
+    expect(rs.map((r) =&gt; r.id)).toEqual([&#34;a&#34;]);
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pnpm --filter @plane/agents test selectors`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Implement `src/state/selectors.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { AGENT_BLOCKED_STATUSES, AGENT_TERMINAL_STATUSES } from &#34;../types/session&#34;;
+import type { TAgentRun, TAgentTarget } from &#34;../types/session&#34;;
+import type { TAgentCollectionState } from &#34;./types&#34;;
+
+const all = (state: TAgentCollectionState): TAgentRun[] =&gt; Object.values(state.runs);
+
+export const selectGroupedRuns = (state: TAgentCollectionState) =&gt; {
+  const groups = { blocked: [] as TAgentRun[], running: [] as TAgentRun[], queued: [] as TAgentRun[], done: [] as TAgentRun[] };
+  for (const run of all(state)) {
+    if (AGENT_BLOCKED_STATUSES.includes(run.status)) groups.blocked.push(run);
+    else if (run.status === &#34;running&#34;) groups.running.push(run);
+    else if (run.status === &#34;queued&#34;) groups.queued.push(run);
+    else if (AGENT_TERMINAL_STATUSES.includes(run.status)) groups.done.push(run);
+  }
+  return groups;
+};
+
+export const selectActiveCount = (state: TAgentCollectionState): number =&gt;
+  all(state).filter((r) =&gt; !AGENT_TERMINAL_STATUSES.includes(r.status)).length;
+
+export const selectRunsForTarget = (
+  state: TAgentCollectionState,
+  target: Pick&lt;TAgentTarget, &#34;entityType&#34; | &#34;entityId&#34;&gt;
+): TAgentRun[] =&gt;
+  all(state).filter(
+    (r) =&gt; r.target?.entityType === target.entityType &amp;&amp; r.target?.entityId === target.entityId
+  );
+```
+
+- [ ] **Step 4: Export from barrel** — add `export * from &#34;./state/selectors&#34;;` to `src/index.ts`.
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `pnpm --filter @plane/agents test`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add packages/agents
+git commit -m &#34;feat(agents): add priority grouping + target selectors&#34;
+```
+
+---
+
+### Task 5: Pure reconnect backoff
+
+**Files:**
+- Create: `packages/agents/src/state/backoff.ts`
+- Modify: `packages/agents/src/index.ts`
+- Test: `packages/agents/tests/backoff.spec.ts`
+
+**Interfaces:**
+- Produces: `backoffDelay(attempt: number, opts?: { base?: number; cap?: number }): number` — capped exponential, deterministic (jitter applied by the caller with an injected RNG so it stays testable).
+
+- [ ] **Step 1: Write failing tests** — `tests/backoff.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { backoffDelay } from &#34;../src/state/backoff&#34;;
+
+describe(&#34;backoffDelay&#34;, () =&gt; {
+  it(&#34;grows exponentially from base&#34;, () =&gt; {
+    expect(backoffDelay(0, { base: 500, cap: 30000 })).toBe(500);
+    expect(backoffDelay(1, { base: 500, cap: 30000 })).toBe(1000);
+    expect(backoffDelay(3, { base: 500, cap: 30000 })).toBe(4000);
+  });
+
+  it(&#34;caps the delay&#34;, () =&gt; {
+    expect(backoffDelay(20, { base: 500, cap: 30000 })).toBe(30000);
+  });
+
+  it(&#34;treats negative attempts as zero&#34;, () =&gt; {
+    expect(backoffDelay(-3, { base: 500, cap: 30000 })).toBe(500);
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `pnpm --filter @plane/agents test backoff`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement `src/state/backoff.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+/** Capped exponential backoff. Jitter is applied by the caller (kept pure/testable). */
+export const backoffDelay = (
+  attempt: number,
+  opts: { base?: number; cap?: number } = {}
+): number =&gt; {
+  const base = opts.base ?? 500;
+  const cap = opts.cap ?? 30000;
+  const n = Math.max(0, attempt);
+  return Math.min(cap, base * 2 ** n);
+};
+```
+
+- [ ] **Step 4: Export** — add `export * from &#34;./state/backoff&#34;;` to `src/index.ts`.
+
+- [ ] **Step 5: Run to verify pass**
+
+Run: `pnpm --filter @plane/agents test`
+Expected: PASS.
+
+- [ ] **Step 6: Typecheck the whole package**
+
+Run: `pnpm --filter @plane/agents check:types &amp;&amp; pnpm --filter @plane/agents build`
+Expected: no type errors; `dist/` emitted.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add packages/agents
+git commit -m &#34;feat(agents): add pure capped-exponential backoff&#34;
+```
+
+---
+
+## Phase 2 — web adapters (`apps/web/ce`)
+
+### Task 6: REST service (`AgentService`)
+
+**Files:**
+- Create: `apps/web/vitest.config.ts`
+- Create: `apps/web/ce/services/agents/agent.service.ts`
+- Modify: `apps/web/package.json` (add `test` script + `vitest` devDep)
+- Test: `apps/web/ce/services/agents/agent.service.spec.ts`
+
+**Interfaces:**
+- Consumes: `APIService` (`@plane/services`), `IAgentService`, `TAgentRun`, `TAgentCommand` (`@plane/agents`).
+- Produces: `class AgentService extends APIService implements IAgentService` with `listRuns`, `getRun`, `sendCommand`.
+
+- [ ] **Step 1: Read the base class**
+
+Read `packages/services/src/api.service.ts` — confirm the protected `get`/`post` helpers and constructor `(baseURL)` signature to mirror existing services.
+
+- [ ] **Step 2: Add test tooling to `apps/web/package.json`**
+
+Add `scripts.test`: `&#34;vitest run&#34;`. Add `devDependencies.vitest`: `&#34;^4.0.8&#34;`.
+
+- [ ] **Step 3: Create `apps/web/vitest.config.ts`**
+
+```ts
+import { defineConfig } from &#34;vitest/config&#34;;
+
+export default defineConfig({
+  test: {
+    environment: &#34;node&#34;,
+    globals: true,
+    include: [&#34;ce/**/*.spec.ts&#34;, &#34;core/**/*.spec.ts&#34;],
+  },
+});
+```
+
+- [ ] **Step 4: Write failing test** — `apps/web/ce/services/agents/agent.service.spec.ts`
+
+```ts
+import { describe, it, expect, vi } from &#34;vitest&#34;;
+import { AgentService } from &#34;./agent.service&#34;;
+
+describe(&#34;AgentService&#34;, () =&gt; {
+  it(&#34;POSTs a command to the run&#39;s command endpoint&#34;, async () =&gt; {
+    const svc = new AgentService(&#34;http://x&#34;);
+    const post = vi.spyOn(svc as unknown as { post: (...a: unknown[]) =&gt; Promise&lt;unknown&gt; }, &#34;post&#34;)
+      .mockResolvedValue({ data: {} });
+    await svc.sendCommand({ workspaceId: &#34;w1&#34;, command: { runId: &#34;r1&#34;, type: &#34;cancel&#34;, payload: {} } });
+    expect(post).toHaveBeenCalledWith(
+      &#34;/api/workspaces/w1/agent-runs/r1/commands/&#34;,
+      { type: &#34;cancel&#34;, payload: {} }
+    );
+  });
+
+  it(&#34;GETs the run list for a workspace&#34;, async () =&gt; {
+    const svc = new AgentService(&#34;http://x&#34;);
+    const get = vi.spyOn(svc as unknown as { get: (...a: unknown[]) =&gt; Promise&lt;unknown&gt; }, &#34;get&#34;)
+      .mockResolvedValue({ data: { runs: [], nextCursor: undefined } });
+    const res = await svc.listRuns({ workspaceId: &#34;w1&#34; });
+    expect(get).toHaveBeenCalledWith(&#34;/api/workspaces/w1/agent-runs/&#34;, { params: {} });
+    expect(res.runs).toEqual([]);
+  });
+});
+```
+
+- [ ] **Step 5: Run to verify fail**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/services/agents`
+Expected: FAIL — module not found.
+
+- [ ] **Step 6: Implement `agent.service.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { APIService } from &#34;@plane/services&#34;;
+import type { IAgentService, TAgentCommand, TAgentRun } from &#34;@plane/agents&#34;;
+
+export class AgentService extends APIService implements IAgentService {
+  async listRuns(params: {
+    workspaceId: string;
+    target?: { entityType: string; entityId: string };
+    statuses?: TAgentRun[&#34;status&#34;][];
+    cursor?: string;
+  }): Promise&lt;{ runs: TAgentRun[]; nextCursor?: string }&gt; {
+    const { workspaceId, ...query } = params;
+    const res = await this.get(`/api/workspaces/${workspaceId}/agent-runs/`, { params: query });
+    return res.data;
+  }
+
+  async getRun(params: { workspaceId: string; runId: string }): Promise&lt;TAgentRun&gt; {
+    const res = await this.get(`/api/workspaces/${params.workspaceId}/agent-runs/${params.runId}/`);
+    return res.data;
+  }
+
+  async sendCommand(params: { workspaceId: string; command: TAgentCommand }): Promise&lt;void&gt; {
+    const { runId, ...body } = params.command;
+    await this.post(`/api/workspaces/${params.workspaceId}/agent-runs/${runId}/commands/`, body);
+  }
+}
+```
+
+Note: the first test passes `{ params: {} }` — align the `listRuns` call so an empty query still sends `{ params: {} }` (it does: `query` is `{}` when only `workspaceId` given).
+
+- [ ] **Step 7: Run to verify pass**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/services/agents`
+Expected: PASS.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add apps/web/vitest.config.ts apps/web/package.json apps/web/ce/services/agents pnpm-lock.yaml
+git commit -m &#34;feat(web): add AgentService REST client + vitest setup&#34;
+```
+
+---
+
+### Task 7: MobX store adapter
+
+**Files:**
+- Create: `apps/web/ce/store/agents/agent.store.ts`
+- Test: `apps/web/ce/store/agents/agent.store.spec.ts`
+
+**Interfaces:**
+- Consumes: `applyEvent`, `reconcile`, `emptyAgentState`, selectors (`@plane/agents`); `AgentService` (Task 6); `TAgentEvent`, `TAgentRun`.
+- Produces: `class AgentStore` with observable `state: TAgentCollectionState`; methods `ingestEvent(e)`, `hydrate(runs)`, `get grouped()`, `get activeCount()`, `runsForTarget(target)`, `async loadRuns(params)`, `async runCommand(params)`. Also exposes an `onBlockingEvent` hook for `input_requested` / `approval_requested` pass-through.
+
+- [ ] **Step 1: Write failing tests** — `agent.store.spec.ts`
+
+```ts
+import { describe, it, expect, vi } from &#34;vitest&#34;;
+import { AgentStore } from &#34;./agent.store&#34;;
+import type { TAgentRun } from &#34;@plane/agents&#34;;
+
+const run = (id: string, status: TAgentRun[&#34;status&#34;] = &#34;running&#34;): TAgentRun =&gt; ({
+  id, agentKey: &#34;k&#34;, title: id, status, workspaceId: &#34;w1&#34;, initiatedBy: &#34;u1&#34;, createdAt: &#34;t&#34;, updatedAt: &#34;t&#34;,
+});
+
+describe(&#34;AgentStore&#34;, () =&gt; {
+  it(&#34;hydrates from a snapshot and exposes grouped runs&#34;, () =&gt; {
+    const store = new AgentStore({} as never);
+    store.hydrate([run(&#34;a&#34;, &#34;running&#34;), run(&#34;b&#34;, &#34;awaiting_approval&#34;)]);
+    expect(store.grouped.running.map((r) =&gt; r.id)).toEqual([&#34;a&#34;]);
+    expect(store.grouped.blocked.map((r) =&gt; r.id)).toEqual([&#34;b&#34;]);
+    expect(store.activeCount).toBe(2);
+  });
+
+  it(&#34;ingests an event through the reducer&#34;, () =&gt; {
+    const store = new AgentStore({} as never);
+    store.hydrate([run(&#34;a&#34;, &#34;running&#34;)]);
+    store.ingestEvent({ runId: &#34;a&#34;, sequence: 1, timestamp: &#34;t&#34;, type: &#34;status_changed&#34;, payload: { status: &#34;succeeded&#34; } });
+    expect(store.grouped.done.map((r) =&gt; r.id)).toEqual([&#34;a&#34;]);
+  });
+
+  it(&#34;loadRuns delegates to the service and hydrates&#34;, async () =&gt; {
+    const service = { listRuns: vi.fn().mockResolvedValue({ runs: [run(&#34;a&#34;)] }) };
+    const store = new AgentStore({} as never, service as never);
+    await store.loadRuns({ workspaceId: &#34;w1&#34; });
+    expect(service.listRuns).toHaveBeenCalledWith({ workspaceId: &#34;w1&#34; });
+    expect(store.grouped.running.map((r) =&gt; r.id)).toEqual([&#34;a&#34;]);
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/store/agents`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement `agent.store.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { action, computed, makeObservable, observable, runInAction } from &#34;mobx&#34;;
+import {
+  applyEvent, reconcile, emptyAgentState,
+  selectGroupedRuns, selectActiveCount, selectRunsForTarget,
+} from &#34;@plane/agents&#34;;
+import type {
+  IAgentService, TAgentCollectionState, TAgentCommand, TAgentEvent, TAgentRun, TAgentTarget,
+} from &#34;@plane/agents&#34;;
+import { AgentService } from &#34;@/plane-web/services/agents/agent.service&#34;;
+
+export class AgentStore {
+  state: TAgentCollectionState = emptyAgentState();
+  private service: IAgentService;
+
+  constructor(private root: unknown, service?: IAgentService) {
+    this.service = service ?? new AgentService();
+    makeObservable(this, {
+      state: observable.ref,
+      grouped: computed,
+      activeCount: computed,
+      ingestEvent: action,
+      hydrate: action,
+    });
+  }
+
+  get grouped() { return selectGroupedRuns(this.state); }
+  get activeCount() { return selectActiveCount(this.state); }
+  runsForTarget(target: Pick&lt;TAgentTarget, &#34;entityType&#34; | &#34;entityId&#34;&gt;): TAgentRun[] {
+    return selectRunsForTarget(this.state, target);
+  }
+
+  ingestEvent(event: TAgentEvent) { this.state = applyEvent(this.state, event); }
+  hydrate(runs: TAgentRun[]) { this.state = reconcile(this.state, runs); }
+
+  async loadRuns(params: Parameters&lt;IAgentService[&#34;listRuns&#34;]&gt;[0]) {
+    const { runs } = await this.service.listRuns(params);
+    runInAction(() =&gt; this.hydrate(runs));
+  }
+
+  async runCommand(params: { workspaceId: string; command: TAgentCommand }) {
+    await this.service.sendCommand(params); // no optimistic terminal transition
+  }
+}
+```
+
+- [ ] **Step 4: Run to verify pass**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/store/agents`
+Expected: PASS.
+
+- [ ] **Step 5: Wire into the root store**
+
+Modify `apps/web/core/store/root.store.ts`: add field `agents: AgentStore;`, import it, and in the constructor add `this.agents = new AgentStore(this);` alongside the other stores. Confirm the app still typechecks: `cd apps/web &amp;&amp; pnpm check:types`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add apps/web/ce/store/agents apps/web/core/store/root.store.ts
+git commit -m &#34;feat(web): add AgentStore MobX adapter wired to root store&#34;
+```
+
+---
+
+### Task 8: WebSocket transport adapter
+
+**Files:**
+- Create: `apps/web/ce/transport/agents/agent-event-transport.ts`
+- Test: `apps/web/ce/transport/agents/agent-event-transport.spec.ts`
+
+**Interfaces:**
+- Consumes: `IAgentEventTransport`, `TAgentTransportSubscription`, `TAgentEvent`, `backoffDelay` (`@plane/agents`).
+- Produces: `class AgentEventTransport implements IAgentEventTransport`, constructed with an injectable socket factory `(url: string) =&gt; IAgentSocket` for testability, where `IAgentSocket = { onMessage; onClose; onError; close }`.
+
+- [ ] **Step 1: Write failing tests** — `agent-event-transport.spec.ts`
+
+```ts
+import { describe, it, expect, vi } from &#34;vitest&#34;;
+import { AgentEventTransport, type IAgentSocket } from &#34;./agent-event-transport&#34;;
+
+function fakeSocket() {
+  const s: IAgentSocket &amp; { emitMessage: (d: unknown) =&gt; void; emitClose: () =&gt; void } = {
+    onMessage: () =&gt; {}, onClose: () =&gt; {}, onError: () =&gt; {}, close: vi.fn(),
+    emitMessage(d) { this.onMessage(d); },
+    emitClose() { this.onClose(); },
+  };
+  return s;
+}
+
+describe(&#34;AgentEventTransport&#34;, () =&gt; {
+  it(&#34;delivers parsed events to onEvent&#34;, () =&gt; {
+    const socket = fakeSocket();
+    const t = new AgentEventTransport(&#34;ws://x&#34;, () =&gt; socket);
+    const events: unknown[] = [];
+    t.subscribe({ workspaceId: &#34;w1&#34;, onEvent: (e) =&gt; events.push(e) });
+    socket.emitMessage({ runId: &#34;r1&#34;, sequence: 1, timestamp: &#34;t&#34;, type: &#34;progress&#34;, payload: { percent: 10 } });
+    expect(events).toHaveLength(1);
+  });
+
+  it(&#34;reports disconnect via onStatusChange and does not throw on bad payloads&#34;, () =&gt; {
+    const socket = fakeSocket();
+    const t = new AgentEventTransport(&#34;ws://x&#34;, () =&gt; socket);
+    const statuses: boolean[] = [];
+    t.subscribe({ workspaceId: &#34;w1&#34;, onEvent: () =&gt; {}, onStatusChange: (c) =&gt; statuses.push(c) });
+    expect(() =&gt; socket.emitMessage(&#34;not-json{&#34;)).not.toThrow();
+    socket.emitClose();
+    expect(statuses).toContain(false);
+  });
+
+  it(&#34;closes the socket on unsubscribe&#34;, () =&gt; {
+    const socket = fakeSocket();
+    const t = new AgentEventTransport(&#34;ws://x&#34;, () =&gt; socket);
+    const sub = t.subscribe({ workspaceId: &#34;w1&#34;, onEvent: () =&gt; {} });
+    sub.unsubscribe();
+    expect(socket.close).toHaveBeenCalled();
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/transport/agents`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement `agent-event-transport.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { IAgentEventTransport, TAgentEvent, TAgentTransportSubscription } from &#34;@plane/agents&#34;;
+
+export interface IAgentSocket {
+  onMessage: (data: unknown) =&gt; void;
+  onClose: () =&gt; void;
+  onError: (err: unknown) =&gt; void;
+  close: () =&gt; void;
+}
+
+export type TAgentSocketFactory = (url: string) =&gt; IAgentSocket;
+
+const parseEvent = (data: unknown): TAgentEvent | null =&gt; {
+  try {
+    const obj = typeof data === &#34;string&#34; ? JSON.parse(data) : data;
+    if (obj &amp;&amp; typeof obj === &#34;object&#34; &amp;&amp; &#34;runId&#34; in obj &amp;&amp; &#34;sequence&#34; in obj &amp;&amp; &#34;type&#34; in obj) {
+      return obj as TAgentEvent;
+    }
+  } catch {
+    // malformed frame — ignored, never thrown into the app
+  }
+  return null;
+};
+
+export class AgentEventTransport implements IAgentEventTransport {
+  constructor(private baseUrl: string, private factory: TAgentSocketFactory) {}
+
+  subscribe(params: {
+    workspaceId: string;
+    runIds?: string[];
+    onEvent: (event: TAgentEvent) =&gt; void;
+    onStatusChange?: (connected: boolean) =&gt; void;
+  }): TAgentTransportSubscription {
+    const socket = this.factory(`${this.baseUrl}/agent-events/${params.workspaceId}`);
+    socket.onMessage = (data) =&gt; {
+      const event = parseEvent(data);
+      if (event) params.onEvent(event);
+    };
+    socket.onClose = () =&gt; params.onStatusChange?.(false);
+    socket.onError = () =&gt; params.onStatusChange?.(false);
+    params.onStatusChange?.(true);
+    return { unsubscribe: () =&gt; socket.close() };
+  }
+}
+```
+
+Note: reconnect is driven by the subscription hook (Task 9) using `backoffDelay` — the transport stays a thin, testable I/O shim. This keeps timer logic out of the unit test.
+
+- [ ] **Step 4: Run to verify pass**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/transport/agents`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add apps/web/ce/transport/agents
+git commit -m &#34;feat(web): add WebSocket agent-event transport adapter&#34;
+```
+
+---
+
+### Task 9: Subscription + count hooks (lazy, flag-gated)
+
+**Files:**
+- Create: `apps/web/ce/hooks/agents/use-agent-subscription.ts`
+- Create: `apps/web/ce/hooks/agents/use-agent-count.ts`
+- Test: `apps/web/ce/hooks/agents/use-agent-subscription.spec.ts` (pure helper only)
+
+**Interfaces:**
+- Consumes: `AgentStore` (via root store hook), `AgentEventTransport`, `backoffDelay`, a real WS socket factory.
+- Produces: `useAgentSubscription({ enabled, workspaceId, runIds? })` — opens the transport only when `enabled` (flag + actively watching), tears down on unmount / `enabled=false` / tab-hidden; reconnects with `backoffDelay`. `useAgentCount({ enabled, workspaceId })` — SWR poll (`refreshInterval: 45000`, `revalidateOnFocus: true`) of `listRuns` active count; returns `0` when disabled. Plus a pure helper `shouldSubscribe({ enabled, hasWatchTargets })` (unit-tested).
+
+- [ ] **Step 1: Write failing test for the pure helper** — `use-agent-subscription.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { shouldSubscribe } from &#34;./use-agent-subscription&#34;;
+
+describe(&#34;shouldSubscribe&#34;, () =&gt; {
+  it(&#34;is false when disabled&#34;, () =&gt; {
+    expect(shouldSubscribe({ enabled: false, hasWatchTargets: true })).toBe(false);
+  });
+  it(&#34;is false when nothing to watch&#34;, () =&gt; {
+    expect(shouldSubscribe({ enabled: true, hasWatchTargets: false })).toBe(false);
+  });
+  it(&#34;is true only when enabled and watching&#34;, () =&gt; {
+    expect(shouldSubscribe({ enabled: true, hasWatchTargets: true })).toBe(true);
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/hooks/agents`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement `use-agent-subscription.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { useEffect, useRef } from &#34;react&#34;;
+import { backoffDelay } from &#34;@plane/agents&#34;;
+import { useAgentStore } from &#34;@/plane-web/hooks/agents/use-agent-store&#34;;
+import { AgentEventTransport } from &#34;@/plane-web/transport/agents/agent-event-transport&#34;;
+import { createBrowserAgentSocket } from &#34;@/plane-web/transport/agents/browser-socket&#34;;
+import { LIVE_BASE_URL } from &#34;@/helpers/common.helper&#34;;
+
+/** Pure: decide whether a live subscription should be open. */
+export const shouldSubscribe = (p: { enabled: boolean; hasWatchTargets: boolean }): boolean =&gt;
+  p.enabled &amp;&amp; p.hasWatchTargets;
+
+export const useAgentSubscription = (p: { enabled: boolean; workspaceId: string; runIds?: string[] }) =&gt; {
+  const store = useAgentStore();
+  const attemptRef = useRef(0);
+  const timerRef = useRef&lt;ReturnType&lt;typeof setTimeout&gt;&gt;();
+
+  useEffect(() =&gt; {
+    const active = shouldSubscribe({ enabled: p.enabled, hasWatchTargets: true });
+    if (!active || typeof document === &#34;undefined&#34;) return;
+
+    let sub: { unsubscribe: () =&gt; void } | undefined;
+    let cancelled = false;
+
+    const connect = () =&gt; {
+      if (cancelled) return;
+      const transport = new AgentEventTransport(LIVE_BASE_URL, createBrowserAgentSocket);
+      sub = transport.subscribe({
+        workspaceId: p.workspaceId,
+        runIds: p.runIds,
+        onEvent: (e) =&gt; store.ingestEvent(e),
+        onStatusChange: (connected) =&gt; {
+          if (connected) attemptRef.current = 0;
+          else {
+            const delay = backoffDelay(attemptRef.current++);
+            timerRef.current = setTimeout(connect, delay + Math.floor(Math.random() * 250));
+          }
+        },
+      });
+    };
+
+    const onVisibility = () =&gt; {
+      if (document.visibilityState === &#34;hidden&#34;) sub?.unsubscribe();
+      else if (!cancelled) connect();
+    };
+
+    connect();
+    document.addEventListener(&#34;visibilitychange&#34;, onVisibility);
+    return () =&gt; {
+      cancelled = true;
+      clearTimeout(timerRef.current);
+      document.removeEventListener(&#34;visibilitychange&#34;, onVisibility);
+      sub?.unsubscribe();
+    };
+  }, [p.enabled, p.workspaceId, JSON.stringify(p.runIds), store]);
+};
+```
+
+- [ ] **Step 4: Implement `use-agent-count.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import useSWR from &#34;swr&#34;;
+import { AgentService } from &#34;@/plane-web/services/agents/agent.service&#34;;
+
+const service = new AgentService();
+
+export const useAgentCount = (p: { enabled: boolean; workspaceId: string }) =&gt; {
+  const { data } = useSWR(
+    p.enabled ? [&#34;agent-count&#34;, p.workspaceId] : null,
+    async () =&gt; {
+      const { runs } = await service.listRuns({ workspaceId: p.workspaceId, statuses: [&#34;queued&#34;, &#34;running&#34;, &#34;waiting_for_input&#34;, &#34;awaiting_approval&#34;] });
+      return runs.length;
+    },
+    { refreshInterval: 45000, revalidateOnFocus: true }
+  );
+  return p.enabled ? (data ?? 0) : 0;
+};
+```
+
+- [ ] **Step 5: Add the small support files**
+
+Create `apps/web/ce/hooks/agents/use-agent-store.ts` (returns `useStore().agents` via the existing `useStore` hook — check `apps/web/core/hooks/store` for the exact export name and mirror it). Create `apps/web/ce/transport/agents/browser-socket.ts` implementing `createBrowserAgentSocket(url): IAgentSocket` over the native `WebSocket`. Confirm `LIVE_BASE_URL` exists in `apps/web/core/helpers/common.helper.ts`; if named differently, use the existing live-URL constant.
+
+- [ ] **Step 6: Run to verify pass + typecheck**
+
+Run: `cd apps/web &amp;&amp; pnpm vitest run ce/hooks/agents &amp;&amp; pnpm check:types`
+Expected: PASS; no type errors.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add apps/web/ce/hooks/agents apps/web/ce/transport/agents/browser-socket.ts apps/web/ce/hooks/agents/use-agent-store.ts
+git commit -m &#34;feat(web): add lazy agent subscription + ambient count hooks&#34;
+```
+
+---
+
+## Phase 3 — UI (`apps/web/ce/components/agents`)
+
+&gt; Components are thin and verified via the app-run (Task 14) + Storybook, not unit tests (no DOM test env in v1). Each uses `@plane/propel` / `@plane/ui` primitives and `variables.css` tokens. Reduced-motion + `aria-live` required on live state.
+
+### Task 10: Status chip + glyph
+
+**Files:**
+- Create: `apps/web/ce/components/agents/agent-status-chip.tsx`
+- Create: `apps/web/ce/components/agents/status-presentation.ts`
+- Test: `apps/web/ce/components/agents/status-presentation.spec.ts`
+
+**Interfaces:**
+- Produces: `statusPresentation(status: TAgentRunStatus): { label: string; tone: &#34;live&#34; | &#34;attention&#34; | &#34;success&#34; | &#34;fail&#34; | &#34;queued&#34; }` (pure, tested) and a `&lt;AgentStatusChip status /&gt;` using it.
+
+- [ ] **Step 1: Failing test** — `status-presentation.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { statusPresentation } from &#34;./status-presentation&#34;;
+
+describe(&#34;statusPresentation&#34;, () =&gt; {
+  it(&#34;maps blocked statuses to the attention tone&#34;, () =&gt; {
+    expect(statusPresentation(&#34;awaiting_approval&#34;).tone).toBe(&#34;attention&#34;);
+    expect(statusPresentation(&#34;waiting_for_input&#34;).tone).toBe(&#34;attention&#34;);
+  });
+  it(&#34;maps running to live and failed to fail&#34;, () =&gt; {
+    expect(statusPresentation(&#34;running&#34;).tone).toBe(&#34;live&#34;);
+    expect(statusPresentation(&#34;failed&#34;).tone).toBe(&#34;fail&#34;);
+  });
+  it(&#34;gives every status a human label&#34;, () =&gt; {
+    expect(statusPresentation(&#34;succeeded&#34;).label.length).toBeGreaterThan(0);
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify fail** — `cd apps/web &amp;&amp; pnpm vitest run ce/components/agents` → FAIL.
+
+- [ ] **Step 3: Implement `status-presentation.ts`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import type { TAgentRunStatus } from &#34;@plane/agents&#34;;
+
+type Tone = &#34;live&#34; | &#34;attention&#34; | &#34;success&#34; | &#34;fail&#34; | &#34;queued&#34;;
+
+const MAP: Record&lt;TAgentRunStatus, { label: string; tone: Tone }&gt; = {
+  queued: { label: &#34;Queued&#34;, tone: &#34;queued&#34; },
+  running: { label: &#34;Running&#34;, tone: &#34;live&#34; },
+  paused: { label: &#34;Paused&#34;, tone: &#34;queued&#34; },
+  waiting_for_input: { label: &#34;Needs you&#34;, tone: &#34;attention&#34; },
+  awaiting_approval: { label: &#34;Needs you&#34;, tone: &#34;attention&#34; },
+  succeeded: { label: &#34;Done&#34;, tone: &#34;success&#34; },
+  failed: { label: &#34;Failed&#34;, tone: &#34;fail&#34; },
+  cancelled: { label: &#34;Cancelled&#34;, tone: &#34;queued&#34; },
+};
+
+export const statusPresentation = (status: TAgentRunStatus) =&gt;
+  MAP[status] ?? { label: &#34;Unknown&#34;, tone: &#34;queued&#34; as Tone };
+```
+
+- [ ] **Step 4: Implement `agent-status-chip.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { observer } from &#34;mobx-react&#34;;
+import type { TAgentRunStatus } from &#34;@plane/agents&#34;;
+import { statusPresentation } from &#34;./status-presentation&#34;;
+
+const TONE_CLASS: Record&lt;string, string&gt; = {
+  live: &#34;text-[--live] bg-[--live-soft]&#34;,
+  attention: &#34;text-[--attention] bg-[--attention-soft]&#34;,
+  success: &#34;text-[--success] bg-[--success-soft]&#34;,
+  fail: &#34;text-[--fail] bg-[--fail-soft]&#34;,
+  queued: &#34;text-custom-text-300 bg-custom-background-80&#34;,
+};
+
+export const AgentStatusChip = observer(({ status }: { status: TAgentRunStatus }) =&gt; {
+  const { label, tone } = statusPresentation(status);
+  return (
+    &lt;span className={`text-[10.5px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded ${TONE_CLASS[tone]}`}&gt;
+      {label}
+    &lt;/span&gt;
+  );
+});
+```
+
+Note: confirm the exact Plane token class names (`custom-text-300`, `custom-background-80`) against `@plane/tailwind-config`; the `--live`/`--attention` custom properties are added to the agents styles in Task 11.
+
+- [ ] **Step 5: Run to verify pass** — `cd apps/web &amp;&amp; pnpm vitest run ce/components/agents` → PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add apps/web/ce/components/agents/agent-status-chip.tsx apps/web/ce/components/agents/status-presentation.ts
+git commit -m &#34;feat(web): add agent status chip + pure presentation mapping&#34;
+```
+
+---
+
+### Task 11: Run row + panel
+
+**Files:**
+- Create: `apps/web/ce/components/agents/agent-run-row.tsx`
+- Create: `apps/web/ce/components/agents/agents-panel.tsx`
+- Create: `apps/web/ce/components/agents/agents.styles.css`
+
+**Interfaces:**
+- Consumes: `AgentStore.grouped`, `AgentStatusChip`, `TAgentRun`, `runCommand`. `@plane/propel/scrollarea`, `@plane/propel/skeleton`.
+- Produces: `&lt;AgentRunRow run onCommand /&gt;`, `&lt;AgentsPanel workspaceId /&gt;` (grouped: Needs you → Running → Queued → Recently done).
+
+- [ ] **Step 1: Implement `agents.styles.css`** — define the `--live/--attention/--success/--fail` custom properties + `-soft` variants for light/dark, matching the spec palette (copy the token values from `docs/superpowers/specs/2026-07-10-agent-task-visibility-predraft.html`). Import it once from `agents-panel.tsx`.
+
+- [ ] **Step 2: Implement `agent-run-row.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { observer } from &#34;mobx-react&#34;;
+import type { TAgentCommand, TAgentRun } from &#34;@plane/agents&#34;;
+import { AgentStatusChip } from &#34;./agent-status-chip&#34;;
+
+export const AgentRunRow = observer(
+  ({ run, onCommand }: { run: TAgentRun; onCommand: (c: TAgentCommand) =&gt; void }) =&gt; {
+    const steps = run.progress?.totalSteps ?? 0;
+    const done = run.progress?.currentStep ?? 0;
+    return (
+      &lt;div className=&#34;px-4 py-3 border-b border-custom-border-200&#34; role=&#34;status&#34; aria-live=&#34;polite&#34;&gt;
+        &lt;div className=&#34;flex items-center gap-2 text-sm font-medium&#34;&gt;
+          &lt;span className=&#34;truncate&#34;&gt;{run.title}&lt;/span&gt;
+          &lt;AgentStatusChip status={run.status} /&gt;
+        &lt;/div&gt;
+        {run.target?.entityName &amp;&amp; (
+          &lt;div className=&#34;text-xs text-custom-text-300 mt-0.5&#34;&gt;{run.target.entityName}&lt;/div&gt;
+        )}
+        {run.status === &#34;running&#34; &amp;&amp; steps &gt; 0 &amp;&amp; (
+          &lt;div className=&#34;flex gap-0.5 mt-2&#34; aria-label={`step ${done} of ${steps}`}&gt;
+            {Array.from({ length: steps }).map((_, i) =&gt; (
+              &lt;span key={i} className={`h-1 flex-1 rounded-sm ${i &lt; done ? &#34;bg-[--live]&#34; : &#34;bg-custom-background-80&#34;}`} /&gt;
+            ))}
+          &lt;/div&gt;
+        )}
+        &lt;div className=&#34;flex gap-1.5 mt-2&#34;&gt;
+          {run.status === &#34;awaiting_approval&#34; &amp;&amp; (
+            &lt;&gt;
+              &lt;button className=&#34;text-xs font-medium rounded px-2.5 py-1 bg-[--attention] text-white&#34;
+                onClick={() =&gt; onCommand({ runId: run.id, type: &#34;approve&#34;, payload: { approvalId: &#34;&#34; } })}&gt;Approve&lt;/button&gt;
+              &lt;button className=&#34;text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300&#34;
+                onClick={() =&gt; onCommand({ runId: run.id, type: &#34;reject&#34;, payload: { approvalId: &#34;&#34; } })}&gt;Reject&lt;/button&gt;
+            &lt;/&gt;
+          )}
+          {(run.status === &#34;running&#34; || run.status === &#34;queued&#34;) &amp;&amp; (
+            &lt;button className=&#34;text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300&#34;
+              onClick={() =&gt; onCommand({ runId: run.id, type: &#34;cancel&#34;, payload: {} })}&gt;Stop&lt;/button&gt;
+          )}
+          {run.status === &#34;failed&#34; &amp;&amp; (
+            &lt;button className=&#34;text-xs font-medium rounded px-2.5 py-1 border border-custom-border-300&#34;
+              onClick={() =&gt; onCommand({ runId: run.id, type: &#34;retry&#34;, payload: {} })}&gt;Retry&lt;/button&gt;
+          )}
+          {run.status === &#34;succeeded&#34; &amp;&amp; run.result?.reviewUrl &amp;&amp; (
+            &lt;a className=&#34;text-xs font-medium text-custom-primary-100 py-1&#34; href={run.result.reviewUrl}&gt;Review changes →&lt;/a&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+);
+```
+
+Note: `approvalId` is threaded from the run&#39;s latest `approval_requested` event via the store&#39;s blocking-event pass-through (Task 7 `onBlockingEvent`); wire the real id when that hook lands. For v1 the row reads it from `run` once the contract carries the pending approval id (add `pendingApprovalId?: string` to `TAgentRun` if backend provides it — otherwise the detail view (Task 12) owns approvals).
+
+- [ ] **Step 3: Implement `agents-panel.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { useEffect } from &#34;react&#34;;
+import { observer } from &#34;mobx-react&#34;;
+import { ScrollArea } from &#34;@plane/propel/scrollarea&#34;;
+import { useAgentStore } from &#34;@/plane-web/hooks/agents/use-agent-store&#34;;
+import { useAgentSubscription } from &#34;@/plane-web/hooks/agents/use-agent-subscription&#34;;
+import { AgentRunRow } from &#34;./agent-run-row&#34;;
+import &#34;./agents.styles.css&#34;;
+
+const GROUPS: { key: &#34;blocked&#34; | &#34;running&#34; | &#34;queued&#34; | &#34;done&#34;; label: string }[] = [
+  { key: &#34;blocked&#34;, label: &#34;Needs you&#34; },
+  { key: &#34;running&#34;, label: &#34;Running&#34; },
+  { key: &#34;queued&#34;, label: &#34;Queued&#34; },
+  { key: &#34;done&#34;, label: &#34;Recently done&#34; },
+];
+
+export const AgentsPanel = observer(({ workspaceId }: { workspaceId: string }) =&gt; {
+  const store = useAgentStore();
+  useEffect(() =&gt; { store.loadRuns({ workspaceId }); }, [store, workspaceId]);
+  useAgentSubscription({ enabled: true, workspaceId });
+
+  const grouped = store.grouped;
+  const onCommand = (c: Parameters&lt;typeof store.runCommand&gt;[0][&#34;command&#34;]) =&gt;
+    store.runCommand({ workspaceId, command: c });
+
+  const empty = GROUPS.every((g) =&gt; grouped[g.key].length === 0);
+  return (
+    &lt;ScrollArea className=&#34;h-full&#34;&gt;
+      {empty &amp;&amp; &lt;div className=&#34;p-6 text-sm text-custom-text-300&#34;&gt;No agent activity yet.&lt;/div&gt;}
+      {GROUPS.map((g) =&gt;
+        grouped[g.key].length ? (
+          &lt;div key={g.key}&gt;
+            &lt;div className=&#34;px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide text-custom-text-400&#34;&gt;{g.label}&lt;/div&gt;
+            {grouped[g.key].map((run) =&gt; &lt;AgentRunRow key={run.id} run={run} onCommand={onCommand} /&gt;)}
+          &lt;/div&gt;
+        ) : null
+      )}
+    &lt;/ScrollArea&gt;
+  );
+});
+```
+
+- [ ] **Step 4: Typecheck** — `cd apps/web &amp;&amp; pnpm check:types` → no errors.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add apps/web/ce/components/agents/agent-run-row.tsx apps/web/ce/components/agents/agents-panel.tsx apps/web/ce/components/agents/agents.styles.css
+git commit -m &#34;feat(web): add agent run row + grouped panel&#34;
+```
+
+---
+
+### Task 12: Run detail (timeline + steer + approvals)
+
+**Files:**
+- Create: `apps/web/ce/components/agents/agent-run-detail.tsx`
+
+**Interfaces:**
+- Consumes: a `TAgentRun` (with `steps`), `runCommand`, `@plane/propel/collapsible`.
+- Produces: `&lt;AgentRunDetail run workspaceId /&gt;` — collapsed-by-default step log, a steer input emitting `correct`, inline `provide_input` when `waiting_for_input`, inline `approve`/`reject` when `awaiting_approval`.
+
+- [ ] **Step 1: Implement `agent-run-detail.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { useState } from &#34;react&#34;;
+import { observer } from &#34;mobx-react&#34;;
+import type { TAgentRun } from &#34;@plane/agents&#34;;
+import { useAgentStore } from &#34;@/plane-web/hooks/agents/use-agent-store&#34;;
+
+export const AgentRunDetail = observer(({ run, workspaceId }: { run: TAgentRun; workspaceId: string }) =&gt; {
+  const store = useAgentStore();
+  const [steer, setSteer] = useState(&#34;&#34;);
+  const send = (command: Parameters&lt;typeof store.runCommand&gt;[0][&#34;command&#34;]) =&gt;
+    store.runCommand({ workspaceId, command });
+
+  return (
+    &lt;div className=&#34;p-4&#34;&gt;
+      &lt;ol className=&#34;space-y-1.5 text-xs&#34; aria-live=&#34;polite&#34;&gt;
+        {(run.steps ?? []).map((s) =&gt; (
+          &lt;li key={s.id} className=&#34;flex gap-2&#34;&gt;
+            &lt;span className=&#34;text-custom-text-400&#34;&gt;{s.status === &#34;running&#34; ? &#34;▶&#34; : s.status === &#34;succeeded&#34; ? &#34;✓&#34; : &#34;·&#34;}&lt;/span&gt;
+            &lt;span&gt;{s.label}&lt;/span&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ol&gt;
+
+      {run.status === &#34;waiting_for_input&#34; &amp;&amp; (
+        &lt;SteerBox placeholder=&#34;Answer the agent…&#34; onSubmit={(v) =&gt; send({ runId: run.id, type: &#34;provide_input&#34;, payload: { promptId: &#34;&#34;, response: v } })} /&gt;
+      )}
+      {run.status === &#34;running&#34; &amp;&amp; (
+        &lt;SteerBox placeholder=&#34;Steer this run…&#34; value={steer} onChange={setSteer}
+          onSubmit={(v) =&gt; { send({ runId: run.id, type: &#34;correct&#34;, payload: { guidance: v } }); setSteer(&#34;&#34;); }} /&gt;
+      )}
+      {run.status === &#34;awaiting_approval&#34; &amp;&amp; (
+        &lt;div className=&#34;flex gap-2 mt-3&#34;&gt;
+          &lt;button className=&#34;text-xs rounded px-2.5 py-1 bg-[--attention] text-white&#34;
+            onClick={() =&gt; send({ runId: run.id, type: &#34;approve&#34;, payload: { approvalId: &#34;&#34; } })}&gt;Approve&lt;/button&gt;
+          &lt;button className=&#34;text-xs rounded px-2.5 py-1 border border-custom-border-300&#34;
+            onClick={() =&gt; send({ runId: run.id, type: &#34;reject&#34;, payload: { approvalId: &#34;&#34; } })}&gt;Reject&lt;/button&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+});
+
+const SteerBox = ({ placeholder, value, onChange, onSubmit }: {
+  placeholder: string; value?: string; onChange?: (v: string) =&gt; void; onSubmit: (v: string) =&gt; void;
+}) =&gt; {
+  const [local, setLocal] = useState(&#34;&#34;);
+  const v = value ?? local;
+  const set = onChange ?? setLocal;
+  return (
+    &lt;form className=&#34;mt-3 flex gap-2&#34; onSubmit={(e) =&gt; { e.preventDefault(); if (v.trim()) onSubmit(v.trim()); }}&gt;
+      &lt;input className=&#34;flex-1 text-xs rounded border border-custom-border-300 px-2 py-1 bg-custom-background-100&#34;
+        placeholder={placeholder} value={v} onChange={(e) =&gt; set(e.target.value)} /&gt;
+      &lt;button className=&#34;text-xs rounded px-2.5 py-1 border border-custom-border-300&#34; type=&#34;submit&#34;&gt;Send&lt;/button&gt;
+    &lt;/form&gt;
+  );
+};
+```
+
+- [ ] **Step 2: Typecheck** — `cd apps/web &amp;&amp; pnpm check:types` → no errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add apps/web/ce/components/agents/agent-run-detail.tsx
+git commit -m &#34;feat(web): add agent run detail with steer + approvals&#34;
+```
+
+---
+
+### Task 13: Inline work-item indicator
+
+**Files:**
+- Create: `apps/web/ce/components/agents/agent-inline-indicator.tsx`
+- Modify: the work-item detail sidebar/header (locate the mount point; see Step 2).
+
+**Interfaces:**
+- Consumes: `AgentStore.runsForTarget`, `useAgentSubscription`, `AgentStatusChip`.
+- Produces: `&lt;AgentInlineIndicator workspaceId entityType=&#34;work_item&#34; entityId /&gt;` — a compact chip if ≥1 run targets this item; click opens the panel focused on that run.
+
+- [ ] **Step 1: Implement `agent-inline-indicator.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { observer } from &#34;mobx-react&#34;;
+import { useAgentStore } from &#34;@/plane-web/hooks/agents/use-agent-store&#34;;
+import { useAgentSubscription } from &#34;@/plane-web/hooks/agents/use-agent-subscription&#34;;
+import { AgentStatusChip } from &#34;./agent-status-chip&#34;;
+
+export const AgentInlineIndicator = observer(
+  ({ workspaceId, entityType, entityId, onOpen }: {
+    workspaceId: string; entityType: string; entityId: string; onOpen: (runId: string) =&gt; void;
+  }) =&gt; {
+    const store = useAgentStore();
+    const runs = store.runsForTarget({ entityType, entityId });
+    useAgentSubscription({ enabled: runs.length &gt; 0, workspaceId, runIds: runs.map((r) =&gt; r.id) });
+    if (!runs.length) return null;
+    const primary = runs[0];
+    return (
+      &lt;button className=&#34;inline-flex items-center gap-1.5 text-xs&#34; onClick={() =&gt; onOpen(primary.id)}&gt;
+        &lt;span className=&#34;text-custom-text-300&#34;&gt;🤖&lt;/span&gt;
+        &lt;AgentStatusChip status={primary.status} /&gt;
+        {runs.length &gt; 1 &amp;&amp; &lt;span className=&#34;text-custom-text-400&#34;&gt;+{runs.length - 1}&lt;/span&gt;}
+      &lt;/button&gt;
+    );
+  }
+);
+```
+
+- [ ] **Step 2: Mount it** — locate the work-item detail root under `apps/web/core/components/issues/issue-detail/` and render `&lt;AgentInlineIndicator .../&gt;` in the header/sidebar area, gated by the feature flag (Task 14). Pass `onOpen` to the panel opener from Task 14.
+
+- [ ] **Step 3: Typecheck + commit**
+
+```bash
+cd apps/web &amp;&amp; pnpm check:types
+git add apps/web/ce/components/agents/agent-inline-indicator.tsx apps/web/core/components/issues/issue-detail
+git commit -m &#34;feat(web): add inline agent indicator on work items&#34;
+```
+
+---
+
+### Task 14: Header pip, flag gate, lazy mount, error boundary
+
+**Files:**
+- Create: `apps/web/ce/components/agents/agents-error-boundary.tsx`
+- Create: `apps/web/ce/components/agents/agents-header-pip.tsx`
+- Create: `apps/web/ce/components/agents/agents-root.tsx`
+- Modify: the workspace header/layout mount point (see Step 4).
+
+**Interfaces:**
+- Consumes: `useAgentCount`, `AgentsPanel` (lazy), a feature-flag hook `useAgentsEnabled()`.
+- Produces: `&lt;AgentsRoot workspaceId /&gt;` — evaluates the flag first; if off, renders `null` (no imports executed, no network). If on, renders the pip + lazy-loaded panel inside the error boundary.
+
+- [ ] **Step 1: Implement `agents-error-boundary.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { Component, type ReactNode } from &#34;react&#34;;
+
+export class AgentsErrorBoundary extends Component&lt;{ children: ReactNode }, { failed: boolean }&gt; {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error: unknown) { console.error(&#34;[agents] surface error&#34;, error); }
+  render() {
+    if (this.state.failed) return &lt;div className=&#34;p-4 text-xs text-custom-text-400&#34;&gt;Agents unavailable.&lt;/div&gt;;
+    return this.props.children;
+  }
+}
+```
+
+- [ ] **Step 2: Implement `agents-header-pip.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { observer } from &#34;mobx-react&#34;;
+import { useAgentCount } from &#34;@/plane-web/hooks/agents/use-agent-count&#34;;
+
+export const AgentsHeaderPip = observer(
+  ({ workspaceId, enabled, onClick }: { workspaceId: string; enabled: boolean; onClick: () =&gt; void }) =&gt; {
+    const count = useAgentCount({ enabled, workspaceId });
+    return (
+      &lt;button className=&#34;inline-flex items-center gap-1.5 text-sm&#34; onClick={onClick} aria-label=&#34;Agents&#34;&gt;
+        &lt;span className={`w-2 h-2 rounded-full ${count &gt; 0 ? &#34;bg-[--live] motion-safe:animate-pulse&#34; : &#34;bg-custom-background-80&#34;}`} /&gt;
+        &lt;span&gt;Agents&lt;/span&gt;
+        {count &gt; 0 &amp;&amp; &lt;span className=&#34;text-xs text-custom-text-300&#34;&gt;{count}&lt;/span&gt;}
+      &lt;/button&gt;
+    );
+  }
+);
+```
+
+- [ ] **Step 3: Implement `agents-root.tsx`**
+
+```tsx
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { lazy, Suspense, useState } from &#34;react&#34;;
+import { AgentsErrorBoundary } from &#34;./agents-error-boundary&#34;;
+import { AgentsHeaderPip } from &#34;./agents-header-pip&#34;;
+import { useAgentsEnabled } from &#34;@/plane-web/hooks/agents/use-agents-enabled&#34;;
+
+const AgentsPanel = lazy(() =&gt;
+  import(&#34;./agents-panel&#34;).then((m) =&gt; ({ default: m.AgentsPanel }))
+);
+
+export const AgentsRoot = ({ workspaceId }: { workspaceId: string }) =&gt; {
+  const enabled = useAgentsEnabled();
+  const [open, setOpen] = useState(false);
+  if (!enabled) return null; // gate BEFORE any hook that opens a socket/poll
+  return (
+    &lt;AgentsErrorBoundary&gt;
+      &lt;AgentsHeaderPip workspaceId={workspaceId} enabled={enabled} onClick={() =&gt; setOpen((v) =&gt; !v)} /&gt;
+      {open &amp;&amp; (
+        &lt;div className=&#34;fixed right-0 top-14 bottom-0 w-[340px] bg-custom-background-100 border-l border-custom-border-200 z-20&#34;&gt;
+          &lt;Suspense fallback={&lt;div className=&#34;p-4 text-xs text-custom-text-400&#34;&gt;Loading…&lt;/div&gt;}&gt;
+            &lt;AgentsPanel workspaceId={workspaceId} /&gt;
+          &lt;/Suspense&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/AgentsErrorBoundary&gt;
+  );
+};
+```
+
+- [ ] **Step 4: Implement `use-agents-enabled.ts`** — create `apps/web/ce/hooks/agents/use-agents-enabled.ts` returning the flag value. In CE with no flag service, return a build/env constant (e.g. `process.env.NEXT_PUBLIC_ENABLE_AGENTS === &#34;1&#34;`), so EE can override the `@/plane-web` module with a real flag hook. Default OFF.
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+export const useAgentsEnabled = (): boolean =&gt;
+  process.env.NEXT_PUBLIC_ENABLE_AGENTS === &#34;1&#34;;
+```
+
+- [ ] **Step 5: Mount `&lt;AgentsRoot /&gt;`** in the workspace header. Locate the header used by workspace routes (search `apps/web/core/components` / `apps/web/app` for the top workspace header component) and render `&lt;AgentsRoot workspaceId={...} /&gt;` in its right-hand cluster.
+
+- [ ] **Step 6: Typecheck + commit**
+
+```bash
+cd apps/web &amp;&amp; pnpm check:types
+git add apps/web/ce/components/agents apps/web/ce/hooks/agents/use-agents-enabled.ts
+git commit -m &#34;feat(web): mount flag-gated agents pip + lazy panel under error boundary&#34;
+```
+
+---
+
+## Phase 4 — `apps/live` agent-events channel
+
+### Task 15: Authenticated relay with coalescing
+
+**Files:**
+- Create: `apps/live/src/controllers/agent-events.controller.ts`
+- Modify: `apps/live/src/server.ts` (register the route)
+- Test: `apps/live/tests/agent-events.spec.ts`
+
+**Interfaces:**
+- Consumes: existing Redis client (`apps/live/src/redis.ts`), auth utilities (mirror the Hocuspocus `onAuthenticate` pattern in `apps/live/src`).
+- Produces: a WS endpoint `/agent-events/:workspaceId` that authenticates the connection, subscribes to Redis channel `agent-events:{workspaceId}`, and relays events — coalescing `progress`/`step_updated` per run to ≤1 per 500ms, never dropping milestone events.
+
+- [ ] **Step 1: Read the existing patterns** — `apps/live/src/redis.ts`, `apps/live/src/server.ts`, and the auth util used by Hocuspocus, to reuse the workspace-membership check and Redis client.
+
+- [ ] **Step 2: Write failing test for the pure coalescer** — `apps/live/tests/agent-events.spec.ts`
+
+```ts
+import { describe, it, expect } from &#34;vitest&#34;;
+import { Coalescer } from &#34;../src/controllers/agent-events.controller&#34;;
+
+describe(&#34;Coalescer&#34;, () =&gt; {
+  it(&#34;passes milestone events immediately&#34;, () =&gt; {
+    const out: unknown[] = [];
+    const c = new Coalescer((e) =&gt; out.push(e), 500);
+    c.push({ runId: &#34;r&#34;, sequence: 1, type: &#34;status_changed&#34;, payload: {} });
+    expect(out).toHaveLength(1);
+  });
+
+  it(&#34;collapses rapid progress to the latest on flush&#34;, () =&gt; {
+    const out: any[] = [];
+    const c = new Coalescer((e) =&gt; out.push(e), 500);
+    c.push({ runId: &#34;r&#34;, sequence: 1, type: &#34;progress&#34;, payload: { percent: 10 } });
+    c.push({ runId: &#34;r&#34;, sequence: 2, type: &#34;progress&#34;, payload: { percent: 40 } });
+    expect(out).toHaveLength(0);
+    c.flush();
+    expect(out).toHaveLength(1);
+    expect(out[0].payload.percent).toBe(40);
+  });
+});
+```
+
+- [ ] **Step 3: Run to verify fail** — `cd apps/live &amp;&amp; pnpm vitest run agent-events` → FAIL.
+
+- [ ] **Step 4: Implement the controller + `Coalescer`**
+
+```ts
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+type Event = { runId: string; sequence: number; type: string; payload: unknown };
+
+const COALESCED = new Set([&#34;progress&#34;, &#34;step_updated&#34;]);
+
+export class Coalescer {
+  private pending = new Map&lt;string, Event&gt;();
+  constructor(private emit: (e: Event) =&gt; void, private windowMs: number) {}
+
+  push(e: Event) {
+    if (!COALESCED.has(e.type)) { this.emit(e); return; }
+    this.pending.set(e.runId, e); // keep only the latest per run
+  }
+
+  flush() {
+    for (const e of this.pending.values()) this.emit(e);
+    this.pending.clear();
+  }
+}
+
+// Route registration: authenticate the socket (workspace membership), create a
+// Coalescer(send, 500) with a setInterval(() =&gt; coalescer.flush(), 500) cleared
+// on close, subscribe to Redis `agent-events:{workspaceId}`, and forward each
+// parsed message via coalescer.push(). See Step 5.
+```
+
+- [ ] **Step 5: Wire the WS route in `server.ts`** — add an upgrade handler for `/agent-events/:workspaceId` that: authenticates (reject 4001 on failure), instantiates `Coalescer(sendToSocket, 500)` + a 500ms flush interval, subscribes to the Redis channel, forwards `push`, and on socket close clears the interval + unsubscribes. Follow the existing `ws`/Redis usage in `redis.ts`.
+
+- [ ] **Step 6: Run to verify pass** — `cd apps/live &amp;&amp; pnpm vitest run agent-events` → PASS. Then `cd apps/live &amp;&amp; pnpm check:types`.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add apps/live/src/controllers/agent-events.controller.ts apps/live/src/server.ts apps/live/tests/agent-events.spec.ts
+git commit -m &#34;feat(live): add authenticated agent-events relay with coalescing&#34;
+```
+
+---
+
+## Phase 5 — integration verification
+
+### Task 16: End-to-end with a mocked backend
+
+**Files:**
+- Create: `apps/web/ce/services/agents/agent.service.mock.ts` (a dev-only mock implementing `IAgentService` + a fake event emitter).
+
+- [ ] **Step 1: Implement a mock service + fake stream** emitting a scripted run through `queued → running → awaiting_approval → succeeded`, wired behind `NEXT_PUBLIC_ENABLE_AGENTS=1` and a `?agents-mock=1` guard.
+
+- [ ] **Step 2: Run the app** — use the `/run` skill (or `pnpm --filter web dev`) with `NEXT_PUBLIC_ENABLE_AGENTS=1`. Verify, observing real behavior:
+  - Flag OFF (unset) → no pip, no network calls to `agent-*` (check devtools).
+  - Flag ON → pip appears; opening the panel lists the scripted run; it advances live; approval shows inline Approve/Reject; Stop cancels; completion moves it to &#34;Recently done&#34; with no toast/modal.
+  - Refresh mid-run → panel rehydrates to current state (durability).
+  - Force a render error in a row (temporary throw) → &#34;Agents unavailable&#34; fallback, host app still usable (crash isolation).
+
+- [ ] **Step 3: Full checks**
+
+Run: `pnpm --filter @plane/agents test &amp;&amp; cd apps/web &amp;&amp; pnpm vitest run ce &amp;&amp; pnpm check:types &amp;&amp; cd ../live &amp;&amp; pnpm vitest run`
+Expected: all green.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add apps/web/ce/services/agents/agent.service.mock.ts
+git commit -m &#34;test(web): add mock agent backend + e2e verification harness&#34;
+```
+
+---
+
+## Self-Review notes
+
+- **Spec coverage:** contract (Tasks 1–5) · durable rehydrate (Task 3, hooks Task 9) · client-agnostic reducer (Phase 1, pure) · REST/commands (Task 6) · MobX adapter (Task 7) · transport + reconnect (Tasks 8–9) · lazy/gated connections (Tasks 9, 14) · hybrid UI panel+inline (Tasks 10–13) · ambient pip (Task 14) · error boundary + kill switch + lazy-load (Task 14) · live relay + coalescing (Task 15) · durability/crash-isolation verified (Task 16). Push notifications, fleet board, non-work-item targets = backlog, intentionally absent.
+- **Known follow-ups to confirm during execution (not placeholders — real lookups):** exact `useStore` export name; `LIVE_BASE_URL` constant name; Plane token class names; work-item detail + workspace header mount points; `APIService` `get/post` return shape. Each is called out in the step where it matters.
+- **Type consistency:** `applyEvent` / `reconcile` / `emptyAgentState` / `selectGroupedRuns` / `selectActiveCount` / `selectRunsForTarget` / `backoffDelay` / `AgentService` / `AgentStore` / `AgentEventTransport` names are used identically across tasks.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-43-32-821Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-43-32-821Z" class="timestamp-link"><time datetime="2026-07-10T20:43:32.821Z" data-timestamp="2026-07-10T20:43:32.821Z">2026-07-10T20:43:32.821Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/docs/superpowers/plans/2026-07-10-agent-task-visibility.md (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-42-383Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-42-383Z" class="timestamp-link"><time datetime="2026-07-10T20:43:42.383Z" data-timestamp="2026-07-10T20:43:42.383Z">2026-07-10T20:43:42.383Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-43-855Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-43-855Z" class="timestamp-link"><time datetime="2026-07-10T20:43:43.855Z" data-timestamp="2026-07-10T20:43:43.855Z">2026-07-10T20:43:43.855Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Plan written and self-reviewed (types consistent; the few "confirm exact name / locate mount point" notes are genuine codebase lookups, flagged at the step where they matter — not vague placeholders; all code is complete).</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-44-430Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-44-430Z" class="timestamp-link"><time datetime="2026-07-10T20:43:44.430Z" data-timestamp="2026-07-10T20:43:44.430Z">2026-07-10T20:43:44.430Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0152Qz9g9mvxDHwqaX84aHgx"><div class="tool-header"><span class="tool-icon">⚙</span> TaskUpdate</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;taskId&#34;: &#34;5&#34;,
+  &#34;status&#34;: &#34;completed&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-44-438Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-44-438Z" class="timestamp-link"><time datetime="2026-07-10T20:43:44.438Z" data-timestamp="2026-07-10T20:43:44.438Z">2026-07-10T20:43:44.438Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TLRHR5ZzyCM5W7oNYfhefE"><div class="tool-header"><span class="tool-icon">⚙</span> TaskUpdate</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;taskId&#34;: &#34;6&#34;,
+  &#34;status&#34;: &#34;completed&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-43-44-474Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-43-44-474Z" class="timestamp-link"><time datetime="2026-07-10T20:43:44.474Z" data-timestamp="2026-07-10T20:43:44.474Z">2026-07-10T20:43:44.474Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated task #6 status</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-43-44-485Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-43-44-485Z" class="timestamp-link"><time datetime="2026-07-10T20:43:44.485Z" data-timestamp="2026-07-10T20:43:44.485Z">2026-07-10T20:43:44.485Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated task #5 status</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-43-58-026Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-43-58-026Z" class="timestamp-link"><time datetime="2026-07-10T20:43:58.026Z" data-timestamp="2026-07-10T20:43:58.026Z">2026-07-10T20:43:58.026Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>Plan complete and saved to <code>docs/superpowers/plans/2026-07-10-agent-task-visibility.md</code>.</strong></p>
+<p>16 tasks, 5 phases, TDD throughout:
+- <strong>Phase 1 — <code>@plane/agents</code> core</strong> (Tasks 1–5): vitest harness, <code>applyEvent</code> reducer, <code>reconcile</code>, priority selectors, pure backoff. Fully unit-tested — the risky reconciliation logic, framework-free so it covers a future native client too.
+- <strong>Phase 2 — web adapters</strong> (6–9): <code>AgentService</code> (REST), MobX store over the reducer, WS transport, lazy/gated subscription + ambient-count hooks.
+- <strong>Phase 3 — UI</strong> (10–13): status chip, run row + grouped panel, detail (steer/approve), inline work-item indicator.
+- <strong>Phase 4 — <code>apps/live</code></strong> (14–15): header pip + flag gate + lazy mount + error boundary; authenticated Redis relay with coalescing.
+- <strong>Phase 5 — verification</strong> (16): mocked backend + <code>/run</code> e2e checks for flag-off (zero network), live advance, refresh-durability, crash-isolation.</p>
+<p>Testable logic is concentrated in the pure package (where vitest already lives) + node-env vitest added to <code>apps/web</code> for adapters; thin components verified via app-run. A short "known follow-ups" list flags the exact-name lookups (e.g. <code>useStore</code> export, <code>LIVE_BASE_URL</code>, token classes, mount points) at the steps that need them.</p>
+<p>Plan is <strong>uncommitted</strong> — say the word and I commit it alongside the earlier docs.</p>
+<p><strong>Two execution options:</strong></p>
+<ol>
+<li><strong>Subagent-Driven (recommended)</strong> — I dispatch a fresh subagent per task, review between tasks, fast iteration.</li>
+<li><strong>Inline Execution</strong> — execute tasks in this session via executing-plans, batched with checkpoints.</li>
+</ol>
+<p>Which approach? (Or pause here — the design + plan stand on their own.)</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T20-44-51-365Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T20-44-51-365Z" class="timestamp-link"><time datetime="2026-07-10T20:44:51.365Z" data-timestamp="2026-07-10T20:44:51.365Z">2026-07-10T20:44:51.365Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Remind me what we found re: using MobX</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-44-54-884Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-44-54-884Z" class="timestamp-link"><time datetime="2026-07-10T20:44:54.884Z" data-timestamp="2026-07-10T20:44:54.884Z">2026-07-10T20:44:54.884Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-44-59-495Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-44-59-495Z" class="timestamp-link"><time datetime="2026-07-10T20:44:59.495Z" data-timestamp="2026-07-10T20:44:59.495Z">2026-07-10T20:44:59.495Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>MobX = repo's state layer, not optional:</p>
+<ul>
+<li><strong>911</strong> source files in <code>apps/web</code> import it; <code>mobx</code> / <code>mobx-react</code> / <code>mobx-utils</code> all pinned in the catalog.</li>
+<li>Entire <code>apps/web/core/store/</code> tree = MobX class stores (cycle, issue, notifications, timeline…), composed in one <code>RootStore</code> (<code>new XStore(this)</code> pattern).</li>
+<li><strong>Zero</strong> redux/zustand anywhere.</li>
+</ul>
+<p><strong>Verdict: keep MobX in web.</strong> Redux/Zustand would drop a foreign pattern into a 911-file MobX codebase — inconsistent, new dep, fights the <code>RootStore</code> wiring.</p>
+<p><strong>Why your unfamiliarity barely matters:</strong> all the hard state logic lives in the <strong>pure reducer</strong> in <code>@plane/agents</code> (<code>applyEvent</code>/<code>reconcile</code>, no MobX). The MobX store is a thin adapter — hold observable state, call reducer, expose computed getters. ~a few lines of standard MobX (<code>makeObservable</code>, <code>action</code>, <code>computed</code>), copy-pattern from any existing store.</p>
+<p><strong>Bonus:</strong> reducer being framework-free means a future native app can wrap it in whatever (Zustand/signals) — store lib is a per-client detail, not locked in where it counts.</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T20-47-59-175Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T20-47-59-175Z" class="timestamp-link"><time datetime="2026-07-10T20:47:59.175Z" data-timestamp="2026-07-10T20:47:59.175Z">2026-07-10T20:47:59.175Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Plan looks good -- commit that. Before executing, how quickly can we put together a freestanding prototype wireframe just so I can see how it all feels?</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-48-23-778Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-48-23-778Z" class="timestamp-link"><time datetime="2026-07-10T20:48:23.778Z" data-timestamp="2026-07-10T20:48:23.778Z">2026-07-10T20:48:23.778Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-48-26-336Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-48-26-336Z" class="timestamp-link"><time datetime="2026-07-10T20:48:26.336Z" data-timestamp="2026-07-10T20:48:26.336Z">2026-07-10T20:48:26.336Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>On it — committing the plan, then building an interactive wireframe.</p>
+<p><strong>Speed:</strong> basically now. A freestanding single-file HTML prototype — mock data + a simulated live event stream — so you can click the pip, watch a run advance step-by-step, approve inline, steer, stop, and see completion + refresh-durability. No repo wiring. Committing the plan first.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-48-29-814Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-48-29-814Z" class="timestamp-link"><time datetime="2026-07-10T20:48:29.814Z" data-timestamp="2026-07-10T20:48:29.814Z">2026-07-10T20:48:29.814Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Lk9cNNxRPddYtVzzjxa3Ej">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the implementation plan</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane
+git add docs/superpowers/plans/
+git commit -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+docs: add agent task visibility implementation plan
+
+16-task TDD plan across 5 phases: @plane/agents pure core (reducer,
+reconcile, selectors, backoff), web adapters (service, MobX store,
+WS transport, lazy gated hooks), hybrid UI (panel, run row, detail,
+inline indicator, flag-gated pip), apps/live coalescing relay, and
+end-to-end verification.
+
+Co-Authored-By: Claude Opus 4.8 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34;
+git log --oneline -2</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-48-32-935Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-48-32-935Z" class="timestamp-link"><time datetime="2026-07-10T20:48:32.935Z" data-timestamp="2026-07-10T20:48:32.935Z">2026-07-10T20:48:32.935Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>[33m[STARTED][39m Backing up original state...
+[32m[COMPLETED][39m Backed up original state in git stash (332b7b2803)
+[33m[STARTED][39m Running tasks for staged files...
+[33m[STARTED][39m package.json — 1 file
+[33m[STARTED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts,json,css,md} — 1 file
+[33m[STARTED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts} — 0 files
+[33m[SKIPPED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts} — no files
+[33m[STARTED][39m pnpm exec oxfmt --no-error-on-unmatched-pattern
+[32m[COMPLETED][39m pnpm exec oxfmt --no-error-on-unmatched-pattern
+[32m[COMPLETED][39m *.{js,jsx,ts,tsx,cjs,mjs,cts,mts,json,css,md} — 1 file
+[32m[COMPLETED][39m package.json — 1 file
+[32m[COMPLETED][39m Running tasks for staged files...
+[33m[STARTED][39m Applying modifications from tasks...
+[32m[COMPLETED][39m Applying modifications from tasks...
+[33m[STARTED][39m Cleaning up temporary files...
+[32m[COMPLETED][39m Cleaning up temporary files...</pre><div class="commit-card"><span class="commit-card-hash">1e1710f</span> docs: add agent task visibility implementation plan</div><pre>1 file changed, 1920 insertions(+)
+ create mode 100644 docs/superpowers/plans/2026-07-10-agent-task-visibility.md
+1e1710f70b docs: add agent task visibility implementation plan
+58b3030ba0 docs: add agent task visibility design + data-flow specs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-48-50-711Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-48-50-711Z" class="timestamp-link"><time datetime="2026-07-10T20:48:50.711Z" data-timestamp="2026-07-10T20:48:50.711Z">2026-07-10T20:48:50.711Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-48-51-100Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-48-51-100Z" class="timestamp-link"><time datetime="2026-07-10T20:48:51.100Z" data-timestamp="2026-07-10T20:48:51.100Z">2026-07-10T20:48:51.100Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Plan committed (<code>1e1710f70b</code>, +1920). Now the interactive wireframe.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-50-53-347Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-50-53-347Z" class="timestamp-link"><time datetime="2026-07-10T20:50:53.347Z" data-timestamp="2026-07-10T20:50:53.347Z">2026-07-10T20:50:53.347Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01P9svYsB34f4Y1J2rHwwx32">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">2026-07-10-agent-task-visibility-prototype.html</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">&lt;title&gt;Agents in Plane — Interactive Wireframe&lt;/title&gt;
+&lt;style&gt;
+  :root {
+    --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EBEEF2; --ink: #13171C;
+    --ink-2: #4A515B; --ink-3: #767E89; --ink-4: #9AA1AB; --line: #E0E4EA; --line-2: #CDD3DB;
+    --accent: #4457C7; --accent-soft: #E5E8FA;
+    --live: #0E9D9D; --live-soft: #D6F0EF;
+    --attention: #B4720C; --attention-soft: #F6E9D2;
+    --success: #1D8C51; --success-soft: #D9EEE1;
+    --fail: #CB4038; --fail-soft: #F6DEDC;
+    --queued: #7E8794;
+    --shadow: 0 1px 2px rgba(19,23,28,.05), 0 10px 30px -14px rgba(19,23,28,.28);
+    --font-sans: system-ui, -apple-system, &#34;Segoe UI&#34;, Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, &#34;SF Mono&#34;, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1015; --surface: #151A21; --surface-2: #1D242C; --ink: #E6EAEF;
+      --ink-2: #A7AFBB; --ink-3: #6C747F; --ink-4: #545C67; --line: #242B34; --line-2: #333C47;
+      --accent: #8695F2; --accent-soft: #232a44;
+      --live: #2FD4C6; --live-soft: #123434; --attention: #E3AB55; --attention-soft: #372a15;
+      --success: #46BC7E; --success-soft: #143024; --fail: #EF6a64; --fail-soft: #35201f; --queued: #7B838F;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 36px -18px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme=&#34;light&#34;]{--bg:#F4F6F8;--surface:#FFFFFF;--surface-2:#EBEEF2;--ink:#13171C;--ink-2:#4A515B;--ink-3:#767E89;--ink-4:#9AA1AB;--line:#E0E4EA;--line-2:#CDD3DB;--accent:#4457C7;--accent-soft:#E5E8FA;--live:#0E9D9D;--live-soft:#D6F0EF;--attention:#B4720C;--attention-soft:#F6E9D2;--success:#1D8C51;--success-soft:#D9EEE1;--fail:#CB4038;--fail-soft:#F6DEDC;--queued:#7E8794;--shadow:0 1px 2px rgba(19,23,28,.05),0 10px 30px -14px rgba(19,23,28,.28);}
+  :root[data-theme=&#34;dark&#34;]{--bg:#0D1015;--surface:#151A21;--surface-2:#1D242C;--ink:#E6EAEF;--ink-2:#A7AFBB;--ink-3:#6C747F;--ink-4:#545C67;--line:#242B34;--line-2:#333C47;--accent:#8695F2;--accent-soft:#232a44;--live:#2FD4C6;--live-soft:#123434;--attention:#E3AB55;--attention-soft:#372a15;--success:#46BC7E;--success-soft:#143024;--fail:#EF6a64;--fail-soft:#35201f;--queued:#7B838F;--shadow:0 1px 2px rgba(0,0,0,.35),0 14px 36px -18px rgba(0,0,0,.7);}
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* app frame */
+  .app { display: flex; flex-direction: column; height: 100vh; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; height: 52px;
+    padding: 0 18px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+  .brand .sq { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); }
+  .brand .crumb { color: var(--ink-3); font-weight: 500; }
+  .main { flex: 1; display: flex; min-height: 0; }
+  .content { flex: 1; overflow: auto; padding: 30px clamp(18px, 5vw, 56px); }
+  .content-inner { max-width: 720px; margin: 0 auto; }
+
+  /* pip */
+  .pip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line);
+    background: var(--surface); border-radius: 8px; padding: 6px 11px; font-size: 13px; font-weight: 550;
+    color: var(--ink-2); transition: .14s; }
+  .pip:hover { border-color: var(--line-2); color: var(--ink); }
+  .pip.armed { border-color: color-mix(in srgb, var(--live) 40%, var(--line)); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--queued); position: relative; flex: none; }
+  .dot.live { background: var(--live); }
+  .dot.live::after { content: &#34;&#34;; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1.5px solid var(--live); opacity: .55; animation: ring 2.4s ease-out infinite; }
+  @keyframes ring { 0%{transform:scale(.6);opacity:.7} 100%{transform:scale(1.9);opacity:0} }
+  @media (prefers-reduced-motion: reduce){ .dot.live::after{animation:none;opacity:.3;inset:-3px} }
+  .count { font-family: var(--font-mono); font-size: 11px; background: var(--surface-2); color: var(--ink-2);
+    border-radius: 999px; padding: 1px 7px; }
+  .count.attn { background: var(--attention); color: #fff; }
+  :root[data-theme=&#34;dark&#34;] .count.attn, .count.attn { color: #241700; }
+
+  /* faux work item */
+  .doc-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-4); }
+  .doc h1 { font-size: 24px; margin: 8px 0 14px; letter-spacing: -.01em; }
+  .meta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+  .meta-row .k { color: var(--ink-4); font-size: 12px; }
+  .chip-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px;
+    background: var(--surface-2); font-size: 12px; }
+  .doc p.body { color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+  .inline-ind { display: inline-flex; align-items: center; gap: 7px; border: 1px dashed var(--line-2);
+    background: var(--surface); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; color: var(--ink-2);
+    transition: .14s; }
+  .inline-ind:hover { border-color: var(--live); }
+
+  /* panel */
+  .panel { width: 360px; flex: none; border-left: 1px solid var(--line); background: var(--surface);
+    display: flex; flex-direction: column; transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    position: relative; }
+  .panel.open { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce){ .panel{transition:none} }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px;
+    border-bottom: 1px solid var(--line); flex: none; }
+  .panel-head .t { display: flex; align-items: center; gap: 9px; font-weight: 620; font-size: 14px; }
+  .panel-head .s { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+  .icon-btn { border: 0; background: none; color: var(--ink-3); font-size: 16px; padding: 4px; border-radius: 6px; line-height: 1; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .panel-body { overflow: auto; flex: 1; }
+
+  .group-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-4); padding: 14px 15px 5px; }
+  .group-label.attn { color: var(--attention); }
+
+  .run { padding: 12px 15px; border-bottom: 1px solid var(--line); display: grid;
+    grid-template-columns: auto 1fr; gap: 11px; align-items: start; cursor: pointer; transition: background .12s; }
+  .run:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+  .glyph { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; margin-top: 1px; }
+  .g-live{color:var(--live);background:var(--live-soft)} .g-attn{color:var(--attention);background:var(--attention-soft)}
+  .g-ok{color:var(--success);background:var(--success-soft)} .g-q{color:var(--queued);background:var(--surface-2)}
+  .g-bad{color:var(--fail);background:var(--fail-soft)}
+  .run .name { font-size: 13.5px; font-weight: 560; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .run .sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+  .chip { font-family: var(--font-mono); font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 5px; font-weight: 600; white-space: nowrap; }
+  .c-live{color:var(--live);background:var(--live-soft)} .c-attn{color:var(--attention);background:var(--attention-soft)}
+  .c-ok{color:var(--success);background:var(--success-soft)} .c-q{color:var(--queued);background:var(--surface-2)}
+  .c-bad{color:var(--fail);background:var(--fail-soft)}
+  .steps { display: flex; gap: 3px; margin-top: 8px; }
+  .steps i { height: 4px; border-radius: 2px; flex: 1; background: var(--surface-2); transition: background .3s; }
+  .steps i.on { background: var(--live); }
+  .actions { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .btn { font-family: var(--font-mono); font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 10px;
+    border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); transition: .12s; }
+  .btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .btn.primary { background: var(--attention); border-color: var(--attention); color: #241700; }
+  .btn.link { border: 0; padding: 4px 2px; color: var(--accent); background: none; }
+  .btn.danger:hover { border-color: var(--fail); color: var(--fail); }
+  .empty { padding: 40px 20px; text-align: center; color: var(--ink-4); font-size: 13px; }
+
+  /* detail */
+  .detail { position: absolute; inset: 0; background: var(--surface); display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform .26s cubic-bezier(.4,0,.2,1); }
+  .detail.open { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce){ .detail{transition:none} }
+  .detail-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .detail-body { overflow: auto; flex: 1; padding: 16px; }
+  .timeline { list-style: none; margin: 12px 0 0; padding: 0; }
+  .timeline li { display: flex; gap: 10px; font-size: 12.5px; padding: 5px 0; color: var(--ink-2); }
+  .timeline .tm { font-family: var(--font-mono); color: var(--ink-4); font-size: 10px; margin-left: auto; }
+  .tl-dot { width: 14px; text-align: center; color: var(--ink-4); }
+  .tl-dot.run { color: var(--live); } .tl-dot.ok { color: var(--success); } .tl-dot.bad { color: var(--fail); }
+  .steerform { display: flex; gap: 7px; margin-top: 16px; }
+  .steerform input { flex: 1; font-size: 12.5px; border: 1px solid var(--line-2); border-radius: 7px;
+    padding: 7px 10px; background: var(--surface-2); color: var(--ink); }
+  .steerform input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+  .callout-appr { margin-top: 14px; border: 1px solid color-mix(in srgb, var(--attention) 35%, transparent);
+    background: var(--attention-soft); border-radius: 10px; padding: 12px 13px; font-size: 12.5px; color: var(--ink); }
+  .kv { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+  /* demo controls */
+  .demobar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    border-top: 1px solid var(--line); background: var(--surface-2); font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--ink-3); flex-wrap: wrap; }
+  .demobar .tag { color: var(--ink-4); letter-spacing: .06em; text-transform: uppercase; }
+  .dbtn { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 6px;
+    padding: 4px 10px; font-family: var(--font-mono); font-size: 11.5px; }
+  .dbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+  .toast { position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 8px 14px; border-radius: 8px;
+    pointer-events: none; transition: .25s; font-family: var(--font-mono); z-index: 50; }
+  .toast.show { opacity: .96; transform: translateX(-50%) translateY(0); }
+  .flash { animation: flash .6s ease; }
+  @keyframes flash { 0%{background:color-mix(in srgb,var(--accent) 12%,transparent)} 100%{background:transparent} }
+&lt;/style&gt;
+
+&lt;div class=&#34;app&#34;&gt;
+  &lt;div class=&#34;topbar&#34;&gt;
+    &lt;div class=&#34;brand&#34;&gt;&lt;span class=&#34;sq&#34;&gt;&lt;/span&gt; Plane &lt;span class=&#34;crumb&#34;&gt;· Mobile App&lt;/span&gt;&lt;/div&gt;
+    &lt;button class=&#34;pip&#34; id=&#34;pip&#34; onclick=&#34;togglePanel()&#34;&gt;
+      &lt;span class=&#34;dot&#34; id=&#34;pipdot&#34;&gt;&lt;/span&gt; Agents &lt;span class=&#34;count&#34; id=&#34;pipcount&#34; style=&#34;display:none&#34;&gt;&lt;/span&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&#34;main&#34;&gt;
+    &lt;div class=&#34;content&#34;&gt;
+      &lt;div class=&#34;content-inner&#34;&gt;
+        &lt;div class=&#34;doc-eyebrow&#34;&gt;PLAT-482 · Work item&lt;/div&gt;
+        &lt;h1&gt;Crash on cold-start when offline cache is stale&lt;/h1&gt;
+        &lt;div class=&#34;meta-row&#34;&gt;
+          &lt;span&gt;&lt;span class=&#34;k&#34;&gt;Status&lt;/span&gt; · In progress&lt;/span&gt;
+          &lt;span&gt;&lt;span class=&#34;k&#34;&gt;Assignee&lt;/span&gt; · A. Rivera&lt;/span&gt;
+          &lt;span class=&#34;k&#34;&gt;Agents&lt;/span&gt;
+          &lt;span id=&#34;inline-slot&#34;&gt;&lt;!-- inline indicator injected --&gt;&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;p class=&#34;body&#34;&gt;Reproduced on 3 devices. The agent below is triaging incoming reports and labelling
+          duplicates. Open the &lt;strong&gt;Agents&lt;/strong&gt; panel (top-right) to watch it work, steer it, or step in when it
+          needs you — nothing here will interrupt you to do so.&lt;/p&gt;
+        &lt;p class=&#34;body&#34; style=&#34;color:var(--ink-4);font-size:13px&#34;&gt;This is a freestanding wireframe. Data + the live
+          stream are simulated in-page. Use the demo controls at the bottom to drive it.&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- PANEL --&gt;
+    &lt;aside class=&#34;panel&#34; id=&#34;panel&#34;&gt;
+      &lt;div class=&#34;panel-head&#34;&gt;
+        &lt;span class=&#34;t&#34;&gt;&lt;span class=&#34;dot&#34; id=&#34;paneldot&#34;&gt;&lt;/span&gt; Agents&lt;/span&gt;
+        &lt;span style=&#34;display:flex;align-items:center;gap:8px&#34;&gt;
+          &lt;span class=&#34;s&#34; id=&#34;panelsub&#34;&gt;&lt;/span&gt;
+          &lt;button class=&#34;icon-btn&#34; onclick=&#34;togglePanel()&#34; aria-label=&#34;Close&#34;&gt;✕&lt;/button&gt;
+        &lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&#34;panel-body&#34; id=&#34;panelbody&#34;&gt;&lt;/div&gt;
+
+      &lt;!-- DETAIL overlay --&gt;
+      &lt;div class=&#34;detail&#34; id=&#34;detail&#34;&gt;
+        &lt;div class=&#34;detail-head&#34;&gt;
+          &lt;button class=&#34;icon-btn&#34; onclick=&#34;closeDetail()&#34; aria-label=&#34;Back&#34;&gt;‹&lt;/button&gt;
+          &lt;span class=&#34;t&#34; id=&#34;detailtitle&#34; style=&#34;font-size:14px;font-weight:620&#34;&gt;&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class=&#34;detail-body&#34; id=&#34;detailbody&#34;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/aside&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&#34;demobar&#34;&gt;
+    &lt;span class=&#34;tag&#34;&gt;Demo controls&lt;/span&gt;
+    &lt;button class=&#34;dbtn&#34; id=&#34;playbtn&#34; onclick=&#34;toggleSim()&#34;&gt;⏸ Pause stream&lt;/button&gt;
+    &lt;button class=&#34;dbtn&#34; onclick=&#34;simRefresh()&#34;&gt;⟳ Simulate refresh&lt;/button&gt;
+    &lt;button class=&#34;dbtn&#34; onclick=&#34;resetSim()&#34;&gt;↺ Reset&lt;/button&gt;
+    &lt;span style=&#34;margin-left:auto&#34; id=&#34;clock&#34;&gt;t+0.0s&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;toast&#34; id=&#34;toast&#34;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+&#34;use strict&#34;;
+// ---- faithful-ish state model (mirrors @plane/agents contract) ----
+const TARGET = { entityType: &#34;work_item&#34;, entityId: &#34;PLAT-482&#34;, entityName: &#34;PLAT-482 · Cold-start crash&#34; };
+function seed() {
+  return [
+    { id: &#34;r_close&#34;, agentKey: &#34;sprint-tidy&#34;, title: &#34;Close stale sprint items&#34;, status: &#34;running&#34;,
+      _script: &#34;approval&#34;, steps: [{id:&#34;s1&#34;,label:&#34;Scan sprint board&#34;,status:&#34;succeeded&#34;}], progress:{currentStep:1,totalSteps:2} },
+    { id: &#34;r_triage&#34;, agentKey: &#34;triage&#34;, title: &#34;Triage incoming reports&#34;, status: &#34;running&#34;, target: TARGET,
+      _script: &#34;advance&#34;, steps: [{id:&#34;a&#34;,label:&#34;Fetch new reports&#34;,status:&#34;succeeded&#34;},{id:&#34;b&#34;,label:&#34;Cluster duplicates&#34;,status:&#34;succeeded&#34;},{id:&#34;c&#34;,label:&#34;Label PLAT-482&#34;,status:&#34;running&#34;}],
+      progress: { currentStep: 3, totalSteps: 7 } },
+    { id: &#34;r_notes&#34;, agentKey: &#34;release-notes&#34;, title: &#34;Draft release notes&#34;, status: &#34;queued&#34;, _script: &#34;waitTriage&#34;,
+      steps: [], progress: null },
+    { id: &#34;r_sum&#34;, agentKey: &#34;summarize&#34;, title: &#34;Summarize customer feedback&#34;, status: &#34;succeeded&#34;,
+      steps: [{id:&#34;x&#34;,label:&#34;Read 42 comments&#34;,status:&#34;succeeded&#34;},{id:&#34;y&#34;,label:&#34;Write summary&#34;,status:&#34;succeeded&#34;}],
+      result: { summary: &#34;Wrote a summary to the cycle&#34;, reviewUrl: &#34;#review&#34; }, _done: true },
+  ];
+}
+let runs = seed();
+let selected = null, panelOpen = false, simOn = true, t = 0;
+const BLOCKED = [&#34;waiting_for_input&#34;,&#34;awaiting_approval&#34;];
+const TERMINAL = [&#34;succeeded&#34;,&#34;failed&#34;,&#34;cancelled&#34;];
+const isActive = r =&gt; !TERMINAL.includes(r.status);
+
+// ---- glyph / chip presentation ----
+function pres(s){
+  return ({
+    running:[&#34;Running&#34;,&#34;live&#34;], queued:[&#34;Queued&#34;,&#34;q&#34;], paused:[&#34;Paused&#34;,&#34;q&#34;],
+    waiting_for_input:[&#34;Needs you&#34;,&#34;attn&#34;], awaiting_approval:[&#34;Needs you&#34;,&#34;attn&#34;],
+    succeeded:[&#34;Done&#34;,&#34;ok&#34;], failed:[&#34;Failed&#34;,&#34;bad&#34;], cancelled:[&#34;Cancelled&#34;,&#34;q&#34;],
+  })[s] || [&#34;Unknown&#34;,&#34;q&#34;];
+}
+const GLY = { running:[&#34;▶&#34;,&#34;live&#34;], queued:[&#34;…&#34;,&#34;q&#34;], awaiting_approval:[&#34;‖&#34;,&#34;attn&#34;], waiting_for_input:[&#34;?&#34;,&#34;attn&#34;],
+  succeeded:[&#34;✓&#34;,&#34;ok&#34;], failed:[&#34;✕&#34;,&#34;bad&#34;], cancelled:[&#34;–&#34;,&#34;q&#34;], paused:[&#34;‖&#34;,&#34;q&#34;] };
+
+// ---- simulation engine ----
+function tick(){
+  if(!simOn) return;
+  t += 0.6; document.getElementById(&#34;clock&#34;).textContent = &#34;t+&#34;+t.toFixed(1)+&#34;s&#34;;
+  runs.forEach(r=&gt;{
+    if(r._done) return;
+    if(r._script===&#34;advance&#34; &amp;&amp; r.status===&#34;running&#34;){
+      if(r.progress.currentStep &lt; r.progress.totalSteps){
+        // advance a step every ~2 ticks
+        if(Math.floor(t)%2===0){
+          const done = r.progress.currentStep;
+          if(r.steps[done-1]) r.steps[done-1].status=&#34;succeeded&#34;;
+          r.progress.currentStep++;
+          const labels=[&#34;Fetch new reports&#34;,&#34;Cluster duplicates&#34;,&#34;Label PLAT-482&#34;,&#34;Check severity&#34;,&#34;Assign owner&#34;,&#34;Link related&#34;,&#34;Post summary&#34;];
+          r.steps.push({id:&#34;st&#34;+r.progress.currentStep,label:labels[r.progress.currentStep-1]||&#34;Working&#34;,status:&#34;running&#34;});
+        }
+      } else {
+        r.status=&#34;succeeded&#34;; r._done=true;
+        r.result={summary:&#34;Labelled + linked 6 reports&#34;, reviewUrl:&#34;#review&#34;};
+        r.steps.forEach(s=&gt;s.status=&#34;succeeded&#34;);
+        notify(&#34;Triage finished — no interruption&#34;);
+      }
+    }
+    if(r._script===&#34;approval&#34; &amp;&amp; r.status===&#34;running&#34;){
+      if(t&gt;2.4){ r.status=&#34;awaiting_approval&#34;; r._approval={summary:&#34;close 12 items&#34;, irreversible:true};
+        notify(&#34;A run needs your approval&#34;); }
+    }
+    if(r._script===&#34;waitTriage&#34; &amp;&amp; r.status===&#34;queued&#34;){
+      const triage = runs.find(x=&gt;x.id===&#34;r_triage&#34;);
+      if(triage &amp;&amp; triage._done){ r.status=&#34;running&#34;; r._script=&#34;advance&#34;;
+        r.progress={currentStep:1,totalSteps:4}; r.steps=[{id:&#34;n1&#34;,label:&#34;Collect merged items&#34;,status:&#34;running&#34;}]; }
+    }
+  });
+  render();
+}
+
+// ---- command dispatch (user → agent) ----
+function cmd(id, type){
+  const r = runs.find(x=&gt;x.id===id); if(!r) return;
+  if(type===&#34;cancel&#34;){ r.status=&#34;cancelled&#34;; r._done=true; notify(&#34;Stopped — in-flight work dropped&#34;); }
+  if(type===&#34;approve&#34;){ r.status=&#34;succeeded&#34;; r._done=true; r.result={summary:&#34;Closed 12 stale items&#34;, reviewUrl:&#34;#review&#34;};
+    r.steps.push({id:&#34;ap&#34;,label:&#34;Closed 12 items&#34;,status:&#34;succeeded&#34;}); notify(&#34;Approved&#34;); }
+  if(type===&#34;reject&#34;){ r.status=&#34;cancelled&#34;; r._done=true; notify(&#34;Rejected — nothing closed&#34;); }
+  if(type===&#34;retry&#34;){ r.status=&#34;running&#34;; r._done=false; r._script=&#34;advance&#34;; r.progress={currentStep:1,totalSteps:4};
+    r.steps=[{id:&#34;rt&#34;,label:&#34;Retrying from checkpoint&#34;,status:&#34;running&#34;}]; notify(&#34;Retrying&#34;); }
+  render();
+}
+function steer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.steps.push({id:&#34;steer&#34;+Date.now(), label:&#34;↳ steer: &#34;+text.trim(), status:&#34;running&#34;, _steer:true});
+  notify(&#34;Guidance sent — run continues&#34;); render();
+}
+function answer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.status=&#34;running&#34;; r.steps.push({id:&#34;ans&#34;+Date.now(),label:&#34;You: &#34;+text.trim(),status:&#34;succeeded&#34;});
+  notify(&#34;Answer sent&#34;); render();
+}
+
+// ---- rendering ----
+function grouped(){
+  const g={blocked:[],running:[],queued:[],done:[]};
+  runs.forEach(r=&gt;{ if(BLOCKED.includes(r.status))g.blocked.push(r);
+    else if(r.status===&#34;running&#34;)g.running.push(r); else if(r.status===&#34;queued&#34;)g.queued.push(r);
+    else if(TERMINAL.includes(r.status))g.done.push(r); });
+  return g;
+}
+function activeCount(){ return runs.filter(isActive).length; }
+function blockedCount(){ return runs.filter(r=&gt;BLOCKED.includes(r.status)).length; }
+
+function runRow(r){
+  const [glabel,gc]=GLY[r.status]||[&#34;·&#34;,&#34;q&#34;]; const [clabel,cc]=pres(r.status);
+  const steps = (r.status===&#34;running&#34; &amp;&amp; r.progress) ? `&lt;div class=&#34;steps&#34;&gt;${
+    Array.from({length:r.progress.totalSteps}).map((_,i)=&gt;`&lt;i class=&#34;${i&lt;r.progress.currentStep?&#39;on&#39;:&#39;&#39;}&#34;&gt;&lt;/i&gt;`).join(&#34;&#34;)
+  }&lt;/div&gt;&lt;div class=&#34;sub&#34;&gt;step ${r.progress.currentStep} of ${r.progress.totalSteps}${r.target?&#34; · steerable&#34;:&#34;&#34;}&lt;/div&gt;` : &#34;&#34;;
+  let acts=&#34;&#34;;
+  if(r.status===&#34;awaiting_approval&#34;) acts=`&lt;div class=&#34;actions&#34;&gt;
+    &lt;button class=&#34;btn primary&#34; onclick=&#34;event.stopPropagation();cmd(&#39;${r.id}&#39;,&#39;approve&#39;)&#34;&gt;Approve&lt;/button&gt;
+    &lt;button class=&#34;btn&#34; onclick=&#34;event.stopPropagation();cmd(&#39;${r.id}&#39;,&#39;reject&#39;)&#34;&gt;Reject&lt;/button&gt;
+    &lt;button class=&#34;btn link&#34; onclick=&#34;event.stopPropagation();open_(&amp;quot;${r.id}&amp;quot;)&#34;&gt;Review 12 →&lt;/button&gt;&lt;/div&gt;`;
+  else if(r.status===&#34;running&#34;||r.status===&#34;queued&#34;) acts=`&lt;div class=&#34;actions&#34;&gt;
+    &lt;button class=&#34;btn danger&#34; onclick=&#34;event.stopPropagation();cmd(&#39;${r.id}&#39;,&#39;cancel&#39;)&#34;&gt;Stop&lt;/button&gt;&lt;/div&gt;`;
+  else if(r.status===&#34;failed&#34;) acts=`&lt;div class=&#34;actions&#34;&gt;&lt;button class=&#34;btn&#34; onclick=&#34;event.stopPropagation();cmd(&#39;${r.id}&#39;,&#39;retry&#39;)&#34;&gt;Retry&lt;/button&gt;&lt;/div&gt;`;
+  else if(r.status===&#34;succeeded&#34;&amp;&amp;r.result&amp;&amp;r.result.reviewUrl) acts=`&lt;div class=&#34;actions&#34;&gt;&lt;button class=&#34;btn link&#34; onclick=&#34;event.stopPropagation();open_(&amp;quot;${r.id}&amp;quot;)&#34;&gt;Review changes →&lt;/button&gt;&lt;/div&gt;`;
+  const targ = r.target ? `&lt;div class=&#34;sub&#34;&gt;${r.target.entityName}&lt;/div&gt;` : (r._approval?`&lt;div class=&#34;sub&#34;&gt;wants to ${r._approval.summary} · &lt;span style=&#34;color:var(--attention)&#34;&gt;irreversible&lt;/span&gt;&lt;/div&gt;`:&#34;&#34;);
+  const doneNote = (r.status===&#34;succeeded&#34;&amp;&amp;r.result)?`&lt;div class=&#34;sub&#34;&gt;${r.result.summary}&lt;/div&gt;`:&#34;&#34;;
+  return `&lt;div class=&#34;run&#34; role=&#34;status&#34; aria-live=&#34;polite&#34; onclick=&#34;open_(&#39;${r.id}&#39;)&#34;&gt;
+    &lt;span class=&#34;glyph g-${gc}&#34;&gt;${glabel}&lt;/span&gt;
+    &lt;div&gt;&lt;div class=&#34;name&#34;&gt;${r.title} &lt;span class=&#34;chip c-${cc}&#34;&gt;${clabel}&lt;/span&gt;&lt;/div&gt;
+      ${targ}${doneNote}${steps}${acts}&lt;/div&gt;&lt;/div&gt;`;
+}
+function render(){
+  // pip
+  const ac=activeCount(), bc=blockedCount();
+  const pd=document.getElementById(&#34;pipdot&#34;), pdd=document.getElementById(&#34;paneldot&#34;);
+  pd.className=pdd.className=&#34;dot&#34;+(ac&gt;0?&#34; live&#34;:&#34;&#34;);
+  const pc=document.getElementById(&#34;pipcount&#34;);
+  if(ac&gt;0){ pc.style.display=&#34;&#34;; pc.textContent=ac; pc.className=&#34;count&#34;+(bc&gt;0?&#34; attn&#34;:&#34;&#34;); }
+  else pc.style.display=&#34;none&#34;;
+  document.getElementById(&#34;pip&#34;).className=&#34;pip&#34;+(panelOpen?&#34; armed&#34;:&#34;&#34;);
+  document.getElementById(&#34;panelsub&#34;).textContent = `${ac} active · ${runs.length} today`;
+  // inline indicator
+  const forItem = runs.filter(r=&gt;r.target&amp;&amp;r.target.entityId===TARGET.entityId&amp;&amp;isActive(r));
+  const slot=document.getElementById(&#34;inline-slot&#34;);
+  if(forItem.length){ const p=forItem[0]; const [cl,cc]=pres(p.status);
+    slot.innerHTML=`&lt;button class=&#34;inline-ind&#34; onclick=&#34;open_(&#39;${p.id}&#39;)&#34;&gt;🤖 &lt;span class=&#34;chip c-${cc}&#34;&gt;${cl}&lt;/span&gt;${forItem.length&gt;1?` +${forItem.length-1}`:&#34;&#34;}&lt;/button&gt;`;
+  } else slot.innerHTML=`&lt;span class=&#34;chip-badge&#34; style=&#34;color:var(--ink-4)&#34;&gt;none active&lt;/span&gt;`;
+  // panel list
+  const g=grouped();
+  const sec=(key,label,attn)=&gt; g[key].length?`&lt;div class=&#34;group-label ${attn?&#39;attn&#39;:&#39;&#39;}&#34;&gt;${label}&lt;/div&gt;${g[key].map(runRow).join(&#34;&#34;)}`:&#34;&#34;;
+  const html = sec(&#34;blocked&#34;,&#34;Needs you&#34;,true)+sec(&#34;running&#34;,&#34;Running&#34;)+sec(&#34;queued&#34;,&#34;Queued&#34;)+sec(&#34;done&#34;,&#34;Recently done&#34;);
+  document.getElementById(&#34;panelbody&#34;).innerHTML = html || `&lt;div class=&#34;empty&#34;&gt;No agent activity yet.&lt;/div&gt;`;
+  // detail
+  if(selected){ const r=runs.find(x=&gt;x.id===selected); if(r) renderDetail(r); else closeDetail(); }
+}
+function renderDetail(r){
+  document.getElementById(&#34;detailtitle&#34;).textContent=r.title;
+  const gd=t=&gt;t===&#34;succeeded&#34;?&#34;ok&#34;:t===&#34;running&#34;?&#34;run&#34;:t===&#34;failed&#34;?&#34;bad&#34;:&#34;&#34;;
+  const glyf=t=&gt;t===&#34;succeeded&#34;?&#34;✓&#34;:t===&#34;running&#34;?&#34;▶&#34;:t===&#34;failed&#34;?&#34;✕&#34;:&#34;·&#34;;
+  let extra=&#34;&#34;;
+  if(r.status===&#34;awaiting_approval&#34;) extra=`&lt;div class=&#34;callout-appr&#34;&gt;Wants to &lt;b&gt;${r._approval.summary}&lt;/b&gt;.
+    &lt;span class=&#34;kv&#34;&gt;${r._approval.irreversible?&#34;irreversible&#34;:&#34;&#34;}&lt;/span&gt;
+    &lt;div class=&#34;actions&#34; style=&#34;margin-top:10px&#34;&gt;
+      &lt;button class=&#34;btn primary&#34; onclick=&#34;cmd(&#39;${r.id}&#39;,&#39;approve&#39;)&#34;&gt;Approve&lt;/button&gt;
+      &lt;button class=&#34;btn&#34; onclick=&#34;cmd(&#39;${r.id}&#39;,&#39;reject&#39;)&#34;&gt;Reject&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;`;
+  else if(r.status===&#34;waiting_for_input&#34;) extra=`&lt;form class=&#34;steerform&#34; onsubmit=&#34;answer(&#39;${r.id}&#39;,this.q.value);this.q.value=&#39;&#39;;return false&#34;&gt;
+    &lt;input name=&#34;q&#34; placeholder=&#34;Answer the agent…&#34; autocomplete=&#34;off&#34;&gt;&lt;button class=&#34;btn&#34; type=&#34;submit&#34;&gt;Send&lt;/button&gt;&lt;/form&gt;`;
+  else if(r.status===&#34;running&#34;) extra=`&lt;form class=&#34;steerform&#34; onsubmit=&#34;steer(&#39;${r.id}&#39;,this.q.value);this.q.value=&#39;&#39;;return false&#34;&gt;
+    &lt;input name=&#34;q&#34; placeholder=&#34;Steer this run…&#34; autocomplete=&#34;off&#34;&gt;&lt;button class=&#34;btn&#34; type=&#34;submit&#34;&gt;Send&lt;/button&gt;&lt;/form&gt;`;
+  else if(r.status===&#34;succeeded&#34;&amp;&amp;r.result) extra=`&lt;div class=&#34;callout-appr&#34; style=&#34;background:var(--success-soft);border-color:color-mix(in srgb,var(--success) 35%,transparent)&#34;&gt;
+    ${r.result.summary}. ${r.result.reviewUrl?&#39;&lt;a href=&#34;#&#34; onclick=&#34;return false&#34; style=&#34;color:var(--accent)&#34;&gt;Review changes →&lt;/a&gt;&#39;:&#39;&#39;}&lt;/div&gt;`;
+  document.getElementById(&#34;detailbody&#34;).innerHTML=
+    `&lt;div class=&#34;sub kv&#34;&gt;${r.agentKey}${r.target?&#34; · &#34;+r.target.entityName:&#34;&#34;}&lt;/div&gt;
+     &lt;ul class=&#34;timeline&#34;&gt;${(r.steps||[]).map(s=&gt;`&lt;li&gt;&lt;span class=&#34;tl-dot ${gd(s.status)}&#34;&gt;${s._steer?&#34;↳&#34;:glyf(s.status)}&lt;/span&gt; &lt;span&gt;${s.label}&lt;/span&gt;&lt;/li&gt;`).join(&#34;&#34;)||&#39;&lt;li class=&#34;sub&#34;&gt;No steps yet.&lt;/li&gt;&#39;}&lt;/ul&gt;${extra}`;
+}
+function open_(id){ selected=id; if(!panelOpen) togglePanel(true);
+  document.getElementById(&#34;detail&#34;).classList.add(&#34;open&#34;); render(); }
+function closeDetail(){ selected=null; document.getElementById(&#34;detail&#34;).classList.remove(&#34;open&#34;); }
+function togglePanel(force){ panelOpen = force===true?true:!panelOpen;
+  document.getElementById(&#34;panel&#34;).classList.toggle(&#34;open&#34;,panelOpen);
+  if(!panelOpen) closeDetail(); render(); }
+
+// ---- demo controls ----
+function toggleSim(){ simOn=!simOn; document.getElementById(&#34;playbtn&#34;).textContent=simOn?&#34;⏸ Pause stream&#34;:&#34;▶ Resume stream&#34;; }
+function simRefresh(){ // durability: client is a projection — rehydrate from &#34;server&#34; (current runs), flash
+  notify(&#34;Refreshed — rehydrated from server snapshot&#34;);
+  document.getElementById(&#34;panelbody&#34;).classList.add(&#34;flash&#34;);
+  setTimeout(()=&gt;document.getElementById(&#34;panelbody&#34;).classList.remove(&#34;flash&#34;),600);
+  render();
+}
+function resetSim(){ runs=seed(); selected=null; t=0; closeDetail(); render(); notify(&#34;Reset&#34;); }
+let toastT;
+function notify(msg){ const el=document.getElementById(&#34;toast&#34;); el.textContent=msg; el.classList.add(&#34;show&#34;);
+  clearTimeout(toastT); toastT=setTimeout(()=&gt;el.classList.remove(&#34;show&#34;),1900); }
+
+render();
+setInterval(tick, 1200);
+&lt;/script&gt;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-50-53-373Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-50-53-373Z" class="timestamp-link"><time datetime="2026-07-10T20:50:53.373Z" data-timestamp="2026-07-10T20:50:53.373Z">2026-07-10T20:50:53.373Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-10-381Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-10-381Z" class="timestamp-link"><time datetime="2026-07-10T20:51:10.381Z" data-timestamp="2026-07-10T20:51:10.381Z">2026-07-10T20:51:10.381Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-13-047Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-13-047Z" class="timestamp-link"><time datetime="2026-07-10T20:51:13.047Z" data-timestamp="2026-07-10T20:51:13.047Z">2026-07-10T20:51:13.047Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>One faithfulness fix before publishing: my prototype fired toasts on agent events (completion, stop, steer) — which contradicts the whole "no toast spam" thesis it's meant to demonstrate. Correcting so only the <strong>one budgeted interrupt</strong> (a run needs your approval) surfaces a notification; every other state change is silent — the pip count and panel just update. Demo-control feedback (refresh/reset) stays.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-17-619Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-17-619Z" class="timestamp-link"><time datetime="2026-07-10T20:51:17.619Z" data-timestamp="2026-07-10T20:51:17.619Z">2026-07-10T20:51:17.619Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01QbPxsSy3ZrJx2RmsX2yVuK">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">2026-07-10-agent-task-visibility-prototype.html</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      } else {
+        r.status=&#34;succeeded&#34;; r._done=true;
+        r.result={summary:&#34;Labelled + linked 6 reports&#34;, reviewUrl:&#34;#review&#34;};
+        r.steps.forEach(s=&gt;s.status=&#34;succeeded&#34;);
+        notify(&#34;Triage finished — no interruption&#34;);
+      }
+    }
+    if(r._script===&#34;approval&#34; &amp;&amp; r.status===&#34;running&#34;){
+      if(t&gt;2.4){ r.status=&#34;awaiting_approval&#34;; r._approval={summary:&#34;close 12 items&#34;, irreversible:true};
+        notify(&#34;A run needs your approval&#34;); }
+    }</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      } else {
+        r.status=&#34;succeeded&#34;; r._done=true;
+        r.result={summary:&#34;Labelled + linked 6 reports&#34;, reviewUrl:&#34;#review&#34;};
+        r.steps.forEach(s=&gt;s.status=&#34;succeeded&#34;);
+        // completion is SILENT — the row just moves to &#34;Recently done&#34;
+      }
+    }
+    if(r._script===&#34;approval&#34; &amp;&amp; r.status===&#34;running&#34;){
+      if(t&gt;2.4){ r.status=&#34;awaiting_approval&#34;; r._approval={summary:&#34;close 12 items&#34;, irreversible:true};
+        notify(&#34;A run needs you — 1 decision&#34;); } // the ONE budgeted interrupt
+    }</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-51-17-654Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-51-17-654Z" class="timestamp-link"><time datetime="2026-07-10T20:51:17.654Z" data-timestamp="2026-07-10T20:51:17.654Z">2026-07-10T20:51:17.654Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-29-224Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-29-224Z" class="timestamp-link"><time datetime="2026-07-10T20:51:29.224Z" data-timestamp="2026-07-10T20:51:29.224Z">2026-07-10T20:51:29.224Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-30-161Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-30-161Z" class="timestamp-link"><time datetime="2026-07-10T20:51:30.161Z" data-timestamp="2026-07-10T20:51:30.161Z">2026-07-10T20:51:30.161Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now removing the remaining agent-event toasts (stop/approve/steer/answer) so the prototype stays true to the quiet thesis — row changes speak for themselves.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-40-697Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-40-697Z" class="timestamp-link"><time datetime="2026-07-10T20:51:40.697Z" data-timestamp="2026-07-10T20:51:40.697Z">2026-07-10T20:51:40.697Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_014KKrcFFCLf8nZFpdCVyxrB">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">2026-07-10-agent-task-visibility-prototype.html</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">function cmd(id, type){
+  const r = runs.find(x=&gt;x.id===id); if(!r) return;
+  if(type===&#34;cancel&#34;){ r.status=&#34;cancelled&#34;; r._done=true; notify(&#34;Stopped — in-flight work dropped&#34;); }
+  if(type===&#34;approve&#34;){ r.status=&#34;succeeded&#34;; r._done=true; r.result={summary:&#34;Closed 12 stale items&#34;, reviewUrl:&#34;#review&#34;};
+    r.steps.push({id:&#34;ap&#34;,label:&#34;Closed 12 items&#34;,status:&#34;succeeded&#34;}); notify(&#34;Approved&#34;); }
+  if(type===&#34;reject&#34;){ r.status=&#34;cancelled&#34;; r._done=true; notify(&#34;Rejected — nothing closed&#34;); }
+  if(type===&#34;retry&#34;){ r.status=&#34;running&#34;; r._done=false; r._script=&#34;advance&#34;; r.progress={currentStep:1,totalSteps:4};
+    r.steps=[{id:&#34;rt&#34;,label:&#34;Retrying from checkpoint&#34;,status:&#34;running&#34;}]; notify(&#34;Retrying&#34;); }
+  render();
+}
+function steer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.steps.push({id:&#34;steer&#34;+Date.now(), label:&#34;↳ steer: &#34;+text.trim(), status:&#34;running&#34;, _steer:true});
+  notify(&#34;Guidance sent — run continues&#34;); render();
+}
+function answer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.status=&#34;running&#34;; r.steps.push({id:&#34;ans&#34;+Date.now(),label:&#34;You: &#34;+text.trim(),status:&#34;succeeded&#34;});
+  notify(&#34;Answer sent&#34;); render();
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">function cmd(id, type){
+  // all of these are SILENT — the row visibly updates; no toast (that&#39;s the thesis)
+  const r = runs.find(x=&gt;x.id===id); if(!r) return;
+  if(type===&#34;cancel&#34;){ r.status=&#34;cancelled&#34;; r._done=true; }
+  if(type===&#34;approve&#34;){ r.status=&#34;succeeded&#34;; r._done=true; r.result={summary:&#34;Closed 12 stale items&#34;, reviewUrl:&#34;#review&#34;};
+    r.steps.push({id:&#34;ap&#34;,label:&#34;Closed 12 items&#34;,status:&#34;succeeded&#34;}); }
+  if(type===&#34;reject&#34;){ r.status=&#34;cancelled&#34;; r._done=true; }
+  if(type===&#34;retry&#34;){ r.status=&#34;running&#34;; r._done=false; r._script=&#34;advance&#34;; r.progress={currentStep:1,totalSteps:4};
+    r.steps=[{id:&#34;rt&#34;,label:&#34;Retrying from checkpoint&#34;,status:&#34;running&#34;}]; }
+  render();
+}
+function steer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.steps.push({id:&#34;steer&#34;+Date.now(), label:&#34;↳ steer: &#34;+text.trim(), status:&#34;running&#34;, _steer:true});
+  render();
+}
+function answer(id, text){
+  const r = runs.find(x=&gt;x.id===id); if(!r||!text.trim()) return;
+  r.status=&#34;running&#34;; r.steps.push({id:&#34;ans&#34;+Date.now(),label:&#34;You: &#34;+text.trim(),status:&#34;succeeded&#34;});
+  render();
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-51-40-752Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-51-40-752Z" class="timestamp-link"><time datetime="2026-07-10T20:51:40.752Z" data-timestamp="2026-07-10T20:51:40.752Z">2026-07-10T20:51:40.752Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-42-982Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-42-982Z" class="timestamp-link"><time datetime="2026-07-10T20:51:42.982Z" data-timestamp="2026-07-10T20:51:42.982Z">2026-07-10T20:51:42.982Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Publishing the wireframe, and setting up the demo-data task in parallel.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-45-506Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-45-506Z" class="timestamp-link"><time datetime="2026-07-10T20:51:45.506Z" data-timestamp="2026-07-10T20:51:45.506Z">2026-07-10T20:51:45.506Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KRLg3QrASgE3ceZoATLAHg"><div class="tool-header"><span class="tool-icon">⚙</span> Artifact</div><div class="tool-description">Interactive freestanding wireframe of calm agent-task visibility in Plane — simulated live stream, inline approval, steer, stop, and refresh-durability.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html&#34;,
+  &#34;favicon&#34;: &#34;🛰️&#34;,
+  &#34;label&#34;: &#34;prototype-v1&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-51-47-642Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-51-47-642Z" class="timestamp-link"><time datetime="2026-07-10T20:51:47.642Z" data-timestamp="2026-07-10T20:51:47.642Z">2026-07-10T20:51:47.642Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Published /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html at https://claude.ai/code/artifact/191f001d-d40f-4aa7-97ca-5ae132fbd46b
+
+To update: republish the same file path in this conversation (keeps this URL), or pass the URL as `url` from any other conversation — a conversation that didn&#x27;t publish this artifact otherwise mints a new URL. Artifacts are private unless shared from the page&#x27;s share menu; with Claude Code on the web, the user can browse theirs at claude.ai/code/artifacts.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-51-48-266Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-51-48-266Z" class="timestamp-link"><time datetime="2026-07-10T20:51:48.266Z" data-timestamp="2026-07-10T20:51:48.266Z">2026-07-10T20:51:48.266Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01A9KiQodobwj9oMCenGVKTk"><div class="tool-header"><span class="tool-icon">⚙</span> TaskCreate</div><div class="tool-description">Orthogonal to the agent-visibility workstream. Programmatically seed the user&#39;s LOCAL Plane dev environment with a plausible collection of live tasks + related entities for a demo, via Plane&#39;s REST API (workspaces/projects/work-items/cycles/modules/labels/members). Blocked on: base URL, API token/credentials, target workspace/project, desired scope/volume, and theme of the demo data. User will provide details. Do NOT run against any non-local/prod instance.</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subject&#34;: &#34;Populate local Plane dev env with demo data&#34;,
+  &#34;activeForm&#34;: &#34;Seeding local Plane demo data&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T20-51-48-296Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T20-51-48-296Z" class="timestamp-link"><time datetime="2026-07-10T20:51:48.296Z" data-timestamp="2026-07-10T20:51:48.296Z">2026-07-10T20:51:48.296Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Task #8 created successfully: Populate local Plane dev env with demo data</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T20-52-05-745Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T20-52-05-745Z" class="timestamp-link"><time datetime="2026-07-10T20:52:05.745Z" data-timestamp="2026-07-10T20:52:05.745Z">2026-07-10T20:52:05.745Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>Interactive wireframe:</strong> https://claude.ai/code/artifact/191f001d-d40f-4aa7-97ca-5ae132fbd46b — also saved at <code>docs/superpowers/specs/2026-07-10-agent-task-visibility-prototype.html</code> (uncommitted).</p>
+<p><strong>Speed:</strong> done now — freestanding single file, no repo deps. What you can <em>feel</em> in it:
+- Click <strong>Agents</strong> (top-right pip) → non-modal panel slides in. Ambient pip pulses + shows the active count.
+- A run <strong>advances step-by-step live</strong> (simulated stream). Completion is <strong>silent</strong> — just moves to "Recently done."
+- One run hits <strong>awaiting approval</strong> → the <em>only</em> thing that surfaces a notification (the one budgeted interrupt), pinned to top with inline <strong>Approve / Reject</strong>.
+- <strong>Stop</strong> cancels; click a run → detail with step timeline + a <strong>steer</strong> input; <code>Review changes →</code> on done runs.
+- Inline <strong>🤖 chip</strong> on the work item (shows the hybrid reach) → opens the panel focused on that run.
+- Demo controls (bottom): pause/resume stream, <strong>Simulate refresh</strong> (shows durability — rehydrates from snapshot), reset.</p>
+<p>Faithful to the contract (statuses, steps, progress, commands) so it reads as the real thing, not just boxes.</p>
+<hr />
+<p><strong>Demo-data task — yes, I can do that programmatically.</strong> Backgrounded as <strong>Task #8</strong>. Plane has a REST API (workspaces → projects → work items, plus cycles/modules/labels/states/members) with API-token auth, so a seeding script is straightforward. It's orthogonal — won't touch the agent-visibility work.</p>
+<p>Before I write anything, a few things I'll need (drop them whenever):</p>
+<ol>
+<li><strong>Endpoint + auth</strong> — local base URL (e.g. <code>http://localhost:8000</code>) and an API token (workspace/personal). Confirm it's a <strong>local dev</strong> instance only — I won't run seeding against anything non-local.</li>
+<li><strong>Target</strong> — existing workspace slug + project to seed into, or should the script create a fresh workspace/project?</li>
+<li><strong>Scope/volume</strong> — roughly how many projects / work items / cycles / members? A little (demo-sane, ~1 project, 20–30 items) or a fuller dataset?</li>
+<li><strong>Theme</strong> — what's the demo <em>about</em>? (e.g. "mobile app team mid-sprint", "SaaS bug triage".) Drives realistic titles/labels/states so it looks plausible on screen.</li>
+<li><strong>Agent-flavored?</strong> — since the demo may show agent visibility, want some items tagged/shaped to look like agent targets, or keep it generic Plane data?</li>
+</ol>
+<p>Answer those and I'll build + run the seeder against your local instance. No rush — it's queued.</p>
+<p>Meanwhile, back on the main workstream: plan's committed. Want to kick off execution (subagent-driven, task-by-task), or pause?</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-006.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

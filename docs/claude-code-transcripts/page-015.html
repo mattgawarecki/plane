@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 15</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 15/16</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-014.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<span class="current">15</span>
+<a href="page-016.html">16</a>
+<a href="page-016.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-07-10T23-54-19-075Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T23-54-19-075Z" class="timestamp-link"><time datetime="2026-07-10T23:54:19.075Z" data-timestamp="2026-07-10T23:54:19.075Z">2026-07-10T23:54:19.075Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Pip button style still isn't matching[Image #4]</p></div>
+<div class="image-block"><img src="data:image/png;base64,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" style="max-width: 100%"></div></div></div>
+<div class="message user" id="msg-2026-07-10T23-54-19-075Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T23-54-19-075Z" class="timestamp-link"><time datetime="2026-07-10T23:54:19.075Z" data-timestamp="2026-07-10T23:54:19.075Z">2026-07-10T23:54:19.075Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Image: source: /Users/mattgawarecki/.claude/image-cache/6f39fbeb-8fe0-450b-a115-779c01590288/4.png]</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T23-54-19-111Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T23-54-19-111Z" class="timestamp-link"><time datetime="2026-07-10T23:54:19.111Z" data-timestamp="2026-07-10T23:54:19.111Z">2026-07-10T23:54:19.111Z</time></a></div><div class="message-content">
+<div class="user-content"><p>We don't have that kind of time today, we'll have to punt.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-28-281Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-28-281Z" class="timestamp-link"><time datetime="2026-07-10T23:54:28.281Z" data-timestamp="2026-07-10T23:54:28.281Z">2026-07-10T23:54:28.281Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-28-314Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-28-314Z" class="timestamp-link"><time datetime="2026-07-10T23:54:28.314Z" data-timestamp="2026-07-10T23:54:28.314Z">2026-07-10T23:54:28.314Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Punt logged. The gap: "Manage widgets" is bigger — more vertical padding, <code>text-13</code>, larger radius; my pill is <code>px-2 py-1 text-11</code>. A later match, not today. Pinning it.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-28-347Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-28-347Z" class="timestamp-link"><time datetime="2026-07-10T23:54:28.347Z" data-timestamp="2026-07-10T23:54:28.347Z">2026-07-10T23:54:28.347Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015Z2qz6Nq4A4VL6EoUnm15L"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-open-questions.md&#34;,
+  &#34;offset&#34;: 108,
+  &#34;limit&#34;: 12
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T23-54-28-362Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T23-54-28-362Z" class="timestamp-link"><time datetime="2026-07-10T23:54:28.362Z" data-timestamp="2026-07-10T23:54:28.362Z">2026-07-10T23:54:28.362Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>108	    widgets&quot;).
+109	
+110	15. **In-panel Ask/Delegate dispatch input (not de-scoped, unbuilt).** Runs are
+111	    triggered today via `curl .../dispatch` or the CLI; the panel shows visibility
+112	    + recovery + the approval gate but has no field to *start* an Ask/Delegate from
+113	    the UI. Add a small input (textarea + submit → `POST /dispatch`) so the full
+114	    arc is drivable in-app. Low effort; the bridge route already exists. Decide
+115	    placement (dock footer vs. a &quot;＋ New&quot; affordance) and whether it streams the
+116	    answer (ties to #8).
+117	
+118	16. **Multi-provider LLM support (low priority, long-term).** The runtime is
+119	    Anthropic-only today (Tool Runner + Opus 4.8). Depending on one provider is</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-36-390Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-36-390Z" class="timestamp-link"><time datetime="2026-07-10T23:54:36.390Z" data-timestamp="2026-07-10T23:54:36.390Z">2026-07-10T23:54:36.390Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013LMPmne7rL1ZmobkjMDtei">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">2026-07-10-open-questions.md</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-open-questions.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">16. **Multi-provider LLM support (low priority, long-term).** The runtime is
+    Anthropic-only today (Tool Runner + Opus 4.8). Depending on one provider is</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">17. **Pip button doesn&#39;t visually match &#34;Manage widgets&#34; (punted).** The pip is a
+    bordered pill now, but smaller than the real header buttons: it uses
+    `px-2 py-1 text-11`, while &#34;Manage widgets&#34; is taller (more vertical padding),
+    `text-13`, larger radius, with a leading icon. Match the actual header-button
+    component instead of hand-rolling — the real one is in EE (the CE
+    `apps/web/ce/components/home/header.tsx` is a stub returning `&lt;&gt;&lt;/&gt;`), so find
+    the shared `@plane/ui`/`propel` Button variant those pills use and adopt it (or
+    reuse the component). Quick once the right component is located; deferred for time.
+
+16. **Multi-provider LLM support (low priority, long-term).** The runtime is
+    Anthropic-only today (Tool Runner + Opus 4.8). Depending on one provider is</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T23-54-36-432Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T23-54-36-432Z" class="timestamp-link"><time datetime="2026-07-10T23:54:36.432Z" data-timestamp="2026-07-10T23:54:36.432Z">2026-07-10T23:54:36.432Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-open-questions.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-39-051Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-39-051Z" class="timestamp-link"><time datetime="2026-07-10T23:54:39.051Z" data-timestamp="2026-07-10T23:54:39.051Z">2026-07-10T23:54:39.051Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-54-39-884Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-54-39-884Z" class="timestamp-link"><time datetime="2026-07-10T23:54:39.884Z" data-timestamp="2026-07-10T23:54:39.884Z">2026-07-10T23:54:39.884Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Pinned as <strong>#17</strong> — match the real EE header-button component (find the shared <code>@plane/ui</code>/propel Button variant those pills use) rather than hand-rolling padding/size. Pip stays as-is for now: clearly a button, just not pixel-matched. Moving on.</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T23-55-07-610Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T23-55-07-610Z" class="timestamp-link"><time datetime="2026-07-10T23:55:07.610Z" data-timestamp="2026-07-10T23:55:07.610Z">2026-07-10T23:55:07.610Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Check the demo script. Still valid?</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-55-12-606Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-55-12-606Z" class="timestamp-link"><time datetime="2026-07-10T23:55:12.606Z" data-timestamp="2026-07-10T23:55:12.606Z">2026-07-10T23:55:12.606Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-55-13-165Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-55-13-165Z" class="timestamp-link"><time datetime="2026-07-10T23:55:13.165Z" data-timestamp="2026-07-10T23:55:13.165Z">2026-07-10T23:55:13.165Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XfiegtzAe3oTpWYjJStPjr">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/mattgawarecki/projects/plane/docs/superpowers/specs; ls -1 *run-of-show* *demo* 2&gt;/dev/null; echo &#34;===&#34;; f=$(ls *run-of-show* 2&gt;/dev/null | head -1); echo &#34;FILE: $f&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T23-55-14-678Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T23-55-14-678Z" class="timestamp-link"><time datetime="2026-07-10T23:55:14.678Z" data-timestamp="2026-07-10T23:55:14.678Z">2026-07-10T23:55:14.678Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-07-10-agentic-demo-system-design.md
+2026-07-10-demo-run-of-show.md
+2026-07-10-demo-run-of-show.md
+===
+FILE: 2026-07-10-demo-run-of-show.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-55-16-935Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-55-16-935Z" class="timestamp-link"><time datetime="2026-07-10T23:55:16.935Z" data-timestamp="2026-07-10T23:55:16.935Z">2026-07-10T23:55:16.935Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01UyEaDQBNGWPhTdnSYEgEJY"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-demo-run-of-show.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T23-55-16-962Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T23-55-16-962Z" class="timestamp-link"><time datetime="2026-07-10T23:55:16.962Z" data-timestamp="2026-07-10T23:55:16.962Z">2026-07-10T23:55:16.962Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	# Agentic Plane — Demo Cheat-Sheet
+2	
+3	Live agent driving a real local Plane. Low-stakes, repeatable — glance at this while you run it.
+4	
+5	**Real vs prototype:** the live agent runs in a **terminal** (prints steps + an answer) and makes **real** reads/writes to Plane at `localhost:3000` — the gate is enforced inside the tool, so it can&#x27;t close anything without approval. The **panel / dispatch HTML mockups** are the _envisioned UI_, shown separately — they&#x27;re not wired to the runtime.
+6	
+7	## Pre-flight
+8	
+9	- Local Plane up: API `:8000`, web `:3000`. `.env.demo` at repo root (auto-loaded).
+10	- Seed once (idempotent): `pnpm --filter @plane/agents-demo exec tsx src/seed-cli.ts`
+11	- Browser: Plane web on the **Agent Demo** project. Optional: open the 3 prototype HTML files as &quot;the vision.&quot;
+12	- Big terminal font.
+13	
+14	```
+15	PROJECT=40e55ecc-cbc7-4f61-9cde-a7a59b16a73c
+16	```
+17	
+18	## The three beats (in order)
+19	
+20	**1 · Ask** — read-only, safe opener. Agent enumerates + prioritizes.
+21	
+22	```
+23	PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+24	  &quot;What&#x27;s in flight right now? Give me a short prioritized summary.&quot;
+25	```
+26	
+27	→ calls `list_work_items`, returns a prioritized read (flags the urgent webhook item; notes the epic stuck in backlog).
+28	
+29	**2 · Delegate** — writes. Cut to the Plane UI after to show the new sub-tasks appear.
+30	
+31	```
+32	PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+33	  &quot;Break down the &#x27;September billing close&#x27; epic into a set of well-scoped sub-tasks and create them.&quot;
+34	```
+35	
+36	→ creates 5 scoped sub-tasks under the epic.
+37	
+38	**3 · Gate** — the climax. Pause on `⚑ approval_requested`, say &quot;a live model, gated — it can&#x27;t do this alone,&quot; then it closes the 4 August items.
+39	
+40	```
+41	AGENT_APPROVE=yes PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+42	  &quot;My team finished the entire August close — every &#x27;August close&#x27; item is done and superseded. Close them out.&quot;
+43	```
+44	
+45	→ 4 &quot;August close&quot; items → `cancelled` (verify in the Plane UI).
+46	
+47	- Approval: `AGENT_APPROVE=yes|no` forces it (rehearsed run). Interactive terminal → `[y/N]` prompt. No TTY + no override → **default-deny** (safe — a good beat to show too).
+48	
+49	## Reset between runs
+50	
+51	Delete the **Agent Demo** project in Plane, then re-seed (the seed skips unless the project is gone):
+52	
+53	```
+54	pnpm --filter @plane/agents-demo exec tsx src/seed-cli.ts
+55	```
+56	
+57	## If a live call stalls or goes off-script
+58	
+59	Re-run the exact command above (they&#x27;re the tested prompts). Nothing destructive happens without approval. Worst case, walk the story on the prototype mockups (no network needed).
+60	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-55-40-167Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-55-40-167Z" class="timestamp-link"><time datetime="2026-07-10T23:55:40.167Z" data-timestamp="2026-07-10T23:55:40.167Z">2026-07-10T23:55:40.167Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-55-50-876Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-55-50-876Z" class="timestamp-link"><time datetime="2026-07-10T23:55:50.876Z" data-timestamp="2026-07-10T23:55:50.876Z">2026-07-10T23:55:50.876Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Read it. <strong>Partially valid</strong> — the terminal three-beats still run (runtime unchanged), but the script is now <em>underselling</em> and one framing line is outright wrong.</p>
+<h2>Stale / wrong</h2>
+<ul>
+<li><strong>Line 5 is false now.</strong> "The panel… mockups are the envisioned UI… not wired to the runtime." We wired it this session. There's a <strong>live web panel (the dock)</strong> driven by the bridge. The demo no longer needs to fall back to static HTML mockups.</li>
+<li><strong>No mention of the bridge or the web path at all.</strong> Missing: start <code>server.ts</code> (:4000), the <code>.env.local</code> flag (<code>VITE_ENABLE_AGENTS=1</code> + <code>VITE_AGENTS_API_BASE</code>), opening the dock, and driving runs via <code>curl :4000/dispatch</code>.</li>
+<li><strong>The Gate beat uses the terminal</strong> (<code>AGENT_APPROVE=yes</code> / <code>[y/N]</code>). The far stronger climax now: the gate surfaces <strong>in the web panel</strong> as an <strong>Approve/Reject</strong> button (real human-in-the-loop UI) — that's the whole point of the build.</li>
+<li><strong>Ports muddled</strong> — line 5 says web <code>:3000</code>, line 9 says API <code>:8000</code>; neither mentions the bridge <code>:4000</code>.</li>
+</ul>
+<h2>Still accurate</h2>
+<ul>
+<li><code>dispatch-cli.ts</code> three prompts (Ask / Delegate / Gate) — unchanged, still the tested path.</li>
+<li>Seed/reset flow, project id, default-deny behavior.</li>
+</ul>
+<h2>What it <em>should</em> be (recommend)</h2>
+<p>Two tracks, pick per audience:
+- <strong>Terminal track</strong> (current script) — fast, no browser, good fallback.
+- <strong>Live-panel track</strong> (new, the money shot): bridge up → dock open → <code>curl :4000/dispatch -d '{"request":"…"}'</code> for Ask/Delegate → runs appear live → Gate run hits <strong>Approve in the panel</strong> → items close. Now also shows: optimistic pause/resume, deferred-cancel with the draining Undo, bulk-dismiss.</p>
+<p>One caveat to bake in: <strong>in-app Ask/Delegate <em>input</em> isn't built yet</strong> (planned, punted) — so you still trigger via <code>curl</code>/CLI, not by typing in the panel.</p>
+<p>Want me to rewrite the cheat-sheet to the two-track version?</p></div></div></div>
+<div class="message user" id="msg-2026-07-10T23-55-56-841Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-07-10T23-55-56-841Z" class="timestamp-link"><time datetime="2026-07-10T23:55:56.841Z" data-timestamp="2026-07-10T23:55:56.841Z">2026-07-10T23:55:56.841Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Rewrite it.</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-56-21-138Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-56-21-138Z" class="timestamp-link"><time datetime="2026-07-10T23:56:21.138Z" data-timestamp="2026-07-10T23:56:21.138Z">2026-07-10T23:56:21.138Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-56-21-166Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-56-21-166Z" class="timestamp-link"><time datetime="2026-07-10T23:56:21.166Z" data-timestamp="2026-07-10T23:56:21.166Z">2026-07-10T23:56:21.166Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Rewriting to the two-track cheat-sheet:</p></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-56-50-793Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-56-50-793Z" class="timestamp-link"><time datetime="2026-07-10T23:56:50.793Z" data-timestamp="2026-07-10T23:56:50.793Z">2026-07-10T23:56:50.793Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01CscD2LSHbUovXZyiLd2qGC">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">2026-07-10-demo-run-of-show.md</span></div>
+<div class="file-tool-fullpath">/Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-demo-run-of-show.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Agentic Plane — Demo Cheat-Sheet
+
+Live agent driving a real local Plane. Low-stakes, repeatable — glance at this while you run it.
+
+**What&#39;s real:** a live model (Opus 4.8, Tool Runner) makes **real** reads/writes to Plane, and the **gate is enforced inside the tool** — it can&#39;t close anything without approval. Two ways to show it:
+
+- **Terminal track** — the agent prints steps + an answer in a terminal. Fast, no browser, bulletproof fallback.
+- **Live-panel track** — the same runs stream into the **web Agents panel** (the dock), and the gate surfaces as an in-UI **Approve/Reject** button. This is the money shot; the terminal is the safety net.
+
+Ports: Plane web `:3000`, Plane API `:8000`, agents bridge `:4000`.
+
+```
+PROJECT=40e55ecc-cbc7-4f61-9cde-a7a59b16a73c
+```
+
+## Pre-flight (both tracks)
+
+- Local Plane up (web `:3000`, API `:8000`). `.env.demo` at repo root (auto-loaded; holds `PLANE_*` + `ANTHROPIC_API_KEY`).
+- Seed once (idempotent): `pnpm --filter @plane/agents-demo exec tsx src/seed-cli.ts`
+- Big terminal font.
+
+## Pre-flight (live-panel track only)
+
+1. **Flag on.** `apps/web/.env.local` (gitignored) contains:
+   ```
+   VITE_ENABLE_AGENTS=1
+   VITE_AGENTS_API_BASE=http://localhost:4000
+   ```
+   If you just created/edited it, **restart** `pnpm --filter web dev` (Vite reads env at start).
+2. **Start the bridge** (serves runs + accepts commands on `:4000`):
+   ```
+   PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/server.ts
+   ```
+   `curl -s localhost:4000/health` → `{&#34;ok&#34;:true}`.
+3. **Open the dock.** Browse Plane to a workspace page → click the **Agents** pip (top-right) → the panel slides in as a rounded side-panel.
+   - ⚠️ **Gotcha:** the bridge serves one workspace (its `cfg.workspace`, from `loadConfig`/`.env.demo`). The panel fetches `/api/workspaces/&lt;url-slug&gt;/agent-runs/`, so the **workspace slug in your browser URL must match the bridge&#39;s workspace** — otherwise the panel stays empty (404). Set them to the same slug.
+
+## The three beats (in order)
+
+Each beat can be driven **either** way. Terminal = `dispatch-cli.ts`. Live-panel = `curl` to the bridge; the run appears in the dock within ~2.5s (poll) and advances live.
+
+**1 · Ask** — read-only, safe opener. Agent enumerates + prioritizes.
+
+- Terminal:
+  ```
+  PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+    &#34;What&#39;s in flight right now? Give me a short prioritized summary.&#34;
+  ```
+- Live-panel:
+  ```
+  curl -s localhost:4000/dispatch -d &#39;{&#34;request&#34;:&#34;What is in flight right now? Give me a short prioritized summary.&#34;}&#39;
+  ```
+  → run surfaces → advances → lands `succeeded`; the answer shows as the row summary.
+
+→ calls `list_work_items`, returns a prioritized read (flags the urgent webhook item; notes the epic stuck in backlog).
+
+**2 · Delegate** — writes. Cut to the Plane UI after to show the new sub-tasks appear.
+
+- Terminal:
+  ```
+  PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+    &#34;Break down the &#39;September billing close&#39; epic into a set of well-scoped sub-tasks and create them.&#34;
+  ```
+- Live-panel:
+  ```
+  curl -s localhost:4000/dispatch -d &#39;{&#34;request&#34;:&#34;Break down the September billing close epic into well-scoped sub-tasks and create them.&#34;}&#39;
+  ```
+
+→ creates 5 scoped sub-tasks under the epic.
+
+**3 · Gate** — the climax. The `bulk_close` tool blocks on approval.
+
+- Terminal (rehearsed): `AGENT_APPROVE=yes` forces it; interactive TTY → `[y/N]` prompt; no TTY + no override → **default-deny** (a good beat to show too).
+  ```
+  AGENT_APPROVE=yes PLANE_PROJECT_ID=$PROJECT pnpm --filter @plane/agents-demo exec tsx src/dispatch-cli.ts \
+    &#34;My team finished the entire August close — every &#39;August close&#39; item is done and superseded. Close them out.&#34;
+  ```
+- **Live-panel (the money shot):**
+  ```
+  curl -s localhost:4000/dispatch -d &#39;{&#34;request&#34;:&#34;My team finished the entire August close — every August close item is done and superseded. Close them out.&#34;}&#39;
+  ```
+  → the run enters **&#34;Needs you&#34;** at the top of the panel with an **Approve / Reject** button. Say _&#34;a live model, gated — it can&#39;t do this alone.&#34;_ Click **Approve** → it closes the 4 August items.
+
+→ 4 &#34;August close&#34; items → `cancelled` (verify in the Plane UI).
+
+## Extra beats the panel now shows (optional color)
+
+- **Pause / Resume** a running run — reflects **instantly** (optimistic), reconciles on the next poll.
+- **Cancel** a paused/queued run — a **draining fill** sweeps the Undo button over 5s; click to undo (guaranteed while visible). Let it run out to commit.
+- **Clear all** / per-row ✕ in &#34;Recently done&#34; to tidy the list.
+
+## Reset between runs
+
+Delete the **Agent Demo** project in Plane, then re-seed (the seed skips unless the project is gone):
+
+```
+pnpm --filter @plane/agents-demo exec tsx src/seed-cli.ts
+```
+
+## If a live call stalls or goes off-script
+
+- Re-run the exact command (they&#39;re the tested prompts). Nothing destructive happens without approval.
+- Panel empty? Check `curl :4000/health`, the flag/restart, and the **workspace-slug match** gotcha above.
+- Worst case, drop to the **terminal track** — same runtime, no browser, always works.
+
+## Not yet built (say if asked)
+
+- **Typing an Ask/Delegate in the panel** — the input UI is planned/punted; today you trigger via `curl`/CLI. Runs and the gate *are* fully in-panel.
+- **Real-time transport** — the panel polls (2.5s) today; the WebSocket client is built but off, SSE is the planned upgrade. Feels live enough at demo scale.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-07-10T23-56-50-829Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-07-10T23-56-50-829Z" class="timestamp-link"><time datetime="2026-07-10T23:56:50.829Z" data-timestamp="2026-07-10T23:56:50.829Z">2026-07-10T23:56:50.829Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/mattgawarecki/projects/plane/docs/superpowers/specs/2026-07-10-demo-run-of-show.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-56-53-193Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-56-53-193Z" class="timestamp-link"><time datetime="2026-07-10T23:56:53.193Z" data-timestamp="2026-07-10T23:56:53.193Z">2026-07-10T23:56:53.193Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-07-10T23-56-58-519Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-07-10T23-56-58-519Z" class="timestamp-link"><time datetime="2026-07-10T23:56:58.519Z" data-timestamp="2026-07-10T23:56:58.519Z">2026-07-10T23:56:58.519Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Rewritten — <strong><code>2026-07-10-demo-run-of-show.md</code></strong>, now two-track.</p>
+<p>Key changes:
+- <strong>Killed the false "not wired" line.</strong> Reframed as <strong>Terminal track</strong> (fallback) + <strong>Live-panel track</strong> (money shot).
+- <strong>Added the live-panel pre-flight</strong>: <code>.env.local</code> flag + restart, <code>curl :4000/health</code> bridge start, open the dock, and the <strong>workspace-slug-must-match-the-bridge</strong> gotcha (else empty panel).
+- <strong>Each beat now has both drivers</strong> — <code>dispatch-cli.ts</code> <em>and</em> <code>curl :4000/dispatch</code>.
+- <strong>Gate is the in-UI climax</strong>: run enters "Needs you" → <strong>Approve</strong> button → items close (terminal <code>AGENT_APPROVE</code> kept as rehearsed fallback).
+- <strong>New optional beats</strong>: optimistic Pause/Resume, the draining-Undo cancel, Clear-all.
+- <strong>Ports fixed</strong> (web :3000 / API :8000 / bridge :4000) and a <strong>"Not yet built"</strong> footer (no in-panel input; polling not real-time yet) so nothing surprises you live.</p>
+<p>Terminal three-beats + seed/reset/project-id preserved verbatim.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-014.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<span class="current">15</span>
+<a href="page-016.html">16</a>
+<a href="page-016.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
