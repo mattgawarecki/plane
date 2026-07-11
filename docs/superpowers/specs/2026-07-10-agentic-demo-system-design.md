@@ -7,6 +7,8 @@
 - `docs/superpowers/specs/2026-07-10-agent-task-visibility-design.md` (the panel + `@plane/agents` contract)
 - `docs/superpowers/plans/2026-07-10-agent-demo-simulator.md` (Plane API client + run-journal + scenarios)
 
+> **⚠️ Implementation status (updated 2026-07-10):** This design shipped closely — the LLM Tool Runner runtime, the Plane tools, and the `bulk_close` approval gate are all as described (`packages/agents-demo/src/runtime/{dispatch,tools}.ts`). Two details differ. **Transport:** the runtime does **not** stream SSE to the client. It emits events into an in-memory `TAgentCollectionState` held by a `node:http` bridge on `:4000` (`packages/agents-demo/src/server.ts`), and the web panel **polls** it every 2500ms — no `EventSource`/SSE code exists, so the "SSE-direct" references below are the design's original intent, not what shipped. **Dispatch UI:** the in-app composer shipped as a single dock-footer input (`apps/web/ce/components/agents/agent-dispatch-input.tsx`, mounted in `agents-dock.tsx`) calling `store.dispatch → POST /dispatch`; the separate wide-vs-mobile responsive presentations described below were not built.
+
 ## Goal
 
 A live, on-stage demo of "an agentic Plane": the user types a natural-language

@@ -8,6 +8,12 @@
 
 **Tech Stack:** TypeScript, tsdown, Vitest, MobX / mobx-react, SWR, axios (via `@plane/services` `APIService`), `@plane/propel` + `@plane/ui` components, `apps/live` (Node + `ws` + Redis).
 
+> **⚠️ Implementation status (updated 2026-07-10):** The build diverged from this plan in three ways — treat the code snippets below as illustrative of intent, not the shipped source.
+>
+> 1. **Transport is HTTP polling, not the `apps/live` WebSocket relay.** The panel re-`GET`s the run snapshot every 2500ms (`apps/web/ce/components/agents/agents-panel.tsx:32`) and the ambient count uses SWR at 45s (`apps/web/ce/hooks/agents/use-agent-count.ts:27`). The `WebSocket` transport (Task 8) was built but mounts dormant (`useAgentSubscription({ enabled: false })`), and **Phase 4's `apps/live` agent-events channel was never built** — a private `@plane/agents-demo` HTTP bridge on `:4000` (`packages/agents-demo/src/server.ts`) serves the poll instead. SSE is a noted future upgrade, not implemented (no `EventSource` in the tree).
+> 2. **Design tokens migrated.** The shipped agents UI uses semantic/numeric Tailwind tokens (`surface-1/2`, `text-primary/secondary/tertiary/placeholder`, `border-subtle`, `text-accent-primary`, `text-13/11/10`). The `custom-background/text/border-*` and `text-sm/xs` classes throughout the snippets below are **dead** — the build resets `--text-*: initial` (`packages/tailwind-config/variables.css:1001`).
+> 3. **Optimistic UI shipped for reversible commands.** The "no optimistic terminal transitions" rule (Constraint below) still holds for approve/reject, but pause/resume/cancel now paint an optimistic status overlay reconciled on the next poll (`apps/web/ce/store/agents/agent.store.ts:30-34,100`) — the backlogged "Optimistic UI for reversible commands" is done.
+
 ## Global Constraints
 
 - Package name/namespace: `@plane/agents`; `"version": "1.3.1"`; `"private": true`; `"license": "AGPL-3.0"`; `"type": "module"`.

@@ -5,6 +5,11 @@
 **Package:** `@plane/agents` (scaffolded)
 **Visual pre-draft:** https://claude.ai/code/artifact/1c0120b3-3e62-45df-acb9-d6d337204f69
 
+> **⚠️ Implementation status (updated 2026-07-10):** The shipped feature realizes this design's shape — pure `@plane/agents` core + thin web adapters, client-as-projection, flag-gated, no core edits — but differs on transport and adds optimistic UI.
+>
+> - **Transport:** the live path is **HTTP polling**, not the `apps/live` WebSocket relay described below. The panel re-`GET`s the snapshot every 2500ms (`apps/web/ce/components/agents/agents-panel.tsx:32`) and the ambient count polls via SWR at 45s (`apps/web/ce/hooks/agents/use-agent-count.ts:27`). The `IAgentEventTransport` WebSocket adapter was built but is **dormant** (`useAgentSubscription({ enabled: false })`), and the `apps/live` agent-events channel was **not built** — a private `@plane/agents-demo` HTTP bridge on `:4000` (`packages/agents-demo/src/server.ts`) serves the poll. SSE is a future direction, no `EventSource` exists. The sections below on sockets, coalescing, and reconnect describe the still-intended production transport, now deferred.
+> - **Optimistic UI:** the store now applies an optimistic status overlay for the reversible commands pause/resume/cancel (reconciled on the next poll — `apps/web/ce/store/agents/agent.store.ts:30-34,100`); approve/reject stay server-authoritative. So "no optimistic terminal transitions for irreversible commands" (below) still holds, and the Backlog item "Optimistic UI for reversible commands" has **shipped** for those three.
+
 ## Goal
 
 Give Plane users calm visibility into long-running, autonomous agent tasks — the

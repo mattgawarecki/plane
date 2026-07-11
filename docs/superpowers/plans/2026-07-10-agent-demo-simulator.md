@@ -5,6 +5,8 @@
 **Relationship:** demo-only companion to the [Agent Task Visibility design](../specs/2026-07-10-agent-task-visibility-design.md) and its [implementation plan](./2026-07-10-agent-task-visibility.md). Reuses the `@plane/agents` contract (`TAgentRun` / `TAgentEvent` / `TAgentCommand`) as its output shape.
 **Target:** LOCAL dev only. Web `http://localhost:3000`, API `http://localhost:8000`, workspace slug `klarity`.
 
+> **⚠️ Implementation status (updated 2026-07-10):** This scripted-simulator plan was **superseded** during implementation — read the sections below as historical design. The shipped `@plane/agents-demo` package is a **real-LLM runtime** (Anthropic Tool Runner over `claude-opus-4-8` — `packages/agents-demo/src/runtime/dispatch.ts` · `tools.ts`), not the deterministic, no-LLM scenario engine described here (see `../specs/2026-07-10-agentic-demo-system-design.md`). Two premises below are now stale: (1) **the runs backend now exists** — `packages/agents-demo/src/server.ts` is a `node:http` bridge on `:4000` serving exactly `GET/POST /api/workspaces/:ws/agent-runs/…` and `POST /dispatch` (so O2 is **resolved**); (2) **transport is HTTP polling**, not the `apps/live` / `ws-mock` channel — the web panel polls the bridge every 2500ms (`apps/web/ce/components/agents/agents-panel.tsx:32`). The `apps/live` agent-events relay was never built; the `WebSocket` transport that does exist is dormant (`useAgentSubscription({ enabled: false })`).
+
 ---
 
 ## 1. Goal & non-goals
@@ -218,7 +220,7 @@ Mapping rules:
 2. `file` — appends NDJSON of `TAgentEvent`s to `./out/<runId>.ndjson` (replayable).
 3. `ws-mock` — a tiny local WebSocket server that broadcasts the same `TAgentEvent` envelopes the future `apps/live` agent-events channel will carry. A dev build of the panel pointed at this socket would render the simulated run **live**, with zero UI changes. This is the bridge that makes "this simulator could later feed the real Agents panel" literally true.
 
-> **Open question O2 — no runs backend exists yet.** The sibling plan's `AgentService` targets `/api/workspaces/{ws}/agent-runs/…`, which **is not implemented in the repo** (the visibility backend is "pre-supposed"). So the simulator cannot POST runs to Plane; it _owns_ the run journal and exposes it via the feed sinks above. When the real backend + `apps/live` channel land, swap `ws-mock` for the real relay. Flagged, not invented.
+> **Open question O2 — no runs backend exists yet. [RESOLVED 2026-07-10]** _At plan time_ the sibling plan's `AgentService` target `/api/workspaces/{ws}/agent-runs/…` was not implemented in the repo. It **now is**: `packages/agents-demo/src/server.ts` is an in-memory HTTP bridge on `:4000` serving those routes, which the web panel **polls** (no `ws-mock` / `apps/live` relay was built). The original text follows. ~~The sibling plan's `AgentService` targets `/api/workspaces/{ws}/agent-runs/…`, which **is not implemented in the repo** (the visibility backend is "pre-supposed"). So the simulator cannot POST runs to Plane; it _owns_ the run journal and exposes it via the feed sinks above. When the real backend + `apps/live` channel land, swap `ws-mock` for the real relay. Flagged, not invented.~~
 
 ---
 
@@ -341,7 +343,7 @@ Each scenario below lists: **trigger**, **API sequence** (real endpoints from §
 ## 10. Open questions / unconfirmed
 
 - **O1 — RESOLVED.** Both `cycle-issues` and `module-issues` create bodies are confirmed `{ "issues": [<uuid>, …] }` (`CycleIssueRequestSerializer` `cycle.py:176`; `ModuleIssueRequestSerializer` `module.py:274`). No longer an open question.
-- **O2 — no runs backend.** There is no `agent-runs` REST endpoint in the repo (the visibility backend is pre-supposed). The simulator therefore _owns_ the `TAgentRun`/`TAgentEvent` journal and surfaces it via console/file/`ws-mock` sinks; it cannot POST runs to Plane until that backend + the `apps/live` channel exist.
+- **O2 — no runs backend. [RESOLVED 2026-07-10]** An `agent-runs` REST surface now exists: `packages/agents-demo/src/server.ts` (the HTTP bridge on `:4000`) serves `GET/POST /api/workspaces/:ws/agent-runs/…`, and the web panel **polls** it. The `apps/live` agent-events channel was never built. _(Originally: there is no `agent-runs` REST endpoint in the repo; the simulator owns the `TAgentRun`/`TAgentEvent` journal and surfaces it via console/file/`ws-mock` sinks.)_
 - **O3 — estimate points.** `estimate_point` requires an estimate to be configured on the project. If the demo project has no estimate, skip `estimate_point` (leave `null`) or have `seed-world` create one via `/estimates/` first. Confirm the demo project's estimate setup before enabling estimate-setting steps.
 - **O4 — `description_html` / `comment_html` sanitization.** Both pass through `validate_html_content`; the exact allowed tag/attribute set was not enumerated. Keep generated HTML to a conservative subset (`<p><ul><ol><li><strong><em><h3><a>`), and verify a sample round-trips unaltered before the demo.
 - **O5 — API token scope.** Personal API tokens are workspace-scoped; confirm the token's user is a **member of the demo project** (assignee/label/state validation in `IssueSerializer` checks project membership) or writes referencing members will 400.

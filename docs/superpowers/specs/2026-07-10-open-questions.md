@@ -79,7 +79,52 @@ Parked mid-implementation. Each has a quick lean; none blocks current work.
     - **Reduced motion:** pulse is already `motion-safe`; audit any other motion.
       Ties to pin #4 (mobile full-screen variant is where big targets matter most).
 
-11. **Multi-provider LLM support (low priority, long-term).** The runtime is
+## Round 3
+
+12. **Optimistic local UI state (ahead of server).** Today `runCommand` is
+    deliberately non-optimistic — the panel reflects a transition only when the
+    backend echoes an event (no optimistic terminal transitions). Open: should
+    _local_ UI state update optimistically while server state lags (e.g. a
+    button's pressed/pending look, an immediate "pausing…" label), then reconcile
+    when the event lands and roll back on failure? The reducer's `sequence` +
+    snapshot refetch already make rollback safe; this is a UX call about which
+    actions feel better with instant local feedback vs. which must stay
+    authoritative (irreversible ones — approve/reject — probably wait for server).
+
+13. **Cancel-timeout fill animation.** The deferred-cancel Undo window is 5s
+    (`CANCEL_UNDO_MS`). Visualize the countdown: the "↩ Undo stop" button's fill
+    "drains" (color sweeps to a darker/lighter shade like a progress bar) over the
+    5s until it's full and the cancel commits. Make it `motion-safe` (respect
+    reduced-motion → fall back to a static label or numeric countdown). Small,
+    self-contained CSS/`requestAnimationFrame` win; ties to pin #4 (relaxed-latency
+    animations) and #10 (reduced-motion audit).
+
+14. **Font family/size alignment.** The panel + pip type read large and off-family
+    vs. the surrounding UI. Partially addressed (pip dropped `text-sm`→`text-xs`;
+    the dead-token/overlay context likely inflated the earlier render). Do a proper
+    pass: confirm the components inherit Plane's `--font-sans`, and align sizes to
+    the app's list/header scale (row title, section labels, meta) rather than ad-hoc
+    `text-sm`/`text-xs`. Verify against a real neighbor control (e.g. "Manage
+    widgets").
+
+15. **In-panel Ask/Delegate dispatch input (not de-scoped, unbuilt).** Runs are
+    triggered today via `curl .../dispatch` or the CLI; the panel shows visibility
+    - recovery + the approval gate but has no field to _start_ an Ask/Delegate from
+      the UI. Add a small input (textarea + submit → `POST /dispatch`) so the full
+      arc is drivable in-app. Low effort; the bridge route already exists. Decide
+      placement (dock footer vs. a "＋ New" affordance) and whether it streams the
+      answer (ties to #8).
+
+16. **Pip button doesn't visually match "Manage widgets" (punted).** The pip is a
+    bordered pill now, but smaller than the real header buttons: it uses
+    `px-2 py-1 text-11`, while "Manage widgets" is taller (more vertical padding),
+    `text-13`, larger radius, with a leading icon. Match the actual header-button
+    component instead of hand-rolling — the real one is in EE (the CE
+    `apps/web/ce/components/home/header.tsx` is a stub returning `<></>`), so find
+    the shared `@plane/ui`/`propel` Button variant those pills use and adopt it (or
+    reuse the component). Quick once the right component is located; deferred for time.
+
+17. **Multi-provider LLM support (low priority, long-term).** The runtime is
     Anthropic-only today (Tool Runner + Opus 4.8). Depending on one provider is
     neither reliable enough (outages) nor appropriate for all customers (budget,
     self-host/fine-tuning, trade/regulatory constraints, data-residency). Long
